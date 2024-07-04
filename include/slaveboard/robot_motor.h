@@ -1,3 +1,5 @@
+#ifdef SLAVE_BOARD
+
 #ifndef RobotMotor_h
 #define RobotMotor_h
 
@@ -9,7 +11,7 @@
 #define DRIVE_MOTOR_PWM_FREQUENCY 50
 
 /**
- * This enum exists to discretize between different driving modes that a motor can be in
+ * \brief This enum exists to discretize between different driving modes that a motor can be in
  */
 enum driveMode { forward, reverse, none };
 
@@ -55,5 +57,7 @@ class RobotMotor {
          */
         driveMode report_drive();
 };
+
+#endif
 
 #endif

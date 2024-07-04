@@ -1,4 +1,6 @@
-#include <robot_motor.h>
+#ifdef SLAVE_BOARD
+
+#include <slaveboard/robot_motor.h>
 
 RobotMotor::RobotMotor(PinName forwardPin, PinName reversePin) {
     pinMode(forwardPin, OUTPUT);
@@ -36,3 +38,5 @@ void RobotMotor::stop() {
 driveMode RobotMotor::report_drive() {
     return currentState;
 }
+
+#endif
