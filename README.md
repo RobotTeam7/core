@@ -12,14 +12,7 @@
 2. Add board-agnostic code in `src/common` and `include/common`. Be careful, as functions such as `pwm_start` are for BluePill, not ESP32. 
 3. Create a new environment in `platformio.ini` such as `[env:new_board]`. Define a build flag with `build_flags = -D NEW_BOARD`. 
 4. Specify what folders should be compiled to be flashed. If you need `common` and your `new_board`, add `build_src_filter = +<common/*> +<new_board/*>` to the environment.
-5. Wrap all board-specific code and declarations in the build flag you created:
-```cpp
-#ifdef NEW_BOARD
 
-// your code here
-
-#endif
-```
 
 ### Compiling and Uploading
 1. If you're using VSCode, ensure to change the active environment by clicking `Default (core)`, or whatever environment is active, on the bottom taskbar and select your new environment. Now, you can compile and upload as usual.

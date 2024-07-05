@@ -1,5 +1,4 @@
-#ifdef SLAVE_BOARD
-
+// Firmware designed for BluePill
 #ifndef RobotMotor_h
 #define RobotMotor_h
 
@@ -7,6 +6,7 @@
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 #include <math.h>
+#include <common/pwm.h>
 
 #define DRIVE_MOTOR_PWM_FREQUENCY 50
 
@@ -21,16 +21,16 @@ enum driveMode { forward, reverse, none };
  * \details Use this class to bind forward and reverse pins, and control the motor abstractly through simple commands.
  */
 class RobotMotor {
-    PinName boundForwardPin;  // Pin responsible for delivering a "drive forward" pulse train
-    PinName boundReversePin;  // Pin responsible for delivering a "drive reverse" pulse train
+    int boundForwardPin;        // Pin responsible for delivering a "drive forward" pulse train
+    int boundReversePin;        // Pin responsible for delivering a "drive reverse" pulse train
     driveMode currentState;  
-    uint16_t currentDrive;    // 0 – 65535
+    uint16_t currentDrive;      // 0 – 65535
 
     public:
         /**
          * \brief Instantiate a motor, binding `forwardPin` and `reversePin` to it. The pins will be configured as necessary.
          */
-        RobotMotor(PinName forwardPin, PinName reversePin);
+        RobotMotor(int forwardPin, int reversePin);
 
         /**
          * \brief Instantiate an "empty" motor, unbound to any pins.
@@ -57,7 +57,5 @@ class RobotMotor {
          */
         driveMode report_drive();
 };
-
-#endif
 
 #endif
