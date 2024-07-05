@@ -1,16 +1,12 @@
 #include <common/robot_motor.h>
+#include <common/pin.h>
 
-RobotMotor::RobotMotor(int forwardPin, int reversePin) {
+RobotMotor::RobotMotor(uint8_t forwardPin, uint8_t reversePin) {
     pwm::bind_pwm(forwardPin);
     pwm::bind_pwm(reversePin);
 
     this->boundForwardPin = forwardPin;
-    this->boundReversePin = reversePin;
-    this->currentState = none;
-    this->currentDrive = 0;
-}
-
-RobotMotor::RobotMotor() {
+    this->boundReversePin = boundReversePin;
     this->currentState = none;
     this->currentDrive = 0;
 }
@@ -27,6 +23,7 @@ void RobotMotor::set_drive(uint16_t driveValue, driveMode direction) {
 
     currentState = direction;
     currentDrive = driveValue;
+
 }
 
 void RobotMotor::stop() {

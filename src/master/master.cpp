@@ -1,8 +1,10 @@
 #include <Arduino.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include <common/channel_manager.h>
+#include <common/resource_manager.h>
 #include <common/pwm.h>
+#include <common/pin.h>
+#include <common/robot_motor.h>
 
 #define step 7
 #define dir 5
@@ -36,11 +38,16 @@ void setup() {
     Serial.println("Beginning...");
 //   xTaskCreate(&getChannel, "getChannel", 2048, NULL, 5, NULL);
 //   digitalWrite(dir, HIGH);
+    // Pin pin3(7);
 
-    pwm::bind_pwm(step);
-    pwm::bind_pwm(dir);
-    pwm::set_pwm(step, 16000);
-    pwm::set_pwm(dir, 32000);
+    // pwm::bind_pwm(pin1.getNumber());
+    // pwm::bind_pwm(pin3.getNumber());
+    // pwm::set_pwm(pin1.getNumber(), 16000);
+    // pwm::set_pwm(pin3.getNumber(), 32000);
+
+    RobotMotor motor = RobotMotor(step, dir);
+    Serial.println("here");
+    motor.set_drive(16000, forward);
 }
 
 void loop() {
