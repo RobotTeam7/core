@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.11.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>My Project: core</title>
+<title>My Project: Core</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -84,10 +84,32 @@ $(function(){ initResizable(false); });
 </div><!-- top -->
 <div id="doc-content">
 <div><div class="header">
-  <div class="headertitle"><div class="title">core</div></div>
+  <div class="headertitle"><div class="title">Core</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md0"></a>Core firmware and components </p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md0"></a> </p>
+<h1><a class="anchor" id="autotoc_md1"></a>
+Components</h1>
+<ol type="1">
+<li>Slaveboard: BluePill-based board that will control motors and actuators.</li>
+<li>Robot: ESP32-based board that will direct the robot</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md2"></a>
+Adding a new component</h1>
+<h2><a class="anchor" id="autotoc_md3"></a>
+Setup</h2>
+<ol type="1">
+<li>Create a new folder in <code>src</code>, such as <code>new_board</code>, for the board-specific source code, and header files in <code>include</code> if necessary.</li>
+<li>Add board-agnostic code in <code>src/common</code> and <code>include/common</code>. Be careful, as functions such as <code>pwm_start</code> are for BluePill, not ESP32.</li>
+<li>Create a new environment in <code>platformio.ini</code> such as <code>[env:new_board]</code>. Define a build flag with <code>build_flags = -D NEW_BOARD</code>.</li>
+<li>Specify what folders should be compiled to be flashed. If you need <code>common</code> and your <code>new_board</code>, add <code>build_src_filter = +&lt;common/*&gt; +&lt;new_board/*&gt;</code> to the environment.</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md4"></a>
+Compiling and Uploading</h2>
+<ol type="1">
+<li>If you're using VSCode, ensure to change the active environment by clicking <code>Default (core)</code>, or whatever environment is active, on the bottom taskbar and select your new environment. Now, you can compile and upload as usual.</li>
+<li>Otherwise, or optionally, run <code>pio run -e new_board -t upload</code> to compile and upload. Similarly, run <code>pio monitor -e new_board</code> to activate the serial monitor for your new board. </li>
+</ol>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 <!-- start footer part -->

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.11.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>My Project: Member List</title>
+<title>My Project: include/common/pwm.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -81,20 +81,32 @@ $(function(){ initResizable(false); });
 </div>
 </div>
 
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_0966d06610f72609fd9aa4979c2b5a92.html">common</a></li>  </ul>
+</div>
 </div><!-- top -->
 <div id="doc-content">
 <div class="header">
-  <div class="headertitle"><div class="title">RobotMotor Member List</div></div>
+  <div class="headertitle"><div class="title">pwm.h</div></div>
 </div><!--header-->
 <div class="contents">
-
-<p>This is the complete list of members for <a class="el" href="class_robot_motor.html">RobotMotor</a>, including all inherited members.</p>
-<table class="directory">
-  <tr class="even"><td class="entry"><a class="el" href="class_robot_motor.html#a496f00e2bbacd6597546478a6f200802">report_drive</a>()</td><td class="entry"><a class="el" href="class_robot_motor.html">RobotMotor</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="class_robot_motor.html#abd57e11e518b7972245030e55e3456ff">RobotMotor</a>(uint8_t forwardPin, uint8_t reversePin)</td><td class="entry"><a class="el" href="class_robot_motor.html">RobotMotor</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_robot_motor.html#a07a2ff2b85302459b8dd74db87505dd0">set_drive</a>(uint16_t driveValue, driveMode direction)</td><td class="entry"><a class="el" href="class_robot_motor.html">RobotMotor</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="class_robot_motor.html#ae9ec2fd6055bcb7d5d6412f161a0da42">stop</a>()</td><td class="entry"><a class="el" href="class_robot_motor.html">RobotMotor</a></td><td class="entry"></td></tr>
-</table></div><!-- contents -->
+<div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef INDEPENDENT_PWM_H</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define INDEPENDENT_PWM_H</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="foldopen" id="foldopen00005" data-start="{" data-end="}">
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno"><a class="line" href="namespacepwm.html">    5</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacepwm.html">pwm</a> {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno"><a class="line" href="namespacepwm.html#af9ae2bce57bc48bc4aaf79bcaf3533d8">   10</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="namespacepwm.html#af9ae2bce57bc48bc4aaf79bcaf3533d8">bind_pwm</a>(<span class="keywordtype">int</span> pin);</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="namespacepwm.html#adf1c05cc0e9844c64350d0f8aa1aad58">   17</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="namespacepwm.html#adf1c05cc0e9844c64350d0f8aa1aad58">set_pwm</a>(<span class="keywordtype">int</span> pin, <span class="keywordtype">int</span> power);</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>}</div>
+</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="anamespacepwm_html"><div class="ttname"><a href="namespacepwm.html">pwm</a></div><div class="ttdoc">Namespace containing methods for PWM signal control.</div><div class="ttdef"><b>Definition</b> pwm.h:5</div></div>
+<div class="ttc" id="anamespacepwm_html_adf1c05cc0e9844c64350d0f8aa1aad58"><div class="ttname"><a href="namespacepwm.html#adf1c05cc0e9844c64350d0f8aa1aad58">pwm::set_pwm</a></div><div class="ttdeci">void set_pwm(int pin, int power)</div><div class="ttdoc">Set the drive power of a PWM emitting pin.</div></div>
+<div class="ttc" id="anamespacepwm_html_af9ae2bce57bc48bc4aaf79bcaf3533d8"><div class="ttname"><a href="namespacepwm.html#af9ae2bce57bc48bc4aaf79bcaf3533d8">pwm::bind_pwm</a></div><div class="ttdeci">void bind_pwm(int pin)</div><div class="ttdoc">Bind a pin to become a PWM signal emitter.</div></div>
+</div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.11.0

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['robotmotor_0',['RobotMotor',['../class_robot_motor.html',1,'']]]
+  ['channelmanager_0',['ChannelManager',['../class_channel_manager.html',1,'']]]
 ];

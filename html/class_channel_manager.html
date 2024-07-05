@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.11.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>My Project: Member List</title>
+<title>My Project: ChannelManager Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -84,17 +84,60 @@ $(function(){ initResizable(false); });
 </div><!-- top -->
 <div id="doc-content">
 <div class="header">
-  <div class="headertitle"><div class="title">RobotMotor Member List</div></div>
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
+<a href="class_channel_manager-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">ChannelManager Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>This is the complete list of members for <a class="el" href="class_robot_motor.html">RobotMotor</a>, including all inherited members.</p>
-<table class="directory">
-  <tr class="even"><td class="entry"><a class="el" href="class_robot_motor.html#a496f00e2bbacd6597546478a6f200802">report_drive</a>()</td><td class="entry"><a class="el" href="class_robot_motor.html">RobotMotor</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="class_robot_motor.html#abd57e11e518b7972245030e55e3456ff">RobotMotor</a>(uint8_t forwardPin, uint8_t reversePin)</td><td class="entry"><a class="el" href="class_robot_motor.html">RobotMotor</a></td><td class="entry"></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="class_robot_motor.html#a07a2ff2b85302459b8dd74db87505dd0">set_drive</a>(uint16_t driveValue, driveMode direction)</td><td class="entry"><a class="el" href="class_robot_motor.html">RobotMotor</a></td><td class="entry"></td></tr>
-  <tr class="odd"><td class="entry"><a class="el" href="class_robot_motor.html#ae9ec2fd6055bcb7d5d6412f161a0da42">stop</a>()</td><td class="entry"><a class="el" href="class_robot_motor.html">RobotMotor</a></td><td class="entry"></td></tr>
-</table></div><!-- contents -->
+<p>A Singleton that manages PWM emission channels.  
+ <a href="#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="resource__manager_8h_source.html">resource_manager.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a63eea1e86dde20b8234730d4809cf8ec" id="r_a63eea1e86dde20b8234730d4809cf8ec"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a63eea1e86dde20b8234730d4809cf8ec">requestChannel</a> ()</td></tr>
+<tr class="memdesc:a63eea1e86dde20b8234730d4809cf8ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Request a new channel.  <br /></td></tr>
+<tr class="separator:a63eea1e86dde20b8234730d4809cf8ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:a392f6ab8283d2183a2c09719d37feb6e" id="r_a392f6ab8283d2183a2c09719d37feb6e"><td class="memItemLeft" align="right" valign="top"><a id="a392f6ab8283d2183a2c09719d37feb6e" name="a392f6ab8283d2183a2c09719d37feb6e"></a>
+static <a class="el" href="class_channel_manager.html">ChannelManager</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>getInstance</b> ()</td></tr>
+<tr class="memdesc:a392f6ab8283d2183a2c09719d37feb6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Acquire the instance. <br /></td></tr>
+<tr class="separator:a392f6ab8283d2183a2c09719d37feb6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>A Singleton that manages PWM emission channels. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a63eea1e86dde20b8234730d4809cf8ec" name="a63eea1e86dde20b8234730d4809cf8ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63eea1e86dde20b8234730d4809cf8ec">&#9670;&#160;</a></span>requestChannel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ChannelManager::requestChannel </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Request a new channel. </p>
+<dl class="section return"><dt>Returns</dt><dd>The newly-assigned channel number if one is available, and -1 otherwise. </dd></dl>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
+<li>include/common/<a class="el" href="resource__manager_8h_source.html">resource_manager.h</a></li>
+<li>src/common/<b>resource_manager.cpp</b></li>
+</ul>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.11.0
