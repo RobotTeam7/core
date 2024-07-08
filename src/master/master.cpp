@@ -5,9 +5,18 @@
 #include <common/pwm.h>
 #include <common/pin.h>
 #include <common/robot_motor.h>
+#include <wifi/wifi_sender.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define step 7
 #define dir 5
+
+const char* ssid = "UniqueESP32_AP";
+const char* password = "12345678";
+const char* host = "192.168.4.1"; // This should be the IP address of the ESP32 AP
+
 
 void getChannel(void *pvParameter)
 {
@@ -30,12 +39,20 @@ void getChannel(void *pvParameter)
     }
 }
 
+WiFiConfig config;
+
 void setup() {
+    Serial.begin(115200);
+    Serial.println("Beginning...");
+
+    config = {ssid, password, host};
+    Sender wifi_sender = Sender(&config);
+    
+    wifi_sender.begin_server();
+
 //   pinMode(step, OUTPUT);
 //   pinMode(dir, OUTPUT);
 
-    Serial.begin(115200);
-    Serial.println("Beginning...");
 //   xTaskCreate(&getChannel, "getChannel", 2048, NULL, 5, NULL);
 //   digitalWrite(dir, HIGH);
     // Pin pin3(7);
@@ -45,9 +62,9 @@ void setup() {
     // pwm::set_pwm(pin1.getNumber(), 16000);
     // pwm::set_pwm(pin3.getNumber(), 32000);
 
-    RobotMotor motor = RobotMotor(step, dir);
-    Serial.println("here");
-    motor.set_drive(16000, forward);
+    // RobotMotor motor = RobotMotor(step, dir);
+    // Serial.println("here");
+    // motor.set_drive(16000, forward);
 }
 
 void loop() {

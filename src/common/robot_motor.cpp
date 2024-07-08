@@ -23,7 +23,6 @@ void RobotMotor::set_drive(uint16_t driveValue, driveMode direction) {
 
     currentState = direction;
     currentDrive = driveValue;
-
 }
 
 void RobotMotor::stop() {

@@ -2,6 +2,12 @@
 
 
 void clientTask(void *pvParameters) {
+  WiFiConfig* config = (WiFiConfig*)pvParameters; 
+
+  Serial.println("SSID: " + String(config->ssid));
+  Serial.println("Host: " + String(config->host));
+  Serial.println("Password: " + String(config->password));
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(200);
     Serial.println("Connecting to WiFi...");
@@ -10,7 +16,7 @@ void clientTask(void *pvParameters) {
 
   while (true) {
     WiFiClient client;
-    if (client.connect(host, 80)) {
+    if (client.connect(config->host, 80)) {
       Serial.println("Connected to server");
 
       // Send a request to the server
@@ -37,11 +43,22 @@ void clientTask(void *pvParameters) {
   }
 }
 
-void wifi_receiver::begin_wifi() {
+
+Receiver::Receiver(WiFiConfig* config) {
+  this->config = config;
+}
+
+
+void Receiver::begin_wifi() {
   // Connect to the access point
-  WiFi.begin(ssid, password);
+  Serial.println("Starting WiFi connection on:");
+  Serial.println("SSID: " + String(config->ssid));
+  Serial.println("Host: " + String(config->host));
+  Serial.println("Password: " + String(config->password));
+
+  WiFi.begin(config->ssid, config->password);
 
   // Create the client task
-  xTaskCreate(clientTask, "Client Task", 4096, NULL, 1, NULL);
+  xTaskCreate(clientTask, "Client Task", 4096, (void*)this->config, 1, NULL);
 
 }

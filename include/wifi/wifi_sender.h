@@ -1,11 +1,22 @@
+#ifndef WIFI_SENDER_H
+#define WIFI_SENDER_H
+
 #include <WiFi.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <wifi/config.h>
 
-const char* ssid = "UniqueESP32_AP";
-const char* password = "12345678";
-WiFiServer server(80);
 
-namespace wifi_sender {
+extern WiFiServer server;
+
+class Sender {
+private:
+    WiFiConfig* config;
+
+public:
+    Sender(WiFiConfig* config);
+
     void begin_server();
-}
+};
+
+#endif

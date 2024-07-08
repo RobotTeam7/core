@@ -49,10 +49,12 @@
     void pwm::bind_pwm(int pin) {
         pinMode(pin, OUTPUT);
         pwm_start(getPin(pin), LEDC_PWM_FREQUENCY, 0, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
+        Serial.println("Bound to pin: " + String(pin));
     }
 
     void pwm::set_pwm(int pin, int power) {
-        pwm_start(PA_0, LEDC_PWM_FREQUENCY, power, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
+        pwm_start(getPin(pin), LEDC_PWM_FREQUENCY, power, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
+        Serial.println("Setting pin: " + String(pin) + " to " + String(power));
     }
 
 #else

@@ -1,17 +1,20 @@
-#ifndef WIFI_SENDER_H
-#define WIFI_SENDER_H
+#ifndef WIFI_RECEIVER_H
+#define WIFI_RECEIVER_H
 
 #include <Arduino.h>
 #include <WiFi.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <wifi/config.h>
 
-const char* ssid = "UniqueESP32_AP";
-const char* password = "12345678";
-const char* host = "192.168.4.1"; // This should be the IP address of the ESP32 AP
+class Receiver {
+private:
+    WiFiConfig* config;
 
-namespace wifi_receiver {
+public:
+    Receiver(WiFiConfig* config);
+
     void begin_wifi();
-}
+};
 
 #endif
