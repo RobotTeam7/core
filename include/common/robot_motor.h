@@ -34,12 +34,17 @@ class RobotMotor {
         RobotMotor(uint8_t forwardPin, uint8_t reversePin);
         
         /**
+         * \brief Instantiate an empty motor.
+         */
+        RobotMotor();
+
+        /**
          * \brief Set the drive state of this motor.
          * 
          * \param driveValue Drive power, where 0 is stopped and 65535 is full power
          * \param newState Direction of the motor, either `forward`, `reverse`, or `none`.
          */
-        void set_drive(uint16_t driveValue, driveMode direction);
+        void set_drive(uint32_t driveValue, driveMode direction);
 
         /**
          * \brief Stop the motor.

@@ -1,8 +1,4 @@
 #include <common/pwm.h>
-#include <Arduino.h>
-#include <common/resource_manager.h>
-#include <map>
-#include <common/pin.h>
 
 #define TIMER_RESOLUTION   16  // 16-bit resolution such that 0 – 65535 is valid
 #define LEDC_PWM_FREQUENCY 50  // 50 Hz PWM pulse train
@@ -32,7 +28,7 @@
         Serial.println("Bound to pin: " + String(pin) + " on channel: " + channel);
     }
 
-    void pwm::set_pwm(int pin, int power) {
+    void pwm::set_pwm(int pin, uint32_t power) {
         int channel = pin_to_channel[pin];
         ledcWrite(channel, power);
 
@@ -48,13 +44,15 @@
 
     void pwm::bind_pwm(int pin) {
         pinMode(pin, OUTPUT);
-        pwm_start(getPin(pin), LEDC_PWM_FREQUENCY, 0, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
-        Serial.println("Bound to pin: " + String(pin));
+        PinName motorPin = getPin(pin);
+        pwm_start(motorPin, LEDC_PWM_FREQUENCY, 0, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
+        Serial.println("Bound to pin: " + String(motorPin));
     }
 
-    void pwm::set_pwm(int pin, int power) {
-        pwm_start(getPin(pin), LEDC_PWM_FREQUENCY, power, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
-        Serial.println("Setting pin: " + String(pin) + " to " + String(power));
+    void pwm::set_pwm(int pin, uint32_t power) {
+        PinName motorPin = getPin(pin);
+        pwm_start(motorPin, LEDC_PWM_FREQUENCY, power, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
+        Serial.println("Setting pin: " + String(motorPin) + " to " + String(power));
     }
 
 #else

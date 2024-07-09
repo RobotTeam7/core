@@ -6,12 +6,19 @@ RobotMotor::RobotMotor(uint8_t forwardPin, uint8_t reversePin) {
     pwm::bind_pwm(reversePin);
 
     this->boundForwardPin = forwardPin;
-    this->boundReversePin = boundReversePin;
+    this->boundReversePin = reversePin;
     this->currentState = none;
     this->currentDrive = 0;
 }
 
-void RobotMotor::set_drive(uint16_t driveValue, driveMode direction) {
+RobotMotor::RobotMotor() {
+    this->boundForwardPin = NULL;
+    this->boundReversePin = NULL;
+    this->currentState = none;
+    this->currentDrive = 0;
+}
+
+void RobotMotor::set_drive(uint32_t driveValue, driveMode direction) {
     int oldPin = direction != forward ? boundForwardPin : boundReversePin;
     int newPin = direction == forward ? boundForwardPin : boundReversePin;
 
@@ -26,7 +33,7 @@ void RobotMotor::set_drive(uint16_t driveValue, driveMode direction) {
 }
 
 void RobotMotor::stop() {
-    set_drive(0, none);
+    set_drive(0, forward);
 }
 
 driveMode RobotMotor::report_drive() {
