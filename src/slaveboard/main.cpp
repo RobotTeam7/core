@@ -8,7 +8,6 @@
 #include <task.h>
 
 // tape following imports
-#include <tape/task_poll_reflectance.h>
 #include <tape/reflectance_polling_config.h>
 #include <tape/tape_following_config.h>
 #include <tape/task_follow_tape.h>
@@ -32,6 +31,7 @@
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define OLED_RESET  -1 // This display does not have a reset pin accessible
 
+
 RobotMotor motor_front_left;
 RobotMotor motor_front_right;
 RobotMotor motor_back_left;
@@ -40,28 +40,29 @@ ReflectancePollingConfig config_reflectance;
 TapeFollowingConfig config_following;
 CircularBuffer<int, BUFFER_SIZE> leftBuffer;
 CircularBuffer<int, BUFFER_SIZE> rightBuffer;
+Adafruit_SSD1306 display_handler(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 
 void setup() {
   Serial.begin(9600);
   Serial.println("Got serial!");
-
+  
+  display_handler.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   motor_front_left = RobotMotor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
   motor_front_right = RobotMotor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
   motor_back_left = RobotMotor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE);
   motor_back_right = RobotMotor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE);
 
-  config_reflectance.left_sensor_buffer = &leftBuffer;
-  config_reflectance.right_sensor_buffer = &rightBuffer;
-  BaseType_t xReturnedReflectance = xTaskCreate(TaskPollReflectance, "Reflectance Polling", 50, &config_reflectance, PRIORITY_REFLECTANCE_POLLING, NULL);
+  config_reflectance = {
+    &leftBuffer, &rightBuffer, &display_handler
+  };
 
-  config_following.left_sensor_buffer = &leftBuffer;
-  config_following.right_sensor_buffer = &rightBuffer;
-  config_following.motor_back_left = &motor_back_left;
-  config_following.motor_back_right = &motor_back_right;
-  config_following.motor_front_left = &motor_front_left;
-  config_following.motor_front_right = &motor_front_right;
-  BaseType_t xReturnedFollowing = xTaskCreate(TaskFollowTape, "Tape Following", 100, &config_following, PRIORITY_FOLLOW_TAPE, NULL);
+  config_following = {
+    &motor_front_right, &motor_front_left, &motor_back_right, &motor_back_left, &config_reflectance 
+  };
+
+  BaseType_t xReturnedReflectance = xTaskCreate(TaskPollReflectance, "Reflectance Polling", 200, &config_reflectance, PRIORITY_REFLECTANCE_POLLING, NULL);
+  BaseType_t xReturnedFollowing = xTaskCreate(TaskFollowTape, "Tape Following", 200, &config_following, PRIORITY_FOLLOW_TAPE, NULL);
 
 
   // check if reflectance polling task was created

@@ -46,13 +46,11 @@
         pinMode(pin, OUTPUT);
         PinName motorPin = getPin(pin);
         pwm_start(motorPin, LEDC_PWM_FREQUENCY, 0, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
-        Serial.println("Bound to pin: " + String(motorPin));
     }
 
     void pwm::set_pwm(int pin, uint32_t power) {
         PinName motorPin = getPin(pin);
         pwm_start(motorPin, LEDC_PWM_FREQUENCY, power, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
-        Serial.println("Setting pin: " + String(motorPin) + " to " + String(power));
     }
 
 #else
