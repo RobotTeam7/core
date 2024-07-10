@@ -40,21 +40,19 @@ ReflectancePollingConfig config_reflectance;
 TapeFollowingConfig config_following;
 CircularBuffer<int, BUFFER_SIZE> leftBuffer;
 CircularBuffer<int, BUFFER_SIZE> rightBuffer;
-Adafruit_SSD1306 display_handler(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 
 void setup() {
   Serial.begin(9600);
   Serial.println("Got serial!");
   
-  display_handler.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   motor_front_left = RobotMotor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
   motor_front_right = RobotMotor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
   motor_back_left = RobotMotor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE);
   motor_back_right = RobotMotor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE);
 
   config_reflectance = {
-    &leftBuffer, &rightBuffer, &display_handler
+    &leftBuffer, &rightBuffer
   };
 
   config_following = {
@@ -74,7 +72,7 @@ void setup() {
   }
 
   // check if tape following task was created
-  if(xReturnedFollowing == pdPASS) {
+  if (xReturnedFollowing == pdPASS) {
     Serial.println("Tape following task was created successfully.");
   } else
   {
