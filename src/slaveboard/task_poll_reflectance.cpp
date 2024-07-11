@@ -2,6 +2,7 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+
 #include <reflectance/reflectance_polling_config.h>
 
 #define REFLECTANCE_ONE PA5
@@ -36,9 +37,17 @@ void TaskPollReflectance(void *pvParameters) {
         reflectance_right = analogRead(REFLECTANCE_ONE);
         reflectance_left = analogRead(REFLECTANCE_TWO);
 
+        //prints reflectance values
+        // Serial.println("reflectance right:");
+        // Serial.println(reflectance_right);
+        // Serial.println("reflectance left:");
+        // Serial.println(reflectance_left);
+
         config->right_sensor_buffer->push(reflectance_right);
         config->left_sensor_buffer->push(reflectance_left);
 
         vTaskDelay(delay_ticks);
     }
 }
+
+

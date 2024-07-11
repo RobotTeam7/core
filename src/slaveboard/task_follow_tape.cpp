@@ -3,12 +3,15 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include <reflectance/get_buffer_average.h>
+#include <constants.h>
+
 #define MOTOR_TASK_DELAY_MS 10
 
-#define THRESHOLD 300
-#define MOTOR_SPEED 8000
+
 
 void TaskFollowTape(void *pvParameters) {
+
     TickType_t delay_ticks = pdMS_TO_TICKS(MOTOR_TASK_DELAY_MS);
     MotorReflectanceConfig* config = static_cast<MotorReflectanceConfig*>(pvParameters);
 
@@ -36,48 +39,35 @@ void TaskFollowTape(void *pvParameters) {
     }
 
     while (1) {
-        int left_mean;
-        int right_mean;
-        int right_sum = 0;
-        int left_sum = 0;
+        int left_mean = get_buffer_average(*(config->reflectancePollingConfig->left_sensor_buffer));
+        int right_mean = get_buffer_average(*(config->reflectancePollingConfig->right_sensor_buffer));
 
-        for (int i = 0; i < config->reflectancePollingConfig->left_sensor_buffer->size(); ++i) {
-            left_sum += (*config->reflectancePollingConfig->left_sensor_buffer)[i];
-        }
-        left_mean = left_sum / config->reflectancePollingConfig->left_sensor_buffer->size();
+        // char drive_state[20] = "find tape";
 
-
-        for (int i = 0; i < config->reflectancePollingConfig->right_sensor_buffer->size(); ++i) {
-            right_sum += (*config->reflectancePollingConfig->right_sensor_buffer)[i];
-        }
-        right_mean = right_sum / config->reflectancePollingConfig->right_sensor_buffer->size();
-
-        char drive_state[20] = "find tape";
-
-        if (right_mean - left_mean > THRESHOLD) {
-            strcpy(drive_state, "---->>");
-        } else if (left_mean - right_mean > THRESHOLD) {
-            strcpy(drive_state, "<<----");
-        } else {
-            strcpy(drive_state, "^^^^^^");
-        }
-        Serial.println(drive_state);
+        // if (right_mean - left_mean > THRESHOLD) {
+        //     strcpy(drive_state, "---->>");
+        // } else if (left_mean - right_mean > THRESHOLD) {
+        //     strcpy(drive_state, "<<----");
+        // } else {
+        //     strcpy(drive_state, "^^^^^^");
+        // }
+        // Serial.println(drive_state);
         
-        if (right_mean - left_mean > THRESHOLD) {
-            config->motor_front_left->set_drive(MOTOR_SPEED / 2, forward); 
-            config->motor_back_left->set_drive(MOTOR_SPEED / 2, forward);
-            config->motor_front_right->set_drive(MOTOR_SPEED, forward);
-            config->motor_back_right->set_drive(MOTOR_SPEED, forward);
-        } else if(left_mean - right_mean > THRESHOLD) {
-            config->motor_front_left->set_drive(MOTOR_SPEED, forward);
-            config->motor_back_left->set_drive(MOTOR_SPEED, forward);
-            config->motor_front_right->set_drive(MOTOR_SPEED / 2, forward);
-            config->motor_back_right->set_drive(MOTOR_SPEED / 2, forward);
+        if (right_mean - left_mean > THRESHOLD_SENSOR_DIFFERENCE) {
+            config->motor_front_left->set_drive(MOTOR_SPEED_LOW, forward); 
+            config->motor_back_left->set_drive(MOTOR_SPEED_LOW, forward);
+            config->motor_front_right->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_back_right->set_drive(MOTOR_SPEED_HIGH, forward);
+        } else if(left_mean - right_mean > THRESHOLD_SENSOR_DIFFERENCE) {
+            config->motor_front_left->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_back_left->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_front_right->set_drive(MOTOR_SPEED_LOW, forward);
+            config->motor_back_right->set_drive(MOTOR_SPEED_LOW, forward);
         } else {
-            config->motor_front_left->set_drive(MOTOR_SPEED, forward);
-            config->motor_back_left->set_drive(MOTOR_SPEED, forward);
-            config->motor_front_right->set_drive(MOTOR_SPEED, forward);
-            config->motor_back_right->set_drive(MOTOR_SPEED, forward);
+            config->motor_front_left->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_back_left->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_front_right->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_back_right->set_drive(MOTOR_SPEED_HIGH, forward);
         }
 
         vTaskDelay(delay_ticks);

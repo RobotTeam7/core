@@ -6,11 +6,12 @@
 #include <string.h>
 #include <FreeRTOS.h>
 #include <task.h>
+#include <FreeRTOS/Source/include/queue.h>
 
 // tape following imports
-
 #include <tape/task_follow_tape.h>
 #include <reflectance/task_poll_reflectance.h>
+#include <task_rotate.h>
 
 #define MOTOR_BACK_RIGHT_FORWARD PB1
 #define MOTOR_BACK_RIGHT_REVERSE PB0
@@ -21,26 +22,32 @@
 #define MOTOR_FRONT_RIGHT_FORWARD PA3
 #define MOTOR_FRONT_RIGHT_REVERSE PA2
 
-#define SPEED 16000
-#define TIME_DELAY_MOTOR 500
-
 #define PRIORITY_REFLECTANCE_POLLING 3
 #define PRIORITY_FOLLOW_TAPE 1
-
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define OLED_RESET  -1 // This display does not have a reset pin accessible
-
+#define PRIORITY_ROTATE 1
 
 RobotMotor motor_front_left;
 RobotMotor motor_front_right;
 RobotMotor motor_back_left;
 RobotMotor motor_back_right;
+
 ReflectancePollingConfig config_reflectance;
-MotorReflectanceConfig config_following;
+MotorReflectanceConfig config_motor_reflectance;
+
 CircularBuffer<int, BUFFER_SIZE> leftBuffer;
 CircularBuffer<int, BUFFER_SIZE> rightBuffer;
 
+TaskHandle_t xHandleReflectance = NULL;
+TaskHandle_t xHandleRotating = NULL;
+TaskHandle_t xHandleFollowing = NULL;
+
+// Enum for defining message types, will be changed in the future
+typedef enum {
+  ROTATION_DONE,
+} Message;
+
+QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(Message));
+void TaskMaster(void *pvParameters);
 
 void setup() {
   Serial.begin(9600);
@@ -52,83 +59,75 @@ void setup() {
   motor_back_right = RobotMotor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE);
 
   config_reflectance = {
-    &leftBuffer, &rightBuffer
+    &leftBuffer, &rightBuffer, &xSharedQueue
   };
 
-  config_following = {
-    &motor_front_right, &motor_front_left, &motor_back_right, &motor_back_left, &config_reflectance 
+  config_motor_reflectance = {
+    &motor_front_right, &motor_front_left, &motor_back_right, &motor_back_left, &config_reflectance
   };
 
-  BaseType_t xReturnedReflectance = xTaskCreate(TaskPollReflectance, "Reflectance Polling", 200, &config_reflectance, PRIORITY_REFLECTANCE_POLLING, NULL);
-  BaseType_t xReturnedFollowing = xTaskCreate(TaskFollowTape, "Tape Following", 200, &config_following, PRIORITY_FOLLOW_TAPE, NULL);
+  BaseType_t xReturnedReflectance = xTaskCreate(TaskPollReflectance, "Reflectance Polling", 200, &config_reflectance, PRIORITY_REFLECTANCE_POLLING, &xHandleReflectance);
+  BaseType_t xReturnedRotating = xTaskCreate(TaskRotate, "Rotating", 200, &config_motor_reflectance, PRIORITY_ROTATE, &xHandleRotating);
+  BaseType_t xReturnedFollowing = xTaskCreate(TaskFollowTape, "Tape Following", 200, &config_motor_reflectance, PRIORITY_FOLLOW_TAPE, &xHandleFollowing);
+  BaseType_t xReturnedMaster = xTaskCreate(TaskMaster, "Master", 200, NULL, 10, NULL);
 
+  // suspend driving tasks initially
+  vTaskSuspend(xHandleRotating);
+  vTaskSuspend(xHandleFollowing);
 
   // check if reflectance polling task was created
   if (xReturnedReflectance == pdPASS) {
     Serial.println("Reflectance polling task was created successfully.");
-  } else
-  {
+  } else {
     Serial.println("Reflectance polling task was not created successfully!");
   }
 
   // check if tape following task was created
   if (xReturnedFollowing == pdPASS) {
     Serial.println("Tape following task was created successfully.");
-  } else
-  {
+  } else {
     Serial.println("Tape following task was not created successfully!");
   }
 
+  // // check if rotating task was created
+  if (xReturnedRotating == pdPASS) {
+    Serial.println("Rotating task was created successfully.");
+  } else {
+    Serial.println("Rotating task was not created successfully!");
+  }
 
-  // size_t freeHeap = xPortGetFreeHeapSize();
-  // Serial.println("Free Heap: " + String(freeHeap));
+  // // check if rotating task was created
+  if (xReturnedMaster == pdPASS) {
+    Serial.println("Rotating task was created successfully.");
+  } else {
+    Serial.println("Rotating task was not created successfully!");
+  }
 
   vTaskStartScheduler();
 }
 
+void TaskMaster(void *pvParameters) {
+  Message receivedMessage;
+  for(;;) {
+    // rotate until completion
+    Serial.println("Rotating!");
+    vTaskResume(xHandleRotating);
+    vTaskSuspend(xHandleFollowing);
+
+    // wait until a message is recieved on the shared queue
+    // this saves the value of the message into "receivedMessage"
+    // this operation is blocking since we passed "portMAX_DELAY"
+    if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {
+      if(receivedMessage == ROTATION_DONE) {
+        Serial.println("Tape Following!");
+        // tape follow for 1 second
+        vTaskResume(xHandleFollowing);
+        vTaskSuspend(xHandleRotating);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+      }
+    }
+  }
+}
 
 void loop() {
-  // motor_front_left.set_drive(SPEED, forward);
-  // motor_front_right.set_drive(SPEED, forward);
-  // motor_back_left.set_drive(SPEED, forward);
-  // motor_back_right.set_drive(SPEED, forward);
-  // delay(TIME_DELAY_MOTOR);
-  // motor_front_left.stop();
-  // motor_front_right.stop();
-  // motor_back_left.stop();
-  // motor_back_right.stop();
-  // delay(1000);
-
-  // motor_front_left.set_drive(SPEED, forward);
-  // motor_front_right.set_drive(SPEED, reverse);
-  // motor_back_left.set_drive(SPEED, reverse);
-  // motor_back_right.set_drive(SPEED, forward);
-  // delay(TIME_DELAY_MOTOR * 2);
-  // motor_front_left.stop();
-  // motor_front_right.stop();
-  // motor_back_left.stop();
-  // motor_back_right.stop();
-  // delay(1000);
-
-  // motor_front_left.set_drive(SPEED, reverse);
-  // motor_front_right.set_drive(SPEED, reverse);
-  // motor_back_left.set_drive(SPEED, reverse);
-  // motor_back_right.set_drive(SPEED, reverse);
-  // delay(TIME_DELAY_MOTOR);
-  // motor_front_left.stop();
-  // motor_front_right.stop();
-  // motor_back_left.stop();
-  // motor_back_right.stop();
-  // delay(1000);
-
-  // motor_front_left.set_drive(SPEED, reverse);
-  // motor_front_right.set_drive(SPEED, forward);
-  // motor_back_left.set_drive(SPEED, forward);
-  // motor_back_right.set_drive(SPEED, reverse);
-  // delay(TIME_DELAY_MOTOR * 2);
-  // motor_front_left.stop();
-  // motor_front_right.stop();
-  // motor_back_left.stop();
-  // motor_back_right.stop();
-  // delay(1000);
-  }
+}
