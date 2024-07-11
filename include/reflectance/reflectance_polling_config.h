@@ -1,7 +1,6 @@
 #ifndef REFLECTANCE_POLLING_CONFIG_H
 #define REFLECTANCE_POLLING_CONFIG_H
 
-#include <Arduino.h>
 #include <CircularBuffer.h>
 
 #define BUFFER_SIZE 1

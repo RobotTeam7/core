@@ -8,9 +8,9 @@
 #include <task.h>
 
 // tape following imports
-#include <tape/reflectance_polling_config.h>
-#include <tape/tape_following_config.h>
+
 #include <tape/task_follow_tape.h>
+#include <reflectance/task_poll_reflectance.h>
 
 #define MOTOR_BACK_RIGHT_FORWARD PB1
 #define MOTOR_BACK_RIGHT_REVERSE PB0
@@ -37,7 +37,7 @@ RobotMotor motor_front_right;
 RobotMotor motor_back_left;
 RobotMotor motor_back_right;
 ReflectancePollingConfig config_reflectance;
-TapeFollowingConfig config_following;
+MotorReflectanceConfig config_following;
 CircularBuffer<int, BUFFER_SIZE> leftBuffer;
 CircularBuffer<int, BUFFER_SIZE> rightBuffer;
 
