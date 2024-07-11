@@ -7,8 +7,10 @@
 #include <reflectance/get_buffer_average.h>
 #include <constants.h>
 
+// how long before the robot starts looking for tape detection
+// prevents rotation from immediately canceling ]
 #define INITIAL_DELAY_MS 1000
-#define POLL_RATE_MS 1
+
 
 // enum specifying messages, will need to be changed in the future
 typedef enum {
@@ -19,7 +21,7 @@ typedef enum {
 void TaskRotate(void *pvParameters) {
     // convert ms delays into ticks
     TickType_t inital_delay_ticks = pdMS_TO_TICKS(INITIAL_DELAY_MS);
-    TickType_t poll_rate_ticks = pdMS_TO_TICKS(POLL_RATE_MS);
+    TickType_t poll_rate_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_ROTATING_MS);
 
     MotorReflectanceConfig* config = static_cast<MotorReflectanceConfig*>(pvParameters);
 
@@ -75,6 +77,8 @@ void TaskRotate(void *pvParameters) {
                     Serial.println("Failed to send to xSharedQueue");
                 }
             }
+
+            vTaskDelay(poll_rate_ticks);
         }
     }
 }

@@ -69,7 +69,7 @@ void setup() {
   BaseType_t xReturnedReflectance = xTaskCreate(TaskPollReflectance, "Reflectance Polling", 200, &config_reflectance, PRIORITY_REFLECTANCE_POLLING, &xHandleReflectance);
   BaseType_t xReturnedRotating = xTaskCreate(TaskRotate, "Rotating", 200, &config_motor_reflectance, PRIORITY_ROTATE, &xHandleRotating);
   BaseType_t xReturnedFollowing = xTaskCreate(TaskFollowTape, "Tape Following", 200, &config_motor_reflectance, PRIORITY_FOLLOW_TAPE, &xHandleFollowing);
-  BaseType_t xReturnedMaster = xTaskCreate(TaskMaster, "Master", 200, NULL, 10, NULL);
+  BaseType_t xReturnedMaster = xTaskCreate(TaskMaster, "Master", 200, NULL, 1, NULL);
 
   // suspend driving tasks initially
   vTaskSuspend(xHandleRotating);
@@ -110,9 +110,11 @@ void TaskMaster(void *pvParameters) {
   Message receivedMessage;
   for(;;) {
     // rotate until completion
+    vTaskSuspend(xHandleFollowing);
+    Serial.println("chill for a sec!");
+    vTaskDelay(pdMS_TO_TICKS(1000));
     Serial.println("Rotating!");
     vTaskResume(xHandleRotating);
-    vTaskSuspend(xHandleFollowing);
 
     // wait until a message is recieved on the shared queue
     // this saves the value of the message into "receivedMessage"
@@ -123,7 +125,7 @@ void TaskMaster(void *pvParameters) {
         // tape follow for 1 second
         vTaskResume(xHandleFollowing);
         vTaskSuspend(xHandleRotating);
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(1500));
       }
     }
   }

@@ -6,13 +6,9 @@
 #include <reflectance/get_buffer_average.h>
 #include <constants.h>
 
-#define MOTOR_TASK_DELAY_MS 10
-
-
-
 void TaskFollowTape(void *pvParameters) {
 
-    TickType_t delay_ticks = pdMS_TO_TICKS(MOTOR_TASK_DELAY_MS);
+    TickType_t delay_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS);
     MotorReflectanceConfig* config = static_cast<MotorReflectanceConfig*>(pvParameters);
 
     // Ensure config is not null
@@ -39,6 +35,7 @@ void TaskFollowTape(void *pvParameters) {
     }
 
     while (1) {
+        Serial.println("here in follow loop!");
         int left_mean = get_buffer_average(*(config->reflectancePollingConfig->left_sensor_buffer));
         int right_mean = get_buffer_average(*(config->reflectancePollingConfig->right_sensor_buffer));
 

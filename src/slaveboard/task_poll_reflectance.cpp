@@ -2,15 +2,15 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
-
+#include <constants.h>
 #include <reflectance/reflectance_polling_config.h>
 
 #define REFLECTANCE_ONE PA5
 #define REFLECTANCE_TWO PA4
-#define POLL_SENSOR_DELAY_MS 1
+
 
 void TaskPollReflectance(void *pvParameters) {
-    TickType_t delay_ticks = pdMS_TO_TICKS(POLL_SENSOR_DELAY_MS);
+    TickType_t delay_ticks = pdMS_TO_TICKS(POLL_RATE_REFLECTANCE_MS);
 
     pinMode(REFLECTANCE_ONE, INPUT);
     pinMode(REFLECTANCE_TWO, INPUT);
