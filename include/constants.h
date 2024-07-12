@@ -3,9 +3,9 @@
 
 
 // ______________ SPEEDS ______________
-#define MOTOR_SPEED_HIGH 16000
-#define MOTOR_SPEED_LOW 14000
-#define MOTOR_SPEED_ROTATION 13000
+#define MOTOR_SPEED_HIGH 8500
+#define MOTOR_SPEED_LOW 5500
+#define MOTOR_SPEED_ROTATION 8000
 
 
 

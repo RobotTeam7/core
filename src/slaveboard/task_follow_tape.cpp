@@ -10,11 +10,10 @@
 #define THRESHOLD 300
 #define REFLECTANCE_ONE PA5
 #define REFLECTANCE_TWO PA4
-#define MOTOR_SPEED 8000
-
+#include <constants.h>
 
 void TaskPollReflectance(void *pvParameters) {
-    // TickType_t delay_ticks = pdMS_TO_TICKS(POLL_SENSOR_DELAY_MS);
+    TickType_t delay_ticks = pdMS_TO_TICKS(POLL_SENSOR_DELAY_MS);
 
     pinMode(REFLECTANCE_ONE, INPUT);
     pinMode(REFLECTANCE_TWO, INPUT);
@@ -38,14 +37,23 @@ void TaskPollReflectance(void *pvParameters) {
     }
 
     while (1) {
-        Serial.println("POLLING?!");
         reflectance_right = analogRead(REFLECTANCE_ONE);
         reflectance_left = analogRead(REFLECTANCE_TWO);
 
         config->right_sensor_buffer->push(reflectance_right);
         config->left_sensor_buffer->push(reflectance_left);
 
-        vTaskDelay(5);
+        // char drive_state[20] = "find tape";
+        // if (reflectance_right - reflectance_left > THRESHOLD) {
+        //     strcpy(drive_state, "---->>");
+        // } else if (reflectance_left - reflectance_right > THRESHOLD) {
+        //     strcpy(drive_state, "<<----");
+        // } else {
+        //     strcpy(drive_state, "^^^^^^");
+        // }
+        // Serial.println(drive_state);
+
+        vTaskDelay(delay_ticks);
     }
 }
 
@@ -77,7 +85,7 @@ void TaskFollowTape(void *pvParameters) {
     }
 
     while (1) {
-        Serial.println("PLS JUST DO IT MAN");
+        // Serial.println("PLS JUST DO IT MAN");
         int left_mean;
         int right_mean;
         int right_sum = 0;
@@ -93,33 +101,22 @@ void TaskFollowTape(void *pvParameters) {
             right_sum += (*config->reflectancePollingConfig->right_sensor_buffer)[i];
         }
         right_mean = right_sum / config->reflectancePollingConfig->right_sensor_buffer->size();
-
-        char drive_state[20] = "find tape";
-
-        if (right_mean - left_mean > THRESHOLD) {
-            strcpy(drive_state, "---->>");
-        } else if (left_mean - right_mean > THRESHOLD) {
-            strcpy(drive_state, "<<----");
-        } else {
-            strcpy(drive_state, "^^^^^^");
-        }
-        Serial.println(drive_state);
         
         if (right_mean - left_mean > THRESHOLD) {
-            config->motor_front_left->set_drive(MOTOR_SPEED / 2, forward); 
-            config->motor_back_left->set_drive(MOTOR_SPEED / 2, forward);
-            config->motor_front_right->set_drive(MOTOR_SPEED, forward);
-            config->motor_back_right->set_drive(MOTOR_SPEED, forward);
+            config->motor_front_left->set_drive(MOTOR_SPEED_LOW, forward); 
+            config->motor_back_left->set_drive(MOTOR_SPEED_LOW, forward);
+            config->motor_front_right->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_back_right->set_drive(MOTOR_SPEED_HIGH, forward);
         } else if(left_mean - right_mean > THRESHOLD) {
-            config->motor_front_left->set_drive(MOTOR_SPEED, forward);
-            config->motor_back_left->set_drive(MOTOR_SPEED, forward);
-            config->motor_front_right->set_drive(MOTOR_SPEED / 2, forward);
-            config->motor_back_right->set_drive(MOTOR_SPEED / 2, forward);
+            config->motor_front_left->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_back_left->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_front_right->set_drive(MOTOR_SPEED_LOW, forward);
+            config->motor_back_right->set_drive(MOTOR_SPEED_LOW, forward);
         } else {
-            config->motor_front_left->set_drive(MOTOR_SPEED, forward);
-            config->motor_back_left->set_drive(MOTOR_SPEED, forward);
-            config->motor_front_right->set_drive(MOTOR_SPEED, forward);
-            config->motor_back_right->set_drive(MOTOR_SPEED, forward);
+            config->motor_front_left->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_back_left->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_front_right->set_drive(MOTOR_SPEED_HIGH, forward);
+            config->motor_back_right->set_drive(MOTOR_SPEED_HIGH, forward);
         }
 
         vTaskDelay(5);
