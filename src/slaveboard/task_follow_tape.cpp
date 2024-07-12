@@ -14,7 +14,7 @@
 
 
 void TaskPollReflectance(void *pvParameters) {
-    TickType_t delay_ticks = pdMS_TO_TICKS(POLL_SENSOR_DELAY_MS);
+    // TickType_t delay_ticks = pdMS_TO_TICKS(POLL_SENSOR_DELAY_MS);
 
     pinMode(REFLECTANCE_ONE, INPUT);
     pinMode(REFLECTANCE_TWO, INPUT);
@@ -38,18 +38,19 @@ void TaskPollReflectance(void *pvParameters) {
     }
 
     while (1) {
+        Serial.println("POLLING?!");
         reflectance_right = analogRead(REFLECTANCE_ONE);
         reflectance_left = analogRead(REFLECTANCE_TWO);
 
         config->right_sensor_buffer->push(reflectance_right);
         config->left_sensor_buffer->push(reflectance_left);
 
-        vTaskDelay(delay_ticks);
+        vTaskDelay(5);
     }
 }
 
 void TaskFollowTape(void *pvParameters) {
-    TickType_t delay_ticks = pdMS_TO_TICKS(MOTOR_TASK_DELAY_MS);
+    // TickType_t delay_ticks = pdMS_TO_TICKS(MOTOR_TASK_DELAY_MS);
     TapeFollowingConfig* config = static_cast<TapeFollowingConfig*>(pvParameters);
 
     // Ensure config is not null
@@ -120,6 +121,6 @@ void TaskFollowTape(void *pvParameters) {
             config->motor_back_right->set_drive(MOTOR_SPEED, forward);
         }
 
-        vTaskDelay(delay_ticks);
+        vTaskDelay(5);
     }
 }

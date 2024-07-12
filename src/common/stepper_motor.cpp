@@ -12,8 +12,8 @@ StepperMotor::StepperMotor(uint8_t stepPin, uint8_t dirPin, int position = 0) {
 }
 
 StepperMotor::StepperMotor() {
-    this->boundStepPin = NULL;
-    this->boundDirPin = NULL;
+    this->boundStepPin = 0;
+    this->boundDirPin = 0;
     this->position = 0;
 }
 
@@ -25,14 +25,14 @@ void stepperMotorTask(void *pvParameters) {
     int numStepsTaken = 0;
 
     int half_period_ms = (int)(500 / data->frequency);  // Period_s -> 1 / frequency -> * 1000 -> Period_ms -> / 2 -> half period_ms
-    TickType_t delay_ticks = pdMS_TO_TICKS(half_period_ms);
+    // TickType_t delay_ticks = pdMS_TO_TICKS(half_period_ms);
     Serial.println("Half period is " + String(half_period_ms));
 
     while (numStepsTaken < data->numSteps) {
         digitalWrite(data->stepPin, HIGH);
-        vTaskDelay(delay_ticks);
+        vTaskDelay(5);
         digitalWrite(data->stepPin, LOW);
-        vTaskDelay(delay_ticks);
+        vTaskDelay(5);
 
         numStepsTaken++;
     }
