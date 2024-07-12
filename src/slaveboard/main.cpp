@@ -6,6 +6,8 @@
 #include <string.h>
 #include <FreeRTOS.h>
 #include <task.h>
+#include <slaveboard/FreeRTOSConfig.h>
+
 
 // tape following imports
 #include <tape/reflectance_polling_config.h>
@@ -22,6 +24,7 @@
 #define MOTOR_FRONT_LEFT_REVERSE PA0
 #define MOTOR_FRONT_RIGHT_FORWARD PA3
 #define MOTOR_FRONT_RIGHT_REVERSE PA2
+#define configCHECK_FOR_STACK_OVERFLOW 2
 
 #define SPEED 16000
 #define TIME_DELAY_MOTOR 500
@@ -43,6 +46,10 @@ TapeFollowingConfig config_following;
 MotorReflectanceConfig config_rotate;
 CircularBuffer<int, BUFFER_SIZE> leftBuffer;
 CircularBuffer<int, BUFFER_SIZE> rightBuffer;
+TaskHandle_t rotateHandle;
+TaskHandle_t reflectanceHandle;
+// TaskHandle_t followHandle;
+
 
 // returns the mean value in the buffer
 int get_buffer_average(CircularBuffer<int, BUFFER_SIZE>& sensor_buffer) {
@@ -52,6 +59,57 @@ int get_buffer_average(CircularBuffer<int, BUFFER_SIZE>& sensor_buffer) {
     }
     // truncates integer
     return sum / sensor_buffer.size();
+}
+
+extern "C" {
+  void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
+      // This function will be called if a stack overflow is detected
+      Serial.print("Stack overflow in task: ");
+      Serial.println(pcTaskName);
+      // Enter an infinite loop or reset the system
+      for(;;);
+  }
+}
+
+void checkResetCause() {
+    if (RCC->CSR & RCC_CSR_IWDGRSTF) {
+        Serial.println("System reset by Independent Watchdog Timer (IWDG).");
+    }
+    if (RCC->CSR & RCC_CSR_WWDGRSTF) {
+        Serial.println("System reset by Window Watchdog Timer (WWDG).");
+    }
+    if (RCC->CSR & RCC_CSR_PORRSTF) {
+        Serial.println("System reset by Power-on Reset.");
+    }
+    if (RCC->CSR & RCC_CSR_SFTRSTF) {
+        Serial.println("System reset by Software Reset.");
+    }
+    if (RCC->CSR & RCC_CSR_PINRSTF) {
+        Serial.println("System reset by NRST pin.");
+    }
+    if (RCC->CSR & RCC_CSR_LPWRRSTF) {
+        Serial.println("System reset by Low Power Reset.");
+    }
+    // if (RCC->CSR & RCC_CSR_BORRSTF) {
+    //     Serial.println("System reset by Brown-out Reset (BOR).");
+    // }
+    // Clear all reset flags
+    RCC->CSR |= RCC_CSR_RMVF;
+}
+
+void monitorStackUsage() {
+    UBaseType_t uxHighWaterMark;
+
+    // For the serial task
+    uxHighWaterMark = uxTaskGetStackHighWaterMark(rotateHandle);
+    Serial.print("TapeRotate stack high water mark: ");
+    Serial.println(uxHighWaterMark);
+
+      // For the serial task
+    uxHighWaterMark = uxTaskGetStackHighWaterMark(reflectanceHandle);
+    Serial.print("ReflectancePolling stack high water mark: ");
+    Serial.println(uxHighWaterMark);
+
 }
 
 // enum specifying messages, will need to be changed in the future
@@ -134,6 +192,8 @@ void TaskRotate(void *pvParameters) {
 void setup() {
   Serial.begin(9600);
   Serial.println("Got serial!");
+
+  checkResetCause();
   
   motor_front_left = RobotMotor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
   motor_front_right = RobotMotor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
@@ -152,9 +212,9 @@ void setup() {
     &motor_front_right, &motor_front_left, &motor_back_right, &motor_back_left, &config_reflectance 
   };
 
-  BaseType_t xReturnedReflectance = xTaskCreate(TaskPollReflectance, "Reflectance Polling", 50, &config_reflectance, PRIORITY_REFLECTANCE_POLLING, NULL);
+  BaseType_t xReturnedReflectance = xTaskCreate(TaskPollReflectance, "ReflectancePolling", configMINIMAL_STACK_SIZE, &config_reflectance, PRIORITY_REFLECTANCE_POLLING, NULL);
   // BaseType_t xReturnedFollowing = xTaskCreate(TaskFollowTape, "Tape Following", 200, &config_following, PRIORITY_FOLLOW_TAPE, NULL);
-  BaseType_t xReturnedRotate = xTaskCreate(TaskRotate, "Tape Rotate", 50, &config_rotate, PRIORITY_FOLLOW_TAPE, NULL);
+  BaseType_t xReturnedRotate = xTaskCreate(TaskRotate, "TapeRotate", configMINIMAL_STACK_SIZE, &config_rotate, PRIORITY_FOLLOW_TAPE, NULL);
 
 
   // check if reflectance polling task was created
@@ -191,47 +251,6 @@ void setup() {
 
 
 void loop() {
-  // motor_front_left.set_drive(SPEED, forward);
-  // motor_front_right.set_drive(SPEED, forward);
-  // motor_back_left.set_drive(SPEED, forward);
-  // motor_back_right.set_drive(SPEED, forward);
-  // delay(TIME_DELAY_MOTOR);
-  // motor_front_left.stop();
-  // motor_front_right.stop();
-  // motor_back_left.stop();
-  // motor_back_right.stop();
-  // delay(1000);
-
-  // motor_front_left.set_drive(SPEED, forward);
-  // motor_front_right.set_drive(SPEED, reverse);
-  // motor_back_left.set_drive(SPEED, reverse);
-  // motor_back_right.set_drive(SPEED, forward);
-  // delay(TIME_DELAY_MOTOR * 2);
-  // motor_front_left.stop();
-  // motor_front_right.stop();
-  // motor_back_left.stop();
-  // motor_back_right.stop();
-  // delay(1000);
-
-  // motor_front_left.set_drive(SPEED, reverse);
-  // motor_front_right.set_drive(SPEED, reverse);
-  // motor_back_left.set_drive(SPEED, reverse);
-  // motor_back_right.set_drive(SPEED, reverse);
-  // delay(TIME_DELAY_MOTOR);
-  // motor_front_left.stop();
-  // motor_front_right.stop();
-  // motor_back_left.stop();
-  // motor_back_right.stop();
-  // delay(1000);
-
-  // motor_front_left.set_drive(SPEED, reverse);
-  // motor_front_right.set_drive(SPEED, forward);
-  // motor_back_left.set_drive(SPEED, forward);
-  // motor_back_right.set_drive(SPEED, reverse);
-  // delay(TIME_DELAY_MOTOR * 2);
-  // motor_front_left.stop();
-  // motor_front_right.stop();
-  // motor_back_left.stop();
-  // motor_back_right.stop();
-  // delay(1000);
+    monitorStackUsage(); // Monitor stack usage periodically
+    delay(100);
   }
