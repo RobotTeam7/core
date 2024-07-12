@@ -5,8 +5,8 @@
 #include <common/robot_motor.h>
 #include <CircularBuffer.h>
 #include <FreeRTOS/Source/include/queue.h>
-
-#define BUFFER_SIZE 1
+#include <slaveboard/constants.h>
+#include <slaveboard/utils.h>
 
 /**
  * @brief Enum discretizing the different kinds of messages that can be sent between the master task and subtasks
@@ -16,31 +16,29 @@ enum Message { ROTATION_DONE };
 /**
  * @brief Obtain the average of the values contained within the buffer, as an integer
  */
-int get_buffer_average(CircularBuffer<int, BUFFER_SIZE> &sensor_buffer);
+int get_buffer_average(CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> &sensorBuffer);
 
-struct ReflectancePollingConfig {
-    CircularBuffer<int, BUFFER_SIZE>* left_sensor_buffer;
-    CircularBuffer<int, BUFFER_SIZE>* right_sensor_buffer;
-};
+typedef struct {
+    RobotMotor* motorFR;
+    RobotMotor* motorFL;
+    RobotMotor* motorBR;
+    RobotMotor* motorBL;
+} RobotMotorData_t;
 
-struct TapeFollowingConfig {
-    RobotMotor* motor_front_right;
-    RobotMotor* motor_front_left;
-    RobotMotor* motor_back_right;
-    RobotMotor* motor_back_left;
-    
-    ReflectancePollingConfig* reflectancePollingConfig;
-};
+typedef struct {
+    CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE>* leftSensorBuffer;
+    CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE>* rightSensorBuffer;
+} ReflectanceSensorData_t;
 
-struct MotorReflectanceConfig {
-    RobotMotor* motor_front_right;
-    RobotMotor* motor_front_left;
-    RobotMotor* motor_back_right;
-    RobotMotor* motor_back_left;
-    
-    ReflectancePollingConfig* reflectancePollingConfig;
+typedef struct {
+    RobotMotorData_t* robotMotors;
+    ReflectanceSensorData_t* reflectanceSensorData;
+} TapeAwarenessData_t;
+
+typedef struct {
+    TapeAwarenessData_t* tapeAwarenessData;
     QueueHandle_t* xSharedQueue;
-};
+} RobotControlData_t;
 
 void TaskRotate(void *pvParameters);
 void TaskFollowTape(void *pvParameters);

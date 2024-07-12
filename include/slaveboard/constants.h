@@ -47,4 +47,18 @@
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define OLED_RESET -1    // This display does not have a reset pin accessible
 
+#define REFLECTANCE_SENSOR_BUFFER_SIZE 1
+
+// Verbosity Levels
+#define NO_PRINTING 0 
+#define ERRORS_ONLY 1
+#define STATUS_MESSAGES 2
+#define MOST_VERBOSE 3 
+
+#ifndef VERBOSITY_LEVEL     // Manual debug level
+
+#define VERBOSITY_LEVEL MOST_VERBOSE
+
+#endif
+
 #endif

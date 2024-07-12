@@ -17,12 +17,13 @@ RobotMotor motor_front_right;
 RobotMotor motor_back_left;
 RobotMotor motor_back_right;
 
-ReflectancePollingConfig config_reflectance;
-TapeFollowingConfig config_following;
-MotorReflectanceConfig config_rotate;
+RobotMotorData_t robotMotors;
+ReflectanceSensorData_t config_reflectance;
+TapeAwarenessData_t config_following;
+RobotControlData_t config_rotate;
 
-CircularBuffer<int, BUFFER_SIZE> leftBuffer;
-CircularBuffer<int, BUFFER_SIZE> rightBuffer;
+CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> leftBuffer;
+CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> rightBuffer;
 
 TaskHandle_t xHandleRotating = NULL;
 TaskHandle_t xReflectanceHandle = NULL;
@@ -44,9 +45,11 @@ void setup()
   motor_back_left = RobotMotor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE);
   motor_back_right = RobotMotor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE);
 
+  robotMotors = { &motor_front_right, &motor_front_left, &motor_back_right, &motor_back_left};
+
   config_reflectance = { &leftBuffer, &rightBuffer };
-  config_following = { &motor_front_right, &motor_front_left, &motor_back_right, &motor_back_left, &config_reflectance };
-  config_rotate = { &motor_front_right, &motor_front_left, &motor_back_right, &motor_back_left, &config_reflectance, &xSharedQueue};
+  config_following = { &robotMotors, &config_reflectance };
+  config_rotate = { &config_following, &xSharedQueue};
 
   BaseType_t xReturnedReflectance = xTaskCreate(TaskPollReflectance, "ReflectancePolling", 72, &config_reflectance, PRIORITY_REFLECTANCE_POLLING, &xReflectanceHandle);
   BaseType_t xReturnedFollowing = xTaskCreate(TaskFollowTape, "Tape Following", 64, &config_following, PRIORITY_FOLLOW_TAPE, &xHandleFollowing);
@@ -93,7 +96,7 @@ void setup()
 void loop()
 {
   monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle); // Monitor stack usage periodically
-  delay(100);
+  delay(500);
 }
 
 void TaskMaster(void *pvParameters)

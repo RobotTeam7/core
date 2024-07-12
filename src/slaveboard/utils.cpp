@@ -31,27 +31,35 @@ void checkResetCause()
 
 void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectanceHandle, TaskHandle_t* xHandleFollowing, TaskHandle_t* xMasterHandle)
 {
-  UBaseType_t uxHighWaterMark;
+    UBaseType_t uxHighWaterMark;
 
-  // For the rotate task
-  uxHighWaterMark = uxTaskGetStackHighWaterMark(*xHandleRotating);
-  Serial.print("TapeRotate stack high water mark: ");
-  Serial.println(uxHighWaterMark);
+    // For the rotate task
+    uxHighWaterMark = uxTaskGetStackHighWaterMark(*xHandleRotating);
+    if (VERBOSITY_LEVEL >= 3) {
+    Serial.print("TapeRotate stack high water mark: ");
+    Serial.println(uxHighWaterMark);
+    }
 
-  // For the reflectance task
-  uxHighWaterMark = uxTaskGetStackHighWaterMark(*xReflectanceHandle);
-  Serial.print("ReflectancePolling stack high water mark: ");
-  Serial.println(uxHighWaterMark);
+    // For the reflectance task
+    uxHighWaterMark = uxTaskGetStackHighWaterMark(*xReflectanceHandle);
+    if (VERBOSITY_LEVEL >= 3) {
+        Serial.print("ReflectancePolling stack high water mark: ");
+        Serial.println(uxHighWaterMark);
+    }
 
-  // For the follow task
-  uxHighWaterMark = uxTaskGetStackHighWaterMark(*xHandleFollowing);
-  Serial.print("TapeFollow stack high water mark: ");
-  Serial.println(uxHighWaterMark);
+    // For the follow task
+    uxHighWaterMark = uxTaskGetStackHighWaterMark(*xHandleFollowing);
+    if (VERBOSITY_LEVEL >= 3) {
+        Serial.print("TapeFollow stack high water mark: ");
+        Serial.println(uxHighWaterMark);
+    }
 
-  // For the follow task
-  uxHighWaterMark = uxTaskGetStackHighWaterMark(*xMasterHandle);
-  Serial.print("Master stack high water mark: ");
-  Serial.println(uxHighWaterMark);
+    // For the follow task
+    uxHighWaterMark = uxTaskGetStackHighWaterMark(*xMasterHandle);
+    if (VERBOSITY_LEVEL >= 3) {
+        Serial.print("Master stack high water mark: ");
+        Serial.println(uxHighWaterMark);
+    }
 }
 
 extern "C"
@@ -66,3 +74,21 @@ extern "C"
       ;
   }
 }
+
+void log_status(const char* status_message) {
+    if (VERBOSITY_LEVEL >= STATUS_MESSAGES) {
+        Serial.println(status_message);
+    }    
+}
+
+void log_error(const char* error_message) {
+    if (VERBOSITY_LEVEL >= ERRORS_ONLY) {
+        Serial.println(error_message);
+    }    
+}
+
+void log_message(const char* message) {
+    if (VERBOSITY_LEVEL >= MOST_VERBOSE) {
+        Serial.println(message);
+    }    
+} 
