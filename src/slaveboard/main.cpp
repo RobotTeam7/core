@@ -90,10 +90,6 @@ void checkResetCause() {
     if (RCC->CSR & RCC_CSR_LPWRRSTF) {
         Serial.println("System reset by Low Power Reset.");
     }
-    // if (RCC->CSR & RCC_CSR_BORRSTF) {
-    //     Serial.println("System reset by Brown-out Reset (BOR).");
-    // }
-    // Clear all reset flags
     RCC->CSR |= RCC_CSR_RMVF;
 }
 
@@ -213,7 +209,7 @@ void setup() {
   };
 
   BaseType_t xReturnedReflectance = xTaskCreate(TaskPollReflectance, "ReflectancePolling", configMINIMAL_STACK_SIZE, &config_reflectance, PRIORITY_REFLECTANCE_POLLING, NULL);
-  // BaseType_t xReturnedFollowing = xTaskCreate(TaskFollowTape, "Tape Following", 200, &config_following, PRIORITY_FOLLOW_TAPE, NULL);
+  BaseType_t xReturnedFollowing = xTaskCreate(TaskFollowTape, "Tape Following", configMINIMAL_STACK_SIZE, &config_following, PRIORITY_FOLLOW_TAPE, NULL);
   BaseType_t xReturnedRotate = xTaskCreate(TaskRotate, "TapeRotate", configMINIMAL_STACK_SIZE, &config_rotate, PRIORITY_FOLLOW_TAPE, NULL);
 
 
@@ -225,17 +221,8 @@ void setup() {
     Serial.println("Reflectance polling task was not created successfully!");
   }
 
-  // // check if tape following task was created
-  // if (xReturnedFollowing == pdPASS) {
-  //   Serial.println("Tape following task was created successfully.");
-  // } else
-  // {
-  //   Serial.println("Tape following task was not created successfully!");
-  // }
-
-
   // check if tape following task was created
-  if (xReturnedRotate == pdPASS) {
+  if (xReturnedFollowing == pdPASS) {
     Serial.println("Tape following task was created successfully.");
   } else
   {
@@ -243,8 +230,16 @@ void setup() {
   }
 
 
-  // size_t freeHeap = xPortGetFreeHeapSize();
-  // Serial.println("Free Heap: " + String(freeHeap));
+  // check if tape following task was created
+  if (xReturnedRotate == pdPASS) {
+    Serial.println("Rotate task was created successfully.");
+  } else
+  {
+    Serial.println("Rotate task was not created successfully!");
+  }
+
+  size_t freeHeap = xPortGetFreeHeapSize();
+  Serial.println("Free Heap: " + String(freeHeap));
 
   vTaskStartScheduler();
 }

@@ -77,6 +77,7 @@ void TaskFollowTape(void *pvParameters) {
     }
 
     while (1) {
+        Serial.println("PLS JUST DO IT MAN");
         int left_mean;
         int right_mean;
         int right_sum = 0;
