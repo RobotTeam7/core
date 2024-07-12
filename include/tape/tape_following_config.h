@@ -1,11 +1,13 @@
-#ifndef MOTOR_REFLECTANCE_CONFIG_H
-#define MOTOR_REFLECTANCE_CONFIG_H
+#ifndef TAPE_FOLLOWING_CONFIG_H
+#define TAPE_FOLLOWING_CONFIG_H
 
 #include <common/robot_motor.h>
+#include <Arduino.h>
 #include <CircularBuffer.h>
 #include <tape/reflectance_polling_config.h>
 
-struct MotorReflectanceConfig {
+
+struct TapeFollowingConfig {
     RobotMotor* motor_front_right;
     RobotMotor* motor_front_left;
     RobotMotor* motor_back_right;

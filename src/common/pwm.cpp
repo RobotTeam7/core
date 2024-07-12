@@ -1,9 +1,7 @@
 #include <common/pwm.h>
 
-
 #define TIMER_RESOLUTION   16   // 16-bit resolution such that 0 – 65535 is valid
 #define LEDC_PWM_FREQUENCY 50   // 50 Hz PWM pulse train
-
 
 #if USING_ESP32
     #pragma message "Compiling for ESP32"

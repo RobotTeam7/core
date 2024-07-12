@@ -15,7 +15,6 @@
 #include <common/robot_motor.h>
 #include <common/pin.h>
 
-
 #define MOTOR_BACK_RIGHT_FORWARD PB1
 #define MOTOR_BACK_RIGHT_REVERSE PB0
 #define MOTOR_BACK_LEFT_FORWARD PA7
@@ -36,16 +35,13 @@
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define OLED_RESET -1    // This display does not have a reset pin accessible
 
-
 RobotMotor motor_front_left;
 RobotMotor motor_front_right;
 RobotMotor motor_back_left;
 RobotMotor motor_back_right;
-
 ReflectancePollingConfig config_reflectance;
 TapeFollowingConfig config_following;
 MotorReflectanceConfig config_rotate;
-
 CircularBuffer<int, BUFFER_SIZE> leftBuffer;
 CircularBuffer<int, BUFFER_SIZE> rightBuffer;
 TaskHandle_t xHandleRotating = NULL;

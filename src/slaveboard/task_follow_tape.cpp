@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include <tape/motor_reflectance_config.h>
+#include <tape/tape_following_config.h>
+#include <tape/reflectance_polling_config.h>
 #include <FreeRTOS.h>
 #include <task.h>
 
