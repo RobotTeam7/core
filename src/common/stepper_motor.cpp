@@ -21,7 +21,7 @@ void stepperMotorTask(void *pvParameters) {
     Serial.println("Starting stepper task...");
     StepperMotorCommandData_t* data = static_cast<StepperMotorCommandData_t*>(pvParameters);
 
-    digitalWrite(PA0, data->direction);
+    digitalWrite(data->dirPin, data->direction);
     int numStepsTaken = 0;
 
     int half_period_ms = (int)(500 / data->frequency);  // Period_s -> 1 / frequency -> * 1000 -> Period_ms -> / 2 -> half period_ms

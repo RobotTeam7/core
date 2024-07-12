@@ -3,12 +3,17 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <Adafruit_SSD1306.h>
 #include <math.h>
 #include <common/pwm.h>
 #include <common/pin.h>
-#include <FreeRTOS.h>
-#include <task.h>
+
+#ifdef USING_BLUE_PILL
+    #include <FreeRTOS.h>
+    #include <task.h>
+#elif USING_ESP32
+    #include "freertos/FreeRTOS.h"
+    #include "freertos/task.h"
+#endif
 
 
 #define MAX_STEPPER_FREQENCY 100000
