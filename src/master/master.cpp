@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <common/servo_motor.h>
+
 #define step 7
 #define dir 5
 
@@ -18,28 +20,8 @@ const char* password = "12345678";
 const char* host = "192.168.4.1"; // This should be the IP address of the ESP32 AP
 
 
-void getChannel(void *pvParameter)
-{
-    static bool channelAvailable = true;
-
-    while (1) {
-        if (channelAvailable) {
-            int channel = ChannelManager::getInstance().requestChannel();
-            if (channel != -1) {
-                Serial.print("Got channel: ");
-                Serial.println(channel);
-            } else {
-                Serial.println("Couldn't get channel...");
-                channelAvailable = false;
-            }
-        } else {
-            Serial.println("No channels available!");
-        }
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-    }
-}
-
 WiFiConfig config;
+ServoMotor motor_lit;
 
 void setup() {
     Serial.begin(115200);
@@ -56,23 +38,30 @@ void setup() {
 //   xTaskCreate(&getChannel, "getChannel", 2048, NULL, 5, NULL);
 //   digitalWrite(dir, HIGH);
     // Pin pin3(7);
-
-    // pwm::bind_pwm(pin1.getNumber());
-    // pwm::bind_pwm(pin3.getNumber());
-    // pwm::set_pwm(pin1.getNumber(), 16000);
-    // pwm::set_pwm(pin3.getNumber(), 32000);
+    float dutyCycleHigh = 0.06;
+    int powerValueHigh = dutyCycleHigh * 65536;
 
     // RobotMotor motor = RobotMotor(step, dir);
     // Serial.println("here");
     // motor.set_drive(16000, forward);
+    motor_lit = ServoMotor(4, powerValueHigh);
 }
 
+float dutyCycleHigh = 0.06;
+float dutyCycleLow = 0.02;
+int powerValueHigh = dutyCycleHigh * 65536;
+int powerValueLow = dutyCycleLow * 65536;
+int unit_16_number = 65536;
+
+float granularity = 0.001;
+float dutyCycle;
+int delay_value = 5;
+
 void loop() {
-//   digitalWrite(step, HIGH);
-  
-//   delay(5);
-
-//   digitalWrite(step, LOW);
-
-//   delay(5);
+    motor_lit.set_position_percentage(0);
+    delay(500);
+    motor_lit.set_position_percentage(.50);
+    delay(500);
+    motor_lit.set_position_percentage(1);
+    delay(500);
 }

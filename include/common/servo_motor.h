@@ -24,6 +24,7 @@ public:
     ServoMotor(uint8_t boundControlPin, uint16_t position);
 
     void set_position(uint16_t newPosition);
+    void set_position_percentage(float percentage);
     uint16_t get_position();
 };
 
