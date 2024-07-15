@@ -5,13 +5,11 @@
 #include <Arduino.h>
 #include <task.h>
 #include <slaveboard/constants.h>
+#include <common/utils.h>
 
 void checkResetCause();
 void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectanceHandle, TaskHandle_t* xHandleFollowing, TaskHandle_t* xMasterHandle);
 
-void log_status(const char*);
-void log_error(const char*);
-void log_message(const char*);
 
 extern "C"
 {

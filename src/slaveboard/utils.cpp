@@ -1,65 +1,65 @@
 #include <slaveboard/utils.h>
 
-void checkResetCause()
-{
-  if (RCC->CSR & RCC_CSR_IWDGRSTF)
-  {
-    Serial.println("System reset by Independent Watchdog Timer (IWDG).");
-  }
-  if (RCC->CSR & RCC_CSR_WWDGRSTF)
-  {
-    Serial.println("System reset by Window Watchdog Timer (WWDG).");
-  }
-  if (RCC->CSR & RCC_CSR_PORRSTF)
-  {
-    Serial.println("System reset by Power-on Reset.");
-  }
-  if (RCC->CSR & RCC_CSR_SFTRSTF)
-  {
-    Serial.println("System reset by Software Reset.");
-  }
-  if (RCC->CSR & RCC_CSR_PINRSTF)
-  {
-    Serial.println("System reset by NRST pin.");
-  }
-  if (RCC->CSR & RCC_CSR_LPWRRSTF)
-  {
-    Serial.println("System reset by Low Power Reset.");
-  }
-  RCC->CSR |= RCC_CSR_RMVF;
+
+void checkResetCause() {
+    if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) {
+        Serial.println("System reset by Independent Watchdog Timer (IWDG).");
+    }
+    if (__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST)) {
+        Serial.println("System reset by Window Watchdog Timer (WWDG).");
+    }
+    if (__HAL_RCC_GET_FLAG(RCC_FLAG_PORRST)) {
+        Serial.println("System reset by Power-on Reset.");
+    }
+    if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST)) {
+        Serial.println("System reset by Software Reset.");
+    }
+    if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST)) {
+        Serial.println("System reset by NRST pin.");
+    }
+    if (__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST)) {
+        Serial.println("System reset by Low Power Reset.");
+    }
+    // if (__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST)) {
+    //     Serial.println("System reset by Brown-out Reset (BOR).");
+    // }
+    // Clear all reset flags
+    __HAL_RCC_CLEAR_RESET_FLAGS();
 }
 
 void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectanceHandle, TaskHandle_t* xHandleFollowing, TaskHandle_t* xMasterHandle)
 {
+    if (VERBOSITY_LEVEL < 3) {
+        return;
+    }
+
+    size_t freeHeap = xPortGetFreeHeapSize();
+    Serial.println("Free Heap: " + String(freeHeap));
+
     UBaseType_t uxHighWaterMark;
 
     // For the rotate task
     uxHighWaterMark = uxTaskGetStackHighWaterMark(*xHandleRotating);
-    if (VERBOSITY_LEVEL >= 3) {
     Serial.print("TapeRotate stack high water mark: ");
     Serial.println(uxHighWaterMark);
-    }
+
 
     // For the reflectance task
     uxHighWaterMark = uxTaskGetStackHighWaterMark(*xReflectanceHandle);
-    if (VERBOSITY_LEVEL >= 3) {
-        Serial.print("ReflectancePolling stack high water mark: ");
-        Serial.println(uxHighWaterMark);
-    }
+    Serial.print("ReflectancePolling stack high water mark: ");
+    Serial.println(uxHighWaterMark);
+
 
     // For the follow task
     uxHighWaterMark = uxTaskGetStackHighWaterMark(*xHandleFollowing);
-    if (VERBOSITY_LEVEL >= 3) {
-        Serial.print("TapeFollow stack high water mark: ");
-        Serial.println(uxHighWaterMark);
-    }
+    Serial.print("TapeFollow stack high water mark: ");
+    Serial.println(uxHighWaterMark);
+
 
     // For the follow task
     uxHighWaterMark = uxTaskGetStackHighWaterMark(*xMasterHandle);
-    if (VERBOSITY_LEVEL >= 3) {
-        Serial.print("Master stack high water mark: ");
-        Serial.println(uxHighWaterMark);
-    }
+    Serial.print("Master stack high water mark: ");
+    Serial.println(uxHighWaterMark);
 }
 
 extern "C"
@@ -74,21 +74,3 @@ extern "C"
       ;
   }
 }
-
-void log_status(const char* status_message) {
-    if (VERBOSITY_LEVEL >= STATUS_MESSAGES) {
-        Serial.println(status_message);
-    }    
-}
-
-void log_error(const char* error_message) {
-    if (VERBOSITY_LEVEL >= ERRORS_ONLY) {
-        Serial.println(error_message);
-    }    
-}
-
-void log_message(const char* message) {
-    if (VERBOSITY_LEVEL >= MOST_VERBOSE) {
-        Serial.println(message);
-    }    
-} 

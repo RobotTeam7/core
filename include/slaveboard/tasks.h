@@ -19,10 +19,10 @@ enum Message { ROTATION_DONE };
 int get_buffer_average(CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> &sensorBuffer);
 
 typedef struct {
-    RobotMotor* motorFR;
-    RobotMotor* motorFL;
-    RobotMotor* motorBR;
-    RobotMotor* motorBL;
+    RobotMotor_t* motorFR;
+    RobotMotor_t* motorFL;
+    RobotMotor_t* motorBR;
+    RobotMotor_t* motorBL;
 } RobotMotorData_t;
 
 typedef struct {

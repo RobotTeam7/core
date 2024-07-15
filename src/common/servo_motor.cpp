@@ -1,5 +1,6 @@
 #include <common/servo_motor.h>
 
+
 ServoMotor::ServoMotor() {
     this->boundControlPin = NULL;
     this->position = NULL;

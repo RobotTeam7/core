@@ -116,22 +116,22 @@ void TaskFollowTape(void *pvParameters) {
         
         if (right_mean - left_mean > THRESHOLD) {                       // If we are detecting tape on the left, turn left
             log_message("Driving left...");
-            robotMotors->motorFL->set_drive(MOTOR_SPEED_LOW, forward); 
-            robotMotors->motorBL->set_drive(MOTOR_SPEED_LOW, forward);
-            robotMotors->motorFR->set_drive(MOTOR_SPEED_HIGH, forward);
-            robotMotors->motorBR->set_drive(MOTOR_SPEED_HIGH, forward);
+            motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_LOW, FORWARD_DRIVE); 
+            motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_LOW, FORWARD_DRIVE);
+            motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
+            motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
         } else if (left_mean - right_mean > THRESHOLD) {               // If we are detecting tape on the right, turn right
             log_message("Driving right...");
-            robotMotors->motorFL->set_drive(MOTOR_SPEED_HIGH, forward);
-            robotMotors->motorBL->set_drive(MOTOR_SPEED_HIGH, forward);
-            robotMotors->motorFR->set_drive(MOTOR_SPEED_LOW, forward);
-            robotMotors->motorBR->set_drive(MOTOR_SPEED_LOW, forward);
+            motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
+            motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
+            motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_LOW, FORWARD_DRIVE);
+            motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_LOW, FORWARD_DRIVE);
         } else {                                                        // Otherwise, drive forwards
             log_message("Driving forward...");
-            robotMotors->motorFL->set_drive(MOTOR_SPEED_HIGH, forward); 
-            robotMotors->motorBL->set_drive(MOTOR_SPEED_HIGH, forward);
-            robotMotors->motorFR->set_drive(MOTOR_SPEED_HIGH, forward);
-            robotMotors->motorBR->set_drive(MOTOR_SPEED_HIGH, forward);
+            motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_HIGH, FORWARD_DRIVE); 
+            motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
+            motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
+            motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
         }
 
         vTaskDelay(delay_ticks);
@@ -169,10 +169,10 @@ void TaskRotate(void *pvParameters) {
 
     while (1) {
         // start rotating, then delay to ensure that rotation isn't immediately canceled by tape detection
-        robotMotors->motorFR->set_drive(MOTOR_SPEED_ROTATION, forward);
-        robotMotors->motorBR->set_drive(MOTOR_SPEED_ROTATION, forward);
-        robotMotors->motorFL->set_drive(MOTOR_SPEED_ROTATION, reverse);
-        robotMotors->motorBL->set_drive(MOTOR_SPEED_ROTATION, reverse);
+        motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_ROTATION, FORWARD_DRIVE);
+        motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_ROTATION, FORWARD_DRIVE);
+        motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_ROTATION, FORWARD_DRIVE);
+        motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_ROTATION, FORWARD_DRIVE);
         
         vTaskDelay(inital_delay_ticks);
 
@@ -191,10 +191,10 @@ void TaskRotate(void *pvParameters) {
                 log_status("Found tape. Ending rotation...");
                 rotating = false;
 
-                robotMotors->motorFR->stop();
-                robotMotors->motorBR->stop();
-                robotMotors->motorFL->stop();
-                robotMotors->motorBL->stop();
+                motor_stop(robotMotors->motorFR);
+                motor_stop(robotMotors->motorBR);
+                motor_stop(robotMotors->motorFL);
+                motor_stop(robotMotors->motorBL);
 
                 // send message to TaskMaster that rotation has finished
                 Message message = ROTATION_DONE;

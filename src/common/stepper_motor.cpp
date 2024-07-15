@@ -1,71 +1,96 @@
 #include <common/stepper_motor.h>
 
 
-StepperMotor::StepperMotor(uint8_t stepPin, uint8_t dirPin, int position = 0) {
-    pinMode(stepPin, OUTPUT);
-    pinMode(dirPin, OUTPUT);
-    
-    this->boundStepPin = stepPin;
-    this->boundDirPin = dirPin;
-    this->position = position;
-    Serial.println("Created stepper motor!");
+int checkStepperMotorData(StepperMotorCommandBuffer_t* data) {
+    return data == NULL || data->stepperMotor == NULL;
 }
 
-StepperMotor::StepperMotor() {
-    this->boundStepPin = 0;
-    this->boundDirPin = 0;
-    this->position = 0;
-}
-
+// This task manages the execution of a stepper motor action
 void stepperMotorTask(void *pvParameters) {
-    Serial.println("Starting stepper task...");
-    StepperMotorCommandData_t* data = static_cast<StepperMotorCommandData_t*>(pvParameters);
+    log_status("Starting stepper motor action...");
 
-    digitalWrite(PA0, data->direction);
+    // Cast and check points
+    StepperMotorCommandBuffer_t* data = (StepperMotorCommandBuffer_t*)pvParameters;
+    if (checkStepperMotorData(data)) {
+        log_error("Stepper motor task data has nulls!");
+        vTaskDelete(NULL);
+        return;
+    }
+
+    // Write direction
+    digitalWrite(data->stepperMotor->directionPin, data->direction);
     int numStepsTaken = 0;
 
-    int half_period_ms = (int)(500 / data->frequency);  // Period_s -> 1 / frequency -> * 1000 -> Period_ms -> / 2 -> half period_ms
-    // TickType_t delay_ticks = pdMS_TO_TICKS(half_period_ms);
-    Serial.println("Half period is " + String(half_period_ms));
+    // Calculate timings
+    int half_period_ms = (int)(1 / data->frequency * 1000 / 2); // First, convert to period in seconds, then convert to ms, then get the half.
+    TickType_t delay_ticks = pdMS_TO_TICKS(half_period_ms);
 
+    log_message("Stepper motor stepping...");
+
+    // Perform action
     while (numStepsTaken < data->numSteps) {
-        digitalWrite(data->stepPin, HIGH);
-        vTaskDelay(5);
-        digitalWrite(data->stepPin, LOW);
-        vTaskDelay(5);
+        digitalWrite(data->stepperMotor->stepPin, HIGH);
+        vTaskDelay(delay_ticks);
+        digitalWrite(data->stepperMotor->stepPin, LOW);
+        vTaskDelay(delay_ticks);
 
         numStepsTaken++;
     }
+    
+    // Mutate stepper motor position to update position after the action
+    data->stepperMotor->position += numStepsTaken;
 
-    Serial.println("Ending stepper task...");
+    log_status("Stepper motor action completed.");
 
+    // Clean up 
     free(data);
     vTaskDelete(NULL);
 }
 
-void StepperMotor::step(int direction, int numSteps) {
+/**
+ * @brief Instantiate a stepper motor bound to `stepPin` and `dirPin`.
+ * @returns a pointer to a StepperMotor_t allocated on the heap with malloc(). Returns instantiation if creation failed.
+ */
+StepperMotor_t* instantiateStepperMotor(uint8_t stepPin, uint8_t dirPin, int position) {
+    StepperMotor_t* stepperMotor = (StepperMotor_t*)malloc(sizeof(StepperMotor_t));
+    if (stepperMotor == NULL) {
+        log_error("Failed to allocate memory for stepper motor!");
+        return NULL;
+    }
+
+    pinMode(stepPin, OUTPUT);
+    pinMode(dirPin, OUTPUT);
+    
+    stepperMotor->stepPin = stepPin;
+    stepperMotor->directionPin = dirPin;
+    stepperMotor->position = position;
+
+    log_status("Instantiated stepper motor!");
+    
+    return stepperMotor;
+}
+
+void actuateStepperMotor(StepperMotor_t* stepperMotor, int direction, int numSteps, uint16_t motorFrequency) {
+    log_status("Preparing stepper motor action...");
+
     // Allocate memory on the heap for StepperMotorCommandData_t
-    Serial.println("Trying bro...");
-    StepperMotorCommandData_t* data = (StepperMotorCommandData_t*)malloc(sizeof(StepperMotorCommandData_t));
-    if (data == nullptr) {
-        Serial.println("Failed to allocate memory for stepper motor task data.");
+    StepperMotorCommandBuffer_t* data = (StepperMotorCommandBuffer_t*)malloc(sizeof(StepperMotorCommandBuffer_t));
+    if (data == NULL) {
+        log_error("Failed to allocate memory for stepper motor task data.");
         return;
     }
     
     // Populate the data structure
     data->numSteps = numSteps;
-    data->frequency = TEST_FREQUENCY;
-    data->stepPin = this->boundStepPin;
-    data->dirPin = this->boundDirPin;
+    data->frequency = motorFrequency;
     data->direction = direction;
+    data->stepperMotor = stepperMotor;
     
-    BaseType_t xReturned = xTaskCreate(stepperMotorTask, "StepperTask", 200, data, PRIORITY_STEPPER_TASK, NULL);
-    if (xReturned == pdPASS) {
-        Serial.println("Stepper task was created successfully.");
-    } else
-    {
-        Serial.println("Stepper task was not created successfully!");
-        Serial.println(xReturned);
+    // Start a task to execute the stepper motor action
+    if (xTaskCreate(stepperMotorTask, "StepperTask", 128, data, PRIORITY_STEPPER_TASK, NULL) == pdPASS) {
+        log_status("Stepper task was created successfully.");
+    } else {
+        log_error("Stepper task was not created successfully!");
         free(data);
     }
-  }
+}

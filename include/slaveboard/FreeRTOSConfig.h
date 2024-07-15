@@ -36,7 +36,7 @@
 #define configSUPPORT_STATIC_ALLOCATION             1
 #define configSUPPORT_DYNAMIC_ALLOCATION            1
 #define configKERNEL_PROVIDED_STATIC_MEMORY         1
-#define configTOTAL_HEAP_SIZE                       10240  # LOL IS THIS RIGHT?!?!
+#define configTOTAL_HEAP_SIZE                       0  // LOL IS THIS RIGHT?!?!
 #define configAPPLICATION_ALLOCATED_HEAP            1
 #define configSTACK_ALLOCATION_FROM_SEPARATE_HEAP   1
 #define configENABLE_HEAP_PROTECTOR                 1
