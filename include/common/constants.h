@@ -11,6 +11,9 @@
 
 #define VERBOSITY_LEVEL MOST_VERBOSE
 
+#define SERVO_MAX_DUTY_CYCLE 0.06
+#define SERVO_MIN_DUTY_CYCLE 0.02
+
 #endif
 
 #endif

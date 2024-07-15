@@ -4,7 +4,6 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <Adafruit_SSD1306.h>
 #include <math.h>
 #include <common/pwm.h>
 #include <common/pin.h>

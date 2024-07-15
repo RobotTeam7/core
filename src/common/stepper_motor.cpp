@@ -92,5 +92,4 @@ void actuateStepperMotor(StepperMotor_t* stepperMotor, int direction, int numSte
     } else {
         log_error("Stepper task was not created successfully!");
         free(data);
-    }
 }
