@@ -8,6 +8,7 @@
 #include <common/robot_motor.h>
 #include <common/pin.h>
 #include <common/stepper_motor.h>
+#include <common/reflectance_sensor.h>
 #include <motion/FreeRTOSConfig.h>
 #include <motion/constants.h>
 #include <motion/tasks.h>
@@ -18,8 +19,9 @@ RobotMotor_t* motor_front_right;
 RobotMotor_t* motor_back_left;
 RobotMotor_t* motor_back_right;
 
+TapeSensor_t* frontTapeSensor;
+
 RobotMotorData_t robotMotors;
-ReflectanceSensorData_t config_reflectance;
 TapeAwarenessData_t config_following;
 RobotControlData_t config_rotate;
 
@@ -31,7 +33,10 @@ TaskHandle_t xReflectanceHandle = NULL;
 TaskHandle_t xHandleFollowing = NULL;
 TaskHandle_t xMasterHandle = NULL;
 
-QueueHandle_t xSharedQueue = xQueueCreate(2, sizeof(Message));
+QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(Message));
+
+typedef enum { TAPE_FOLLOW, ROTATE } ActionType;
+ActionType currentAction = TAPE_FOLLOW;
 
 void TaskMaster(void *pvParameters);
 
@@ -43,29 +48,26 @@ void setup() {
 
     checkResetCause();
 
-    size_t freeHeap = xPortGetFreeHeapSize();
-    Serial.println("Free Heap: " + String(freeHeap));
-
     motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
     motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
     motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE);
     motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE);
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
+    frontTapeSensor = instantiate_tape_sensor(13, 15);
 
-    config_reflectance = { 10, 10 };
-    config_following = { &robotMotors, &config_reflectance };
+    config_following = { &robotMotors, frontTapeSensor };
     config_rotate = { &config_following, &xSharedQueue };
 
     // check if reflectance polling task was created
-    if (xTaskCreate(TaskPollReflectance, "ReflectancePolling", 2048, &config_reflectance, PRIORITY_REFLECTANCE_POLLING, &xReflectanceHandle) == pdPASS) {
+    if (xTaskCreate(TaskPollReflectance, "ReflectancePolling", 2048, frontTapeSensor, PRIORITY_REFLECTANCE_POLLING, &xReflectanceHandle) == pdPASS) {
         log_status("Reflectance polling task was created successfully."); 
     } else {
         log_error("Reflectance polling task was not created successfully!");
     }
 
     // check if tape following task was created
-    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 1, &xMasterHandle) == pdPASS) {
+    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
         log_status("Master task was created successfully.");
     } else {
         log_error("Master task was not created successfully!");
@@ -74,41 +76,53 @@ void setup() {
 
 void loop()
 {
-    monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle); // Monitor stack usage periodically
-    delay(500);
+    // monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle); // Monitor stack usage periodically
+    // delay(500);
 }
 
 void TaskMaster(void *pvParameters)
 {
     log_status("Beginning master task...");
 
-    Message receivedMessage;
     while (1) {
-        log_status("State 0");
+        switch (currentAction) {
+            case ROTATE:
+                begin_rotating();
+                Message receivedMessage;
+                if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {
+                    if (receivedMessage == ROTATION_DONE) {
+                        log_status("State 2");
+                        
+                        // tape follow for 1 second
+                        vTaskDelete(xHandleRotating);
 
-        size_t freeHeap = xPortGetFreeHeapSize();
-        Serial.println("Free Heap: " + String(freeHeap));
+                        vTaskDelay(pdMS_TO_TICKS(1500));
+                    
+                        log_status("Moving to tape following...");
+                        currentAction = TAPE_FOLLOW;
+                    }
+                }
+                break;
 
-        begin_rotating();
-
-        // // wait until a message is recieved on the shared queue
-        // // this saves the value of the message into "receivedMessage"
-        // this operation is blocking since we passed "portMAX_DELAY"
-        log_status("State 1");
-
-        if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {
-            if(receivedMessage == ROTATION_DONE) {
-                log_status("State 2");
-                
-                // tape follow for 1 second
-                vTaskDelete(xHandleRotating);
+            case TAPE_FOLLOW:
+                Serial.println("Trying to create task...");
                 begin_following();
-
-                vTaskDelay(pdMS_TO_TICKS(1500));
-                vTaskDelete(xHandleFollowing);           
-
-                log_status("State 3");
-            }
+                while (true) {
+                    Serial.println("Tape following!!");
+                    if (is_tape_visible(frontTapeSensor) < 0) {
+                        Serial.println("Moving to rotate task!");
+                        Serial.flush();
+                        vTaskDelete(xHandleFollowing);
+                        currentAction = ROTATE;
+                        break;
+                    }
+                    vTaskDelay(pdMS_TO_TICKS(10));
+                    // Serial.println("IS IT NULL: " + String(xHandleFollowing == NULL));
+                    // vTaskDelete(xHandleFollowing);
+                    // currentAction = ROTATE;
+                    // Serial.println("Moving to rotate task!");
+                }
+                break;
         }
     }
 }

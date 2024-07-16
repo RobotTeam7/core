@@ -14,10 +14,10 @@
 // ______________ DELAYS ______________
 
 // this delay defines how often motor processes check buffer values for cetain tasks
-#define MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS 2
-#define MOTOR_ADJUSTMENT_DELAY_ROTATING_MS 2
+#define MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS 5
+#define MOTOR_ADJUSTMENT_DELAY_ROTATING_MS 5
 
-#define POLL_RATE_REFLECTANCE_MS 1
+#define POLL_RATE_REFLECTANCE_MS 3
 
 
 

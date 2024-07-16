@@ -15,6 +15,8 @@
 #define SERVO_MAX_DUTY_CYCLE 0.06
 #define SERVO_MIN_DUTY_CYCLE 0.02
 
+#define THRESHOLD 1000
+
 #endif
 
 #endif

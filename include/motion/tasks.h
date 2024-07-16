@@ -25,13 +25,8 @@ typedef struct {
 } RobotMotorData_t;
 
 typedef struct {
-    int leftSensorBuffer;
-    int rightSensorBuffer;
-} ReflectanceSensorData_t;
-
-typedef struct {
     RobotMotorData_t* robotMotors;
-    ReflectanceSensorData_t* reflectanceSensorData;
+    TapeSensor_t* tapeSensor;
 } TapeAwarenessData_t;
 
 typedef struct {
@@ -42,5 +37,6 @@ typedef struct {
 void TaskRotate(void *pvParameters);
 void TaskFollowTape(void *pvParameters);
 void TaskPollReflectance(void *pvParameters);
+
 
 #endif 
