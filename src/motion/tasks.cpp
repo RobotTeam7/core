@@ -9,6 +9,7 @@
 #define MOTOR_TASK_DELAY_MS 5
 
 
+// Ensure that a RobotMotorData_t* does not contain null values
 int checkRobotMotors(RobotMotorData_t* robotMotors) {
     if (robotMotors == NULL) {
         return 1;
@@ -17,10 +18,13 @@ int checkRobotMotors(RobotMotorData_t* robotMotors) {
     } 
 }
 
+
+// Ensure that a TapeSensor_t* does not include null values
 int checkTapeSensor(TapeSensor_t* tapeSensor) {
     return tapeSensor == NULL;
 }
 
+// Ensure that a TapeAwarenessData_t* does not contain null values
 int checkTapeAwarenessData(TapeAwarenessData_t* tapeAwarenessData) {
     if (tapeAwarenessData == NULL) {
         return 1;
@@ -43,32 +47,24 @@ void TaskPollReflectance(void *pvParameters) {
     // Setup reflectance sensor
     TickType_t delay_ticks = pdMS_TO_TICKS(POLL_SENSOR_DELAY_MS);
 
-    pinMode(REFLECTANCE_ONE, INPUT);
-    pinMode(REFLECTANCE_TWO, INPUT);
-
-    int reflectance_right;
-    int reflectance_left;
-
     log_status("Succesfully initialized reflectance polling task!");
 
     while (1) {
         // Read sensor values, pushing them onto the buffer
         read_tape_sensor(tapeSensor);
 
-        // Print direction of less reflectance (higher value -> less reflectance, they are inversly proportional)
-        if (VERBOSITY_LEVEL > MOST_VERBOSE) {
-            reflectance_right = tapeSensor->rightValue;
-            reflectance_left = tapeSensor->leftValue;
+        // Print direction of greater reflectance
+        if (PRINT_DRIVE_STATE) {
+            int reflectance_right = tapeSensor->rightValue;
+            int reflectance_left = tapeSensor->leftValue;
 
-            char drive_state[20] = "find tape";  // this could be a memory unsafe situation, as some chars are uninitialized
             if (reflectance_right - reflectance_left > THRESHOLD) {
-                strcpy(drive_state, "---->>");
+                Serial.println("---->>");
             } else if (reflectance_left - reflectance_right > THRESHOLD) {
-                strcpy(drive_state, "<<----");
+                Serial.println("<<----");
             } else {
-                strcpy(drive_state, "^^^^^^");
+                Serial.println("^^^^^^");
             }
-            // Serial.println(drive_state);
         }
 
         vTaskDelay(delay_ticks);
@@ -84,6 +80,7 @@ void TaskFollowTape(void *pvParameters) {
         vTaskDelete(NULL);
         return;
     }
+
     RobotMotorData_t* robotMotors = tapeAwarenessData->robotMotors;
 
     TickType_t delay_ticks = pdMS_TO_TICKS(MOTOR_TASK_DELAY_MS);
@@ -92,8 +89,10 @@ void TaskFollowTape(void *pvParameters) {
 
     while (1) {
         // Read buffers
+        
+        // If we lost the tape, let master know 
         if (is_tape_visible(tapeAwarenessData->tapeSensor) < 0) {
-            // send message to TaskMaster that we lost the tape
+            // Send message to TaskMaster that we lost the tape
             Message message = LOST_TAPE;
             if (xQueueSend(*tapeAwarenessData->xSharedQueue, &message, portMAX_DELAY) != pdPASS)
             {
