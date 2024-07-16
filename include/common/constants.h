@@ -9,8 +9,10 @@
 #define EVERYTHING 4
 
 #ifndef VERBOSITY_LEVEL     // Manual debug level
-
 #define VERBOSITY_LEVEL EVERYTHING
+#endif
+
+#define PRINT_DRIVE_STATE 0
 
 #define SERVO_MAX_DUTY_CYCLE 0.06
 #define SERVO_MIN_DUTY_CYCLE 0.02
@@ -19,7 +21,5 @@
 
 #define REFLECTANCE_SENSOR_BUFFER_SIZE 1
 
-
-#endif
 
 #endif
