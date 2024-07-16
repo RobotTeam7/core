@@ -1,30 +1,30 @@
-#include <slaveboard/utils.h>
+#include <motion/utils.h>
 
 
 void checkResetCause() {
-    if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) {
-        Serial.println("System reset by Independent Watchdog Timer (IWDG).");
-    }
-    if (__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST)) {
-        Serial.println("System reset by Window Watchdog Timer (WWDG).");
-    }
-    if (__HAL_RCC_GET_FLAG(RCC_FLAG_PORRST)) {
-        Serial.println("System reset by Power-on Reset.");
-    }
-    if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST)) {
-        Serial.println("System reset by Software Reset.");
-    }
-    if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST)) {
-        Serial.println("System reset by NRST pin.");
-    }
-    if (__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST)) {
-        Serial.println("System reset by Low Power Reset.");
-    }
-    // if (__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST)) {
-    //     Serial.println("System reset by Brown-out Reset (BOR).");
+    // if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST)) {
+    //     Serial.println("System reset by Independent Watchdog Timer (IWDG).");
     // }
-    // Clear all reset flags
-    __HAL_RCC_CLEAR_RESET_FLAGS();
+    // if (__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST)) {
+    //     Serial.println("System reset by Window Watchdog Timer (WWDG).");
+    // }
+    // if (__HAL_RCC_GET_FLAG(RCC_FLAG_PORRST)) {
+    //     Serial.println("System reset by Power-on Reset.");
+    // }
+    // if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST)) {
+    //     Serial.println("System reset by Software Reset.");
+    // }
+    // if (__HAL_RCC_GET_FLAG(RCC_FLAG_PINRST)) {
+    //     Serial.println("System reset by NRST pin.");
+    // }
+    // if (__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST)) {
+    //     Serial.println("System reset by Low Power Reset.");
+    // }
+    // // if (__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST)) {
+    // //     Serial.println("System reset by Brown-out Reset (BOR).");
+    // // }
+    // // Clear all reset flags
+    // __HAL_RCC_CLEAR_RESET_FLAGS();
 }
 
 void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectanceHandle, TaskHandle_t* xHandleFollowing, TaskHandle_t* xMasterHandle)
@@ -32,9 +32,6 @@ void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectance
     if (VERBOSITY_LEVEL < 3) {
         return;
     }
-
-    size_t freeHeap = xPortGetFreeHeapSize();
-    Serial.println("Free Heap: " + String(freeHeap));
 
     UBaseType_t uxHighWaterMark;
 
@@ -48,6 +45,10 @@ void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectance
     uxHighWaterMark = uxTaskGetStackHighWaterMark(*xReflectanceHandle);
     Serial.print("ReflectancePolling stack high water mark: ");
     Serial.println(uxHighWaterMark);
+
+    size_t freeHeap = xPortGetFreeHeapSize();
+    Serial.print("Free Heap: ");
+    Serial.println((unsigned long)freeHeap, DEC);
 
 
     // For the follow task

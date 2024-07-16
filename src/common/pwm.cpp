@@ -25,14 +25,14 @@
         pinMode(pin, OUTPUT);
         ledcAttachPin(pin, channel);
 
-        Serial.println("Bound to pin: " + String(pin) + " on channel: " + channel);
+        // Serial.println("Bound to pin: " + String(pin) + " on channel: " + channel);
     }
 
     void pwm::set_pwm(int pin, uint32_t power) {
         int channel = pin_to_channel[pin];
         ledcWrite(channel, power);
 
-        Serial.println("Setting power of channel " + String(channel) + " on pin " + pin + " to " + power);
+        // Serial.println("Setting power of channel " + String(channel) + " on pin " + pin + " to " + power);
     }
 
 #elif USING_BLUE_PILL

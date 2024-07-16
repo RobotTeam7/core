@@ -1,11 +1,12 @@
-#ifndef SLAVEBOARD_UTILS
-#define SLAVEBOARD_UTILS
+#ifndef MOTION_UTILS_H
+#define MOTION_UTILS_H
 
-#include <FreeRTOS.h>
 #include <Arduino.h>
-#include <task.h>
-#include <slaveboard/constants.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
 #include <common/utils.h>
+#include <motion/constants.h>
 
 void checkResetCause();
 void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectanceHandle, TaskHandle_t* xHandleFollowing, TaskHandle_t* xMasterHandle);

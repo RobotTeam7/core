@@ -36,7 +36,7 @@ void motor_set_drive(RobotMotor_t* robotMotor, uint16_t driveValue, uint8_t dire
     robotMotor->currentState = direction;
     robotMotor->currentDrive = driveValue;
 
-    log_message("Successfully set robot drive!");
+    // log_message("Successfully set robot drive!");
 }
 
 void motor_stop(RobotMotor_t* robotMotor) {

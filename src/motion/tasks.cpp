@@ -1,26 +1,24 @@
 #include <Arduino.h>
-#include <FreeRTOS.h>
-#include <task.h>
-#include <slaveboard/constants.h>
-#include <slaveboard/tasks.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <motion/constants.h>
+#include <motion/tasks.h>
 
-#define POLL_SENSOR_DELAY_MS 1
-#define MOTOR_TASK_DELAY_MS 10
+#define POLL_SENSOR_DELAY_MS 50
+#define MOTOR_TASK_DELAY_MS 5
 
-#define THRESHOLD 300
-#define REFLECTANCE_ONE PA5
-#define REFLECTANCE_TWO PA4
+#define THRESHOLD 1000
 
 // returns the mean value in the buffer
 int get_buffer_average(CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> &sensor_buffer)
 {
-  int sum = 0;
-  for (int i = 0; i < sensor_buffer.size(); ++i)
-  {
+    int sum = 0;
+    for (int i = 0; i < sensor_buffer.size(); ++i)
+    {
     sum += sensor_buffer[i];
-  }
-  // truncates integer
-  return sum / sensor_buffer.size();
+    }
+    // truncates integer
+    return sum / sensor_buffer.size();
 }
 
 int checkRobotMotors(RobotMotorData_t* robotMotors) {
@@ -49,7 +47,7 @@ int checkTapeAwarenessData(TapeAwarenessData_t* tapeAwarenessData) {
 
 void TaskPollReflectance(void *pvParameters) {
     log_status("Beginning reflectance task initialization...");
-    
+
     // Acquire and verify pointers
     ReflectanceSensorData_t* reflectanceData = (ReflectanceSensorData_t*)pvParameters;
     if (checkReflectanceSensorData(reflectanceData)) {
@@ -74,8 +72,8 @@ void TaskPollReflectance(void *pvParameters) {
         reflectance_right = analogRead(REFLECTANCE_ONE);
         reflectance_left = analogRead(REFLECTANCE_TWO);
 
-        reflectanceData->rightSensorBuffer->push(reflectance_right);
-        reflectanceData->leftSensorBuffer->push(reflectance_left);
+        reflectanceData->rightSensorBuffer = reflectance_right;
+        reflectanceData->leftSensorBuffer = reflectance_left;
 
         // Print direction of less reflectance (higher value -> less reflectance, they are inversly proportional)
         if (VERBOSITY_LEVEL > MOST_VERBOSE) {
@@ -87,7 +85,7 @@ void TaskPollReflectance(void *pvParameters) {
             } else {
                 strcpy(drive_state, "^^^^^^");
             }
-            Serial.println(drive_state);
+            // Serial.println(drive_state);
         }
 
         vTaskDelay(delay_ticks);
@@ -111,23 +109,23 @@ void TaskFollowTape(void *pvParameters) {
 
     while (1) {
         // Read buffers
-        int left_mean = get_buffer_average(*tapeAwarenessData->reflectanceSensorData->leftSensorBuffer);
-        int right_mean = get_buffer_average(*tapeAwarenessData->reflectanceSensorData->rightSensorBuffer);
-        
+        int left_mean = tapeAwarenessData->reflectanceSensorData->leftSensorBuffer;
+        int right_mean = tapeAwarenessData->reflectanceSensorData->rightSensorBuffer;
+
         if (right_mean - left_mean > THRESHOLD) {                       // If we are detecting tape on the left, turn left
-            log_message("Driving left...");
+            // log_message("Driving left...");
             motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_LOW, FORWARD_DRIVE); 
             motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_LOW, FORWARD_DRIVE);
             motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
             motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
         } else if (left_mean - right_mean > THRESHOLD) {               // If we are detecting tape on the right, turn right
-            log_message("Driving right...");
+            // log_message("Driving right...");
             motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
             motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
             motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_LOW, FORWARD_DRIVE);
             motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_LOW, FORWARD_DRIVE);
         } else {                                                        // Otherwise, drive forwards
-            log_message("Driving forward...");
+            // log_message("Driving forward...");
             motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_HIGH, FORWARD_DRIVE); 
             motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
             motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
@@ -169,8 +167,8 @@ void TaskRotate(void *pvParameters) {
 
     while (1) {
         // start rotating, then delay to ensure that rotation isn't immediately canceled by tape detection
-        motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_ROTATION, FORWARD_DRIVE);
-        motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_ROTATION, FORWARD_DRIVE);
+        motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_ROTATION, REVERSE_DRIVE);
+        motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_ROTATION, REVERSE_DRIVE);
         motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_ROTATION, FORWARD_DRIVE);
         motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_ROTATION, FORWARD_DRIVE);
         
@@ -183,8 +181,9 @@ void TaskRotate(void *pvParameters) {
 
         while (rotating)
         {
-            int left_mean = get_buffer_average(*(reflectanceSensorData->leftSensorBuffer));
-            int right_mean = get_buffer_average(*(reflectanceSensorData->rightSensorBuffer));
+            Serial.println("Rotating!");
+            int left_mean = reflectanceSensorData->leftSensorBuffer;
+            int right_mean = reflectanceSensorData->rightSensorBuffer;
 
             if (right_mean > THRESHOLD_SENSOR_SINGLE && left_mean > THRESHOLD_SENSOR_SINGLE)
             {

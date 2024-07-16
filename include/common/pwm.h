@@ -6,6 +6,7 @@
 #include <map>
 #include <common/pin.h>
 
+
 /// @brief Namespace containing methods for PWM signal control
 namespace pwm {
     /**

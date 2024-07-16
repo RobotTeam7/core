@@ -1,12 +1,11 @@
-#ifndef SLAVEBOARD_TASKS_H
-#define SLAVEBOARD_TASKS_H
+#ifndef MOTION_TASKS_H
+#define MOTION_TASKS_H
 
 #include <Arduino.h>
 #include <common/robot_motor.h>
 #include <CircularBuffer.h>
-#include <FreeRTOS/Source/include/queue.h>
-#include <slaveboard/constants.h>
-#include <slaveboard/utils.h>
+#include <motion/constants.h>
+#include <motion/utils.h>
 
 /**
  * @brief Enum discretizing the different kinds of messages that can be sent between the master task and subtasks
@@ -26,8 +25,8 @@ typedef struct {
 } RobotMotorData_t;
 
 typedef struct {
-    CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE>* leftSensorBuffer;
-    CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE>* rightSensorBuffer;
+    int leftSensorBuffer;
+    int rightSensorBuffer;
 } ReflectanceSensorData_t;
 
 typedef struct {
