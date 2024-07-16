@@ -10,12 +10,7 @@
 /**
  * @brief Enum discretizing the different kinds of messages that can be sent between the master task and subtasks
  */
-enum Message { ROTATION_DONE };
-
-/**
- * @brief Obtain the average of the values contained within the buffer, as an integer
- */
-int get_buffer_average(CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> &sensorBuffer);
+enum Message { ROTATION_DONE, LOST_TAPE };
 
 typedef struct {
     RobotMotor_t* motorFR;
@@ -27,6 +22,7 @@ typedef struct {
 typedef struct {
     RobotMotorData_t* robotMotors;
     TapeSensor_t* tapeSensor;
+    QueueHandle_t* xSharedQueue;
 } TapeAwarenessData_t;
 
 typedef struct {

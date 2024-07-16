@@ -17,6 +17,9 @@
 
 #define THRESHOLD 1000
 
+#define REFLECTANCE_SENSOR_BUFFER_SIZE 1
+
+
 #endif
 
 #endif

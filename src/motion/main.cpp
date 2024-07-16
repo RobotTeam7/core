@@ -25,9 +25,6 @@ RobotMotorData_t robotMotors;
 TapeAwarenessData_t config_following;
 RobotControlData_t config_rotate;
 
-// CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> leftBuffer;
-// CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> rightBuffer;
-
 TaskHandle_t xHandleRotating = NULL;
 TaskHandle_t xReflectanceHandle = NULL;
 TaskHandle_t xHandleFollowing = NULL;
@@ -56,7 +53,7 @@ void setup() {
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     frontTapeSensor = instantiate_tape_sensor(13, 15);
 
-    config_following = { &robotMotors, frontTapeSensor };
+    config_following = { &robotMotors, frontTapeSensor, &xSharedQueue };
     config_rotate = { &config_following, &xSharedQueue };
 
     // check if reflectance polling task was created
@@ -85,14 +82,14 @@ void TaskMaster(void *pvParameters)
     log_status("Beginning master task...");
 
     while (1) {
+        Message receivedMessage;
         switch (currentAction) {
             case ROTATE:
+                // Begin rotating and wait for a message that we see the tape
                 begin_rotating();
-                Message receivedMessage;
                 if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {
                     if (receivedMessage == ROTATION_DONE) {
-                        log_status("State 2");
-                        
+                        log_status("Found tape!");                        
                         vTaskDelete(xHandleRotating);
 
                         vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
@@ -104,19 +101,17 @@ void TaskMaster(void *pvParameters)
                 break;
 
             case TAPE_FOLLOW:
-                Serial.println("Trying to create task...");
+                log_status("Tape following!");
                 begin_following();
-                while (true) {
-                    Serial.println("Tape following!!");
-                    if (is_tape_visible(frontTapeSensor) < 0) {
-                        Serial.println("Moving to rotate task!");
-                        Serial.flush();
+                if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {
+                    if (receivedMessage == LOST_TAPE) {
+                        log_status("Lost tape!");                        
                         vTaskDelete(xHandleFollowing);
+                    
+                        log_status("Moving to rotating...");
                         currentAction = ROTATE;
-                        break;
                     }
-                    vTaskDelay(pdMS_TO_TICKS(10));
-                }
+                } 
                 break;
         }
     }

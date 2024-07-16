@@ -8,17 +8,6 @@
 #define POLL_SENSOR_DELAY_MS 5
 #define MOTOR_TASK_DELAY_MS 5
 
-// returns the mean value in the buffer
-int get_buffer_average(CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> &sensor_buffer)
-{
-    int sum = 0;
-    for (int i = 0; i < sensor_buffer.size(); ++i)
-    {
-    sum += sensor_buffer[i];
-    }
-    // truncates integer
-    return sum / sensor_buffer.size();
-}
 
 int checkRobotMotors(RobotMotorData_t* robotMotors) {
     if (robotMotors == NULL) {
@@ -65,11 +54,12 @@ void TaskPollReflectance(void *pvParameters) {
     while (1) {
         // Read sensor values, pushing them onto the buffer
         read_tape_sensor(tapeSensor);
-        reflectance_right = tapeSensor->rightValue;
-        reflectance_left = tapeSensor->leftValue;
 
         // Print direction of less reflectance (higher value -> less reflectance, they are inversly proportional)
         if (VERBOSITY_LEVEL > MOST_VERBOSE) {
+            reflectance_right = tapeSensor->rightValue;
+            reflectance_left = tapeSensor->leftValue;
+
             char drive_state[20] = "find tape";  // this could be a memory unsafe situation, as some chars are uninitialized
             if (reflectance_right - reflectance_left > THRESHOLD) {
                 strcpy(drive_state, "---->>");
@@ -78,7 +68,7 @@ void TaskPollReflectance(void *pvParameters) {
             } else {
                 strcpy(drive_state, "^^^^^^");
             }
-            Serial.println(drive_state);
+            // Serial.println(drive_state);
         }
 
         vTaskDelay(delay_ticks);
@@ -102,6 +92,15 @@ void TaskFollowTape(void *pvParameters) {
 
     while (1) {
         // Read buffers
+        if (is_tape_visible(tapeAwarenessData->tapeSensor) < 0) {
+            // send message to TaskMaster that we lost the tape
+            Message message = LOST_TAPE;
+            if (xQueueSend(*tapeAwarenessData->xSharedQueue, &message, portMAX_DELAY) != pdPASS)
+            {
+                log_error("Failed to send LOST_TAPE to xSharedQueue");
+            }
+        }
+
         int left_mean = tapeAwarenessData->tapeSensor->leftValue;
         int right_mean = tapeAwarenessData->tapeSensor->rightValue;
         int tape_visibility = is_tape_left_or_right(tapeAwarenessData->tapeSensor);
@@ -193,7 +192,7 @@ void TaskRotate(void *pvParameters) {
                 Message message = ROTATION_DONE;
                 if (xQueueSend(*robotControlData->xSharedQueue, &message, portMAX_DELAY) != pdPASS)
                 {
-                    log_error("Failed to send to xSharedQueue");
+                    log_error("Failed to send ROTATION_DONE to xSharedQueue");
                 }
             }
 

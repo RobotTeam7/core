@@ -7,7 +7,8 @@ TapeSensor_t* instantiate_tape_sensor(uint8_t leftPin, uint8_t rightPin) {
     if (NULL == tapeSensor) {
         log_error("Couldn't allocate memory for tape sensor!");
         return NULL;
-    } 
+    }
+     
 
     tapeSensor->leftPin = leftPin;
     tapeSensor->rightPin = rightPin;
