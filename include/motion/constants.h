@@ -19,6 +19,9 @@
 
 #define POLL_RATE_REFLECTANCE_MS 3
 
+#define ROTATE_INTO_TAPE_FOLLOW_DELAY 1500
+#define TAPE_FOLLOWING_INTERNAL_DELAY 10
+
 
 
 // ______________ THRESHOLDS ______________

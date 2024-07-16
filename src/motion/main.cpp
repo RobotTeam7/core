@@ -93,10 +93,9 @@ void TaskMaster(void *pvParameters)
                     if (receivedMessage == ROTATION_DONE) {
                         log_status("State 2");
                         
-                        // tape follow for 1 second
                         vTaskDelete(xHandleRotating);
 
-                        vTaskDelay(pdMS_TO_TICKS(1500));
+                        vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
                     
                         log_status("Moving to tape following...");
                         currentAction = TAPE_FOLLOW;
@@ -117,10 +116,6 @@ void TaskMaster(void *pvParameters)
                         break;
                     }
                     vTaskDelay(pdMS_TO_TICKS(10));
-                    // Serial.println("IS IT NULL: " + String(xHandleFollowing == NULL));
-                    // vTaskDelete(xHandleFollowing);
-                    // currentAction = ROTATE;
-                    // Serial.println("Moving to rotate task!");
                 }
                 break;
         }

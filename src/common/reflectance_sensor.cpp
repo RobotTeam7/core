@@ -20,11 +20,13 @@ TapeSensor_t* instantiate_tape_sensor(uint8_t leftPin, uint8_t rightPin) {
     return tapeSensor;
 }
 
+// perform a read of the reflectance sensors 
 void read_tape_sensor(TapeSensor_t* tapeSensor) {
     tapeSensor->leftValue = analogRead(tapeSensor->leftPin);
     tapeSensor->rightValue = analogRead(tapeSensor->rightPin);
 }
 
+// return 1 if the left - right > THRESHOLD,  -1 if right - left > THRESHOLD, 0 if neither is true
 int is_tape_left_or_right(TapeSensor_t* tapeSensor) {
     int left_mean = tapeSensor->leftValue;
     int right_mean = tapeSensor->rightValue;
@@ -38,6 +40,7 @@ int is_tape_left_or_right(TapeSensor_t* tapeSensor) {
     }
 }
 
+// return 1 if both sensors see tape, -1 if neither sensor sees tape, 0 if only one of them sees tape
 int is_tape_visible(TapeSensor_t* tapeSensor) {
     int left_mean = tapeSensor->leftValue;
     int right_mean = tapeSensor->rightValue;
