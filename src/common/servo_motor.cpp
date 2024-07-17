@@ -32,7 +32,7 @@ void set_servo_position_percentage(ServoMotor_t* servoMotor,float percentange) {
     int min_power = SERVO_MIN_DUTY_CYCLE * UINT16_MAX;
     int power = min_power + range * percentange;
 
-    servoMotor->position = power;
+    set_servo_position(servoMotor, power);
 }
 
 void set_servo_position(ServoMotor_t* servoMotor, uint16_t newPosition) {
