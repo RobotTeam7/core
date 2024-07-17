@@ -3,14 +3,9 @@
 
 #include <Arduino.h>
 #include <common/robot_motor.h>
-#include <CircularBuffer.h>
+#include <CircularBuffer.hpp>
 #include <motion/constants.h>
 #include <motion/utils.h>
-
-/**
- * @brief Enum discretizing the different kinds of messages that can be sent between the master task and subtasks
- */
-enum Message { ROTATION_DONE, LOST_TAPE };
 
 typedef struct {
     RobotMotor_t* motorFR;

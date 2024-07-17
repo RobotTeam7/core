@@ -5,7 +5,7 @@
 #include <common/pwm.h>
 #include <common/pin.h>
 #include <common/robot_motor.h>
-#include <wifi/wifi_receiver.h>
+#include <communication/read.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,17 +17,15 @@ const char* ssid = "UniqueESP32_AP";
 const char* password = "12345678";
 const char* host = "192.168.4.1"; // This should be the IP address of the ESP32 AP
 
-WiFiConfig config;
+WiFiConfig_t config;
 
 void setup() {
     Serial.begin(115200);
     Serial.println("Beginning...");
 
     config = {ssid, password, host};
-    Receiver wifi_receiver = Receiver(&config);
     
-    wifi_receiver.begin_wifi();
-
+    connect_robot_wifi(&config);
 }
 
 void loop() {

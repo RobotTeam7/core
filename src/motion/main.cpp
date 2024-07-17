@@ -9,6 +9,10 @@
 #include <common/pin.h>
 #include <common/stepper_motor.h>
 #include <common/reflectance_sensor.h>
+#include <communication/uart.h>
+#include <communication/read.h>
+#include <communication/decode.h>
+#include <communication/send.h>
 #include <motion/FreeRTOSConfig.h>
 #include <motion/constants.h>
 #include <motion/tasks.h>
@@ -30,18 +34,21 @@ TaskHandle_t xReflectanceHandle = NULL;
 TaskHandle_t xHandleFollowing = NULL;
 TaskHandle_t xMasterHandle = NULL;
 
-QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(Message));
+QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
 
-typedef enum { TAPE_FOLLOW, ROTATE } ActionType;
-ActionType currentAction = TAPE_FOLLOW;
+typedef enum { TAPE_FOLLOW, ROTATE } ActionType_t;
+ActionType_t currentAction = TAPE_FOLLOW;
 
 void TaskMaster(void *pvParameters);
-
 void begin_rotating();
 void begin_following();
 
+
 void setup() {
     Serial.begin(115200);
+
+    initialize_uart();
+    begin_uart_read();
 
     checkResetCause();
 
@@ -82,7 +89,7 @@ void TaskMaster(void *pvParameters)
     log_status("Beginning master task...");
 
     while (1) {
-        Message receivedMessage;
+        StatusMessage_t receivedMessage;
         switch (currentAction) {
             case ROTATE:
                 // Begin rotating and wait for a message that we see the tape

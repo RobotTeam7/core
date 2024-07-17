@@ -1,5 +1,5 @@
-#ifndef UTILS_CONSTANTS_H
-#define UTILS_CONSTANTS_H
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
 
 // Verbosity Levels
 #define NO_PRINTING 0 
@@ -20,6 +20,10 @@
 #define THRESHOLD 1000
 
 #define REFLECTANCE_SENSOR_BUFFER_SIZE 1
+
+// I2C Constants
+#define RX_PIN 21
+#define TX_PIN 22
 
 
 #endif

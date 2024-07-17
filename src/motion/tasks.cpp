@@ -4,6 +4,7 @@
 #include <common/reflectance_sensor.h>
 #include <motion/constants.h>
 #include <motion/tasks.h>
+#include <communication/decode.h>
 
 #define POLL_SENSOR_DELAY_MS 5
 #define MOTOR_TASK_DELAY_MS 5
@@ -89,11 +90,11 @@ void TaskFollowTape(void *pvParameters) {
 
     while (1) {
         // Read buffers
-        
+
         // If we lost the tape, let master know 
         if (is_tape_visible(tapeAwarenessData->tapeSensor) < 0) {
             // Send message to TaskMaster that we lost the tape
-            Message message = LOST_TAPE;
+            StatusMessage_t message = LOST_TAPE;
             if (xQueueSend(*tapeAwarenessData->xSharedQueue, &message, portMAX_DELAY) != pdPASS)
             {
                 log_error("Failed to send LOST_TAPE to xSharedQueue");
@@ -188,7 +189,7 @@ void TaskRotate(void *pvParameters) {
                 motor_stop(robotMotors->motorBL);
 
                 // send message to TaskMaster that rotation has finished
-                Message message = ROTATION_DONE;
+                StatusMessage_t message = ROTATION_DONE;
                 if (xQueueSend(*robotControlData->xSharedQueue, &message, portMAX_DELAY) != pdPASS)
                 {
                     log_error("Failed to send ROTATION_DONE to xSharedQueue");
