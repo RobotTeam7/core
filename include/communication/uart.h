@@ -25,7 +25,7 @@ typedef struct {
 } Packet_t;
 
 void initialize_uart();
-void begin_uart_read();
+void begin_uart_read(QueueHandle_t* uart_msg_queue);
 void send_uart_message(CommandMessage_t message, uint8_t value);
 
 

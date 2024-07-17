@@ -39,12 +39,9 @@ void client_wifi_listen_task(void *pvParameters) {
             Serial.println(byte2);
             Serial.println("Read!");
 
-            WiFiPacket_t* new_packet = (WiFiPacket_t*)malloc(sizeof(WiFiPacket_t));
-            new_packet->byte1 = byte1;
-            new_packet->byte2 = byte2;
+            WiFiPacket_t new_packet = { byte1, byte2 };
 
-            free(new_packet);
-            // xQueueSend(*wifiHandler->inbound_wifi_queue, &byte1, portMAX_DELAY);
+            xQueueSend(*wifiHandler->inbound_wifi_queue, &new_packet, portMAX_DELAY);
         }
         vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield
     }
@@ -72,8 +69,11 @@ void client_wifi_sender_task(void *pvParameters) {
     Serial.println("Connected to server");
 
     while (1) {
+        WiFiPacket_t wifiPacket;
         uint8_t bytes[2];
-        if (xQueueReceive(*wifiHandler->outbound_wifi_queue, &bytes, portMAX_DELAY)) {
+        if (xQueueReceive(*wifiHandler->outbound_wifi_queue, &wifiPacket, portMAX_DELAY)) {
+            bytes[0] = wifiPacket.byte1;
+            bytes[1] = wifiPacket.byte2;
             client.write(bytes, 2);
         }
         vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield
@@ -97,5 +97,5 @@ void connect_to_wifi_as_client(WiFiHandler_t* wifiHandler)  {
 
     // Create the client task
     xTaskCreate(client_wifi_listen_task, "Client_Wifi_Listen", 4096, (void*)wifiHandler, 1, NULL);
-    xTaskCreate(client_wifi_sender_task, "Client_Wifi_Sender", 4096, (void*)wifiHandler, 1, NULL);
+    // xTaskCreate(client_wifi_sender_task, "Client_Wifi_Sender", 4096, (void*)wifiHandler, 1, NULL);
 }

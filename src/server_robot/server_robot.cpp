@@ -1,4 +1,4 @@
-#include <receiver/constants.h>
+#include <server_robot/constants.h>
 
 #include <Arduino.h>
 #include "freertos/FreeRTOS.h"
@@ -12,8 +12,8 @@
 #include <communication/decode.h>
 
 
-QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(StatusMessage_t));
-QueueHandle_t inboundWiFiQueue = xQueueCreate(10, sizeof(StatusMessage_t));
+QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
+QueueHandle_t inboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
 
 WiFiHandler_t wifi_handler = {
     .wifi_config = &wifi_config,
@@ -21,19 +21,20 @@ WiFiHandler_t wifi_handler = {
     .outbound_wifi_queue = &outboundWiFiQueue
 };
 
+WiFiPacket_t new_packet;
+
 void setup() {
     Serial.begin(115200);
     Serial.println("Beginning...");
+
+    new_packet.byte1 = 0x01;
+    new_packet.byte2 = 0x06;
     
     begin_wifi_as_server(&wifi_handler);
 }
 
 void loop() {
-//   digitalWrite(STEPPER_CONTROL_PIN, HIGH);
-  
-//   delay(5);
-
-//   digitalWrite(STEPPER_CONTROL_PIN, LOW);
-
-//   delay(5);
+    Serial.println("Trying to send packet...");
+    xQueueSend(outboundWiFiQueue, &new_packet, portMAX_DELAY);
+    delay(2000);
 }

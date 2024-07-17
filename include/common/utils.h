@@ -11,6 +11,8 @@ void log_status(const char*);   // Log a status to the serial output, if verbosi
 void log_error(const char*);    // Log an error to the serial output, if verbosity is great enough.
 void log_message(const char*);  // Log a message to the serial output, if verbosity is great enough.
 
+void check_heap(); // Check how much heap space is available
+
 /**
  * @brief Obtain the average of the values contained within `sensorBuffer`, as an integer
  */

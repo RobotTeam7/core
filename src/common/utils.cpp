@@ -30,3 +30,8 @@ int get_buffer_average(CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> &sens
     // truncates integer
     return sum / sensor_buffer.size();
 }
+
+void check_heap() {
+    Serial.print("Free heap: ");
+    Serial.println(ESP.getFreeHeap());
+}

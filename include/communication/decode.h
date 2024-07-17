@@ -12,7 +12,7 @@ typedef enum { ROTATION_DONE, LOST_TAPE } StatusMessage_t;
 /**
  * @brief Enum discretizing the different kinds of messages being passed between boards
  */
-typedef enum { GOTO, DO_SPIN, COMPLETED, NONE } CommandMessage_t;   
+typedef enum { GOTO = 0x01, DO_SPIN = 0x02, COMPLETED = 0x03, NONE = 0x00 } CommandMessage_t;   
 
 
 /**

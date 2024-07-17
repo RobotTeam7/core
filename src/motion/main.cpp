@@ -34,6 +34,7 @@ TaskHandle_t xHandleFollowing = NULL;
 TaskHandle_t xMasterHandle = NULL;
 
 QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
+QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
 
 typedef enum { TAPE_FOLLOW, ROTATE } ActionType_t;
 ActionType_t currentAction = TAPE_FOLLOW;
@@ -43,38 +44,55 @@ void begin_rotating();
 void begin_following();
 
 
+void uart_msg_handler(void *parameter) {
+    log_status("Started message handler");
+    while (1) {
+        Packet_t new_packet;
+        if (xQueueReceive(uart_msg_queue, &new_packet, portMAX_DELAY)) {
+            Serial.println("Received packet...");
+            Serial.println(new_packet.command);
+            Serial.println(new_packet.value);
+            Serial.println("Received.");
+        }
+        vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield    
+    }
+}
+
+
 void setup() {
     Serial.begin(115200);
 
     initialize_uart();
-    begin_uart_read();
+    begin_uart_read(&uart_msg_queue);
 
-    checkResetCause();
+    xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
 
-    motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
-    motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
-    motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE);
-    motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE);
+    // checkResetCause();
 
-    robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
-    frontTapeSensor = instantiate_tape_sensor(LEFT_TAPE_SENSOR, RIGHT_TAPE_SENSOR);
+    // motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
+    // motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
+    // motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE);
+    // motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE);
 
-    config_following = { &robotMotors, frontTapeSensor, &xSharedQueue };
-    config_rotate = { &config_following, &xSharedQueue };
+    // robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
+    // frontTapeSensor = instantiate_tape_sensor(LEFT_TAPE_SENSOR, RIGHT_TAPE_SENSOR);
 
-    // check if reflectance polling task was created
-    if (xTaskCreate(TaskPollReflectance, "ReflectancePolling", 2048, frontTapeSensor, PRIORITY_REFLECTANCE_POLLING, &xReflectanceHandle) == pdPASS) {
-        log_status("Reflectance polling task was created successfully."); 
-    } else {
-        log_error("Reflectance polling task was not created successfully!");
-    }
+    // config_following = { &robotMotors, frontTapeSensor, &xSharedQueue };
+    // config_rotate = { &config_following, &xSharedQueue };
 
-    // check if task master was created
-    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
-        log_status("Master task was created successfully.");
-    } else {
-        log_error("Master task was not created successfully!");
-    }
+    // // check if reflectance polling task was created
+    // if (xTaskCreate(TaskPollReflectance, "ReflectancePolling", 2048, frontTapeSensor, PRIORITY_REFLECTANCE_POLLING, &xReflectanceHandle) == pdPASS) {
+    //     log_status("Reflectance polling task was created successfully."); 
+    // } else {
+    //     log_error("Reflectance polling task was not created successfully!");
+    // }
+
+    // // check if task master was created
+    // if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
+    //     log_status("Master task was created successfully.");
+    // } else {
+    //     log_error("Master task was not created successfully!");
+    // }
 
 }
 

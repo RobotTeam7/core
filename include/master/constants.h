@@ -1,9 +1,0 @@
-#ifndef MASTER_CONSTANTS_H
-#define MASTER_CONSTANTS_H
-
-
-#define STEPPER_DIRECTION_PIN   7
-#define STEPPER_CONTROL_PIN     5
-
-
-#endif // MASTER_CONSTANTS_H

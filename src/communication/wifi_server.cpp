@@ -2,6 +2,8 @@
 
 
 WiFiServer server(port);
+bool did_connect = false;
+
 
 // Task to listen for incoming bytes and push them onto xQueue1
 void server_wifi_listen_task(void *pvParameters) {
@@ -12,21 +14,19 @@ void server_wifi_listen_task(void *pvParameters) {
         return;
     }
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        log_status("Connecting to WiFi...");
-    }
-
-    log_status("Connected to WiFi");
-
-    server.begin();
+    log_status("Successfully initialized server_wifi_listen_task");
 
     while (1) {
         if (!client || !client.connected()) {
             client = server.available();
             if (client) {
+                did_connect = true;
                 log_status("New Client Connected");
             }
+        }
+
+        if (!client.connected() && did_connect) {
+            log_error("No Client!");
         }
 
         if (client && client.connected() && (client.available() >= 2)) {
@@ -34,13 +34,15 @@ void server_wifi_listen_task(void *pvParameters) {
             uint8_t byte2 = client.read();
 
             Serial.println("Reading...");
-            Serial.println(byte1);
-            Serial.println(byte2);
-            Serial.println("Read!");
 
             WiFiPacket_t* new_packet = (WiFiPacket_t*)malloc(sizeof(WiFiPacket_t));
             new_packet->byte1 = byte1;
             new_packet->byte2 = byte2;
+
+            Serial.println(new_packet->byte1);
+            Serial.println(new_packet->byte2);
+
+            Serial.println("Read!");
 
             free(new_packet);
             // xQueueSend(*wifiHandler->inbound_wifi_queue, &byte1, portMAX_DELAY);
@@ -58,20 +60,25 @@ void server_wifi_transmit_task(void *pvParameters) {
         return;
     }
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        log_status("Connecting to WiFi...");
-    }
-    log_status("Connected to WiFi");
+    log_status("Successfully initialized server_wifi_transmit_task");
 
     while (1) {
         if (client && client.connected()) {
+            WiFiPacket_t wifiPacket;
             uint8_t bytes[2];
-            if (xQueueReceive(*wifiHandler->outbound_wifi_queue, &bytes, portMAX_DELAY)) {
+            log_message("Waiting for packet to send...");
+            if (xQueueReceive(*wifiHandler->outbound_wifi_queue, &wifiPacket, portMAX_DELAY)) {
+                bytes[0] = wifiPacket.byte1;
+                bytes[1] = wifiPacket.byte2;
+
+                Serial.println("Sending");
+                Serial.println(bytes[0]);
+                Serial.println(bytes[1]);
+
                 client.write(bytes, 2);
             }
-            vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield
         }
+        vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield
     }
 }
 
@@ -93,6 +100,8 @@ void begin_wifi_as_server(WiFiHandler_t* wifiHandler) {
         log_error("Nulls in WiFi handler buffer!");
         return;
     }
+
+    server.begin();
 
     // Create the server task
     xTaskCreate(server_wifi_listen_task, "Server_Listen", 4096, (void*)wifiHandler, 1, NULL);
