@@ -1,15 +1,14 @@
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+
 #include <common/reflectance_sensor.h>
+
+#include <communication/decode.h>
+
 #include <motion/constants.h>
 #include <motion/tasks.h>
-#include <communication/decode.h>
 #include <motion/pid.h>
-
-
-#define POLL_SENSOR_DELAY_MS 5
-#define MOTOR_TASK_DELAY_MS 5
 
 
 // Ensure that a RobotMotorData_t* does not contain null values
@@ -63,9 +62,9 @@ void TaskPollReflectance(void *pvParameters) {
             int reflectance_left = tapeSensor->leftValue;
 
             char drive_state[20] = "find tape";  // this could be a memory unsafe situation, as some chars are uninitialized
-            if (reflectance_right - reflectance_left > THRESHOLD) {
+            if (reflectance_right - reflectance_left > TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
                 strcpy(drive_state, "---->>");
-            } else if (reflectance_left - reflectance_right > THRESHOLD) {
+            } else if (reflectance_left - reflectance_right > TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
                 strcpy(drive_state, "<<----");
             } else {
                 strcpy(drive_state, "^^^^^^");

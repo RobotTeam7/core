@@ -2,6 +2,7 @@
 #include <common/pin.h>
 #include <common/utils.h>
 
+
 RobotMotor_t* instantiate_robot_motor(uint8_t forwardPin, uint8_t reversePin) {
     RobotMotor_t* robotMotor = (RobotMotor_t*)malloc(sizeof(RobotMotor_t));
     if (robotMotor == NULL) {

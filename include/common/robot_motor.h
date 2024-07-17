@@ -1,18 +1,11 @@
-// Firmware designed for BluePill
-#ifndef RobotMotor_h
-#define RobotMotor_h
+#ifndef ROBOT_MOTOR_H
+#define ROBOT_MOTOR_H
 
 #include <Arduino.h>
 #include <Wire.h>
 #include <math.h>
 #include <common/pwm.h>
 #include <common/pin.h>
-
-#define DRIVE_MOTOR_PWM_FREQUENCY 50
-
-#define NO_DRIVE 0
-#define FORWARD_DRIVE 1
-#define REVERSE_DRIVE 2
 
 
 // /**
@@ -75,4 +68,5 @@ RobotMotor_t* instantiate_robot_motor(uint8_t forwardPin, uint8_t reversePin);
 void motor_set_drive(RobotMotor_t* robotMotor, uint16_t driveValue, uint8_t direction);
 void motor_stop(RobotMotor_t* robotMotor); 
 
-#endif
+
+#endif // ROBOT_MOTOR_H

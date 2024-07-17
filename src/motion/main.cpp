@@ -9,14 +9,17 @@
 #include <common/pin.h>
 #include <common/stepper_motor.h>
 #include <common/reflectance_sensor.h>
+
 #include <communication/uart.h>
 #include <communication/read.h>
 #include <communication/decode.h>
 #include <communication/send.h>
+
 #include <motion/FreeRTOSConfig.h>
 #include <motion/constants.h>
 #include <motion/tasks.h>
 #include <motion/utils.h>
+
 
 RobotMotor_t* motor_front_left;
 RobotMotor_t* motor_front_right;
@@ -58,7 +61,7 @@ void setup() {
     motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE);
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
-    frontTapeSensor = instantiate_tape_sensor(13, 15);
+    frontTapeSensor = instantiate_tape_sensor(LEFT_TAPE_SENSOR, RIGHT_TAPE_SENSOR);
 
     config_following = { &robotMotors, frontTapeSensor, &xSharedQueue };
     config_rotate = { &config_following, &xSharedQueue };

@@ -1,5 +1,6 @@
 #include <common/utils.h>
 
+
 void log_status(const char* status_message) {
     if (VERBOSITY_LEVEL >= STATUS_MESSAGES) {
         Serial.println(status_message);

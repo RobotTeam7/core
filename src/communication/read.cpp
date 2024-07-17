@@ -1,5 +1,6 @@
 #include <communication/read.h>
 
+
 void receiveData(void *parameter) {
     for (;;) {
         if (Serial2.available() >= 2) {
@@ -9,7 +10,7 @@ void receiveData(void *parameter) {
             Serial.print("Received ");
             Serial.print(value1);
             Serial.println(value2);
-            
+
             Packet_t* new_packet = (Packet_t*)malloc(sizeof(Packet_t));
             CommandMessage_t command = decode_command(value1);
 
@@ -75,7 +76,7 @@ void clientTask(void *pvParameters) {
 }
 
 
-void connect_robot_wifi(WiFiConfig_t* config)  {
+void connect_robot_wifi(const WiFiConfig_t* config)  {
     // Connect to the access point
     Serial.println("Starting WiFi connection on:");
     Serial.println("SSID: " + String(config->ssid));

@@ -1,5 +1,5 @@
-#ifndef READ_UART_H
-#define READ_UART_H
+#ifndef READ_COMMUNICATION_H
+#define READ_COMMUNICATION_H
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -17,7 +17,7 @@
 void begin_uart_read();
 
 // WiFi
-void connect_robot_wifi(WiFiConfig_t* config);
+void connect_robot_wifi(const WiFiConfig_t* config);
 
 
 #endif

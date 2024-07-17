@@ -12,6 +12,7 @@
 #include <common/pin.h>
 #include <common/stepper_motor.h>
 #include <common/reflectance_sensor.h>
+
 #include <motion/FreeRTOSConfig.h>
 #include <motion/constants.h>
 #include <motion/tasks.h>
@@ -36,4 +37,4 @@ typedef struct {
 void initialize_uart();
 
 
-#endif
+#endif // ROBOT_UART_H

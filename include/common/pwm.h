@@ -1,9 +1,12 @@
 #ifndef INDEPENDENT_PWM_H
 #define INDEPENDENT_PWM_H
 
+
 #include <Arduino.h>
-#include <common/resource_manager.h>
 #include <map>
+
+#include <common/resource_manager.h>
+#include <common/constants.h>
 #include <common/pin.h>
 
 
@@ -23,4 +26,5 @@ namespace pwm {
     void set_pwm(int pin, uint32_t power);
 }
 
-#endif
+
+#endif // INDEPENDENT_PWM_H

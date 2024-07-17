@@ -1,11 +1,10 @@
-// Firmware designed for BluePill or ESP32
 #ifndef RESOURCE_MANAGER_H
 #define RESOURCE_MANAGER_H
 
 #include <Arduino.h>
 #include <set>
+#include <common/constants.h>
 
-#define MAX_CHANNELS 16 /// Maximum number of channels that can be created for the ESP32
 
 /**
  * @brief A Singleton that manages PWM emission channels
@@ -50,4 +49,4 @@ private:
 // };
 
 
-#endif
+#endif // RESOURCE_MANAGER_H

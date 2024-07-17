@@ -10,5 +10,7 @@ typedef struct {
     const char* host;
 } WiFiConfig_t;
 
+extern const WiFiConfig_t wifi_config;
 
-#endif
+
+#endif // ROBOT_WIFI_H

@@ -32,9 +32,9 @@ int is_tape_left_or_right(TapeSensor_t* tapeSensor) {
     int left_mean = tapeSensor->leftValue;
     int right_mean = tapeSensor->rightValue;
 
-    if (left_mean - right_mean > THRESHOLD) {
+    if (left_mean - right_mean > TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
         return 1;
-    } else if (right_mean - left_mean > THRESHOLD) {
+    } else if (right_mean - left_mean > TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
         return -1;
     } else {
         return 0;

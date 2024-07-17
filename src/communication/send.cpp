@@ -1,5 +1,6 @@
 #include <communication/send.h>
 
+
 void send_uart_message(CommandMessage_t message, uint8_t value) {
     log_message("Sending message over UART!");
     Serial2.write(message);
@@ -59,7 +60,7 @@ void serverTask(void *pvParameters) {
   }
 }
 
-void begin_wifi_server(WiFiConfig_t* config) {
+void begin_wifi_server(const WiFiConfig_t* config) {
     // Set up the access point
     Serial.println("Starting WiFi AP on:");
     Serial.println("SSID: " + String(config->ssid));

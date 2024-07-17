@@ -1,5 +1,6 @@
 #include <common/resource_manager.h>
 
+
 ChannelManager& ChannelManager::getInstance() {
     static ChannelManager instance;
     return instance;

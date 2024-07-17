@@ -2,10 +2,13 @@
 #define MOTION_TASKS_H
 
 #include <Arduino.h>
-#include <common/robot_motor.h>
 #include <CircularBuffer.hpp>
+
+#include <common/robot_motor.h>
+
 #include <motion/constants.h>
 #include <motion/utils.h>
+
 
 typedef struct {
     RobotMotor_t* motorFR;
@@ -31,4 +34,4 @@ void TaskPollReflectance(void *pvParameters);
 void TaskFollowPID(void *pvParameters);
 
 
-#endif 
+#endif // MOTION_TASKS_H

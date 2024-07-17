@@ -6,7 +6,9 @@
 #include <freertos/task.h>
 
 #include <common/utils.h>
+
 #include <motion/constants.h>
+
 
 void checkResetCause();
 void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectanceHandle, TaskHandle_t* xHandleFollowing, TaskHandle_t* xMasterHandle);
@@ -17,4 +19,5 @@ extern "C"
   void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName);
 }
 
-#endif
+
+#endif // MOTION_UTILS_H

@@ -1,7 +1,9 @@
 #ifndef REFLECTANCE_SENSOR_H
 #define REFLECTANCE_SENSOR_H
 
+
 #include <Arduino.h>
+
 #include <common/utils.h>
 
 
@@ -18,4 +20,4 @@ int is_tape_left_or_right(TapeSensor_t* tapeSensor);
 int is_tape_visible(TapeSensor_t* tapeSensor);
 
 
-#endif
+#endif // REFLECTANCE_SENSOR_H
