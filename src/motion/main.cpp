@@ -10,9 +10,7 @@
 #include <common/reflectance_sensor.h>
 
 #include <communication/uart.h>
-#include <communication/read.h>
 #include <communication/decode.h>
-#include <communication/send.h>
 
 #include <motion/constants.h>
 #include <motion/tasks.h>

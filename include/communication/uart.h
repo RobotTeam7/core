@@ -16,16 +16,8 @@
 #include <motion/tasks.h>
 #include <motion/utils.h>
 
+#include <communication/decode.h>
 
-/**
- * @brief Enum discretizing the different kinds of messages that can be sent between the master task and subtasks
- */
-typedef enum { ROTATION_DONE, LOST_TAPE } StatusMessage_t;
-
-/**
- * @brief Enum discretizing the different kinds of messages being passed between boards
- */
-typedef enum { GOTO, DO_SPIN, COMPLETED, NONE } CommandMessage_t;   
 
 typedef struct {
     CommandMessage_t command;
@@ -33,6 +25,8 @@ typedef struct {
 } Packet_t;
 
 void initialize_uart();
+void begin_uart_read();
+void send_uart_message(CommandMessage_t message, uint8_t value);
 
 
 #endif // ROBOT_UART_H

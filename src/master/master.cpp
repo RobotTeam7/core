@@ -9,19 +9,27 @@
 #include <common/robot_motor.h>
 #include <common/pwm.h>
 
-#include <communication/read.h>
-#include <communication/send.h>
+#include <communication/wifi_client.h>
 #include <communication/decode.h>
 
 
-WiFiConfig_t config;
+QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(StatusMessage_t));
+QueueHandle_t inboundWiFiQueue = xQueueCreate(10, sizeof(StatusMessage_t));
+
+WiFiHandler_t wifi_handler = {
+    .wifi_config = &wifi_config,
+    .inbound_wifi_queue = &inboundWiFiQueue,
+    .outbound_wifi_queue = &outboundWiFiQueue
+};
 
 ServoMotor_t* servoMotor;
 
 void setup() {
     Serial.begin(115200); // Initialize serial monitor
 
-    servoMotor = instantiate_servo_motor(13, 0);
+    // servoMotor = instantiate_servo_motor(13, 0);
+
+    connect_to_wifi_as_client(&wifi_handler);
 
     // initialize_uart();
     // begin_uart_read();
@@ -32,7 +40,6 @@ void setup() {
     // delay(1000);
     // send_uart_message(DO_SPIN, 0);
     // delay(1000);
-
 }
 
 // float dutyCycleHigh = 0.06;
@@ -52,8 +59,8 @@ void loop() {
     // delay(500);
     // motor_lit.set_position_percentage(1);
     // delay(500);
-    set_servo_position_percentage(servoMotor, 0.00);
-    delay(1500);
-    set_servo_position_percentage(servoMotor, 1.00);
-    delay(1500);
+    // set_servo_position_percentage(servoMotor, 0.00);
+    // delay(1500);
+    // set_servo_position_percentage(servoMotor, 1.00);
+    // delay(1500);
 }

@@ -3,7 +3,16 @@
 
 #include <Arduino.h>
 
-#include <communication/uart.h>
+
+/**
+ * @brief Enum discretizing the different kinds of messages that can be sent between the master task and subtasks
+ */
+typedef enum { ROTATION_DONE, LOST_TAPE } StatusMessage_t;
+
+/**
+ * @brief Enum discretizing the different kinds of messages being passed between boards
+ */
+typedef enum { GOTO, DO_SPIN, COMPLETED, NONE } CommandMessage_t;   
 
 
 /**
