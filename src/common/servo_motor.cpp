@@ -11,8 +11,8 @@ ServoMotor_t* instantiate_servo_motor(uint8_t boundControlPin, uint16_t position
     servoMotor->position = position;
     servoMotor->boundControlPin = boundControlPin;
 
-    pwm::bind_pwm(servoMotor->boundControlPin);
-    pwm::set_pwm(servoMotor->boundControlPin, servoMotor->position);    
+    bind_pwm(servoMotor->boundControlPin);
+    set_pwm(servoMotor->boundControlPin, servoMotor->position);    
 
     log_status("Created servo motor!");
 
@@ -37,5 +37,5 @@ void set_servo_position_percentage(ServoMotor_t* servoMotor,float percentange) {
 
 void set_servo_position(ServoMotor_t* servoMotor, uint16_t newPosition) {
     servoMotor->position = newPosition;
-    pwm::set_pwm(servoMotor->boundControlPin, servoMotor->position);
+    set_pwm(servoMotor->boundControlPin, servoMotor->position);
 }

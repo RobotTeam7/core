@@ -6,7 +6,6 @@
 
 #include <common/resource_manager.h>
 #include <common/pwm.h>
-#include <common/pin.h>
 #include <common/robot_motor.h>
 
 #include <communication/read.h>

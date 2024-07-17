@@ -1,22 +1,15 @@
 #ifndef SERVO_MOTOR_H
 #define SERVO_MOTOR_H
 
-
 #include <Arduino.h>
 #include <Wire.h>
 #include <math.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #include <common/pwm.h>
-#include <common/pin.h>
 #include <common/constants.h>
 #include <common/utils.h>
-
-#ifdef USING_BLUE_PILL
-    #include <FreeRTOS.h>
-    #include <task.h>
-#elif USING_ESP32
-    #include "freertos/FreeRTOS.h"
-    #include "freertos/task.h"
-#endif
 
 
 typedef struct {

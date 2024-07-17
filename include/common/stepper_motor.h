@@ -5,16 +5,10 @@
 #include <Wire.h>
 #include <math.h>
 #include <common/pwm.h>
-#include <common/pin.h>
 #include <common/utils.h>
 
-#ifdef USING_BLUE_PILL
-    #include <FreeRTOS.h>
-    #include <task.h>
-#elif USING_ESP32
-    #include "freertos/FreeRTOS.h"
-    #include "freertos/task.h"
-#endif
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 
 /**

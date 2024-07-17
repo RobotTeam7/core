@@ -5,7 +5,6 @@
 #include <Wire.h>
 #include <math.h>
 #include <common/pwm.h>
-#include <common/pin.h>
 
 
 // /**

@@ -1,56 +1,31 @@
 #include <common/pwm.h>
 
 
-#if USING_ESP32
-    #pragma message "Compiling for ESP32"
+// ESP32 PWM works by binding a pin to a channel, and then we configure the PWM signal by 
+// specifying the channel, not pin. But, as BP PWMs is configured solely through pin and we want 
+// to keep a consistent interface, we will keep a map of pins to channels.
+std::map<int, int> pin_to_channel {};
 
-    // ESP32 PWM works by binding a pin to a channel, and then we configure the PWM signal by 
-    // specifying the channel, not pin. But, as BP PWMs is configured solely through pin and we want 
-    // to keep a consistent interface, we will keep a map of pins to channels.
-    std::map<int, int> pin_to_channel {};
+void bind_pwm(int pin) {
+    int channel = ChannelManager::getInstance().requestChannel();
 
-    void pwm::bind_pwm(int pin) {
-        int channel = ChannelManager::getInstance().requestChannel();
-
-        if (channel == -1) {
-            return;
-        }
-
-        pin_to_channel[pin] = channel;
-
-        ledcSetup(channel, LEDC_PWM_FREQUENCY, TIMER_RESOLUTION);
-
-        pinMode(pin, OUTPUT);
-        ledcAttachPin(pin, channel);
-
-        // Serial.println("Bound to pin: " + String(pin) + " on channel: " + channel);
+    if (channel == -1) {
+        return;
     }
 
-    void pwm::set_pwm(int pin, uint32_t power) {
-        int channel = pin_to_channel[pin];
-        ledcWrite(channel, power);
+    pin_to_channel[pin] = channel;
 
-        // Serial.println("Setting power of channel " + String(channel) + " on pin " + pin + " to " + power);
-    }
+    ledcSetup(channel, LEDC_PWM_FREQUENCY, TIMER_RESOLUTION);
 
-#elif USING_BLUE_PILL
-    #pragma message "Compiling for BluePill"
+    pinMode(pin, OUTPUT);
+    ledcAttachPin(pin, channel);
 
-    inline PinName getPin(int pin) {
-        return PinConvert::pin_number_to_pin_name[pin];
-    }
+    // Serial.println("Bound to pin: " + String(pin) + " on channel: " + channel);
+}
 
-    void pwm::bind_pwm(int pin) {
-        pinMode(pin, OUTPUT);
-        PinName motorPin = getPin(pin);
-        pwm_start(motorPin, LEDC_PWM_FREQUENCY, 0, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
-    }
+void set_pwm(int pin, uint32_t power) {
+    int channel = pin_to_channel[pin];
+    ledcWrite(channel, power);
 
-    void pwm::set_pwm(int pin, uint32_t power) {
-        PinName motorPin = getPin(pin);
-        pwm_start(motorPin, LEDC_PWM_FREQUENCY, power, TimerCompareFormat_t::RESOLUTION_16B_COMPARE_FORMAT);
-    }
-
-#else
-    #error "Couldn't identify board! Please set a build flag for which board you are trying to flash in platformio.ini!"
-#endif
+    // Serial.println("Setting power of channel " + String(channel) + " on pin " + pin + " to " + power);
+}

@@ -34,19 +34,5 @@ private:
                         // of the newest-assigned channel).
 };
 
-// class PinManager {
-// public:
-//     static PinManager& getInstance();
-//     int requestPin(int pin);
-
-// private:
-//     PinManager();
-
-//     PinManager(const PinManager&) = delete;
-//     void operator=(const PinManager&) = delete;
-
-//     std::set<int> assignedPins;
-// };
-
 
 #endif // RESOURCE_MANAGER_H

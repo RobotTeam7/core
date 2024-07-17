@@ -8,7 +8,6 @@
 #include <common/servo_motor.h>
 #include <common/robot_motor.h>
 #include <common/pwm.h>
-#include <common/pin.h>
 
 #include <communication/read.h>
 #include <communication/send.h>

@@ -9,7 +9,6 @@
 #include <freertos/task.h>
 
 #include <common/robot_motor.h>
-#include <common/pin.h>
 #include <common/stepper_motor.h>
 #include <common/reflectance_sensor.h>
 

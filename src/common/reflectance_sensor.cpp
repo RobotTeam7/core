@@ -9,7 +9,6 @@ TapeSensor_t* instantiate_tape_sensor(uint8_t leftPin, uint8_t rightPin) {
         return NULL;
     }
      
-
     tapeSensor->leftPin = leftPin;
     tapeSensor->rightPin = rightPin;
 

@@ -1,7 +1,6 @@
 #ifndef REFLECTANCE_SENSOR_H
 #define REFLECTANCE_SENSOR_H
 
-
 #include <Arduino.h>
 
 #include <common/utils.h>
