@@ -14,7 +14,6 @@
 #include <communication/decode.h>
 #include <communication/send.h>
 
-#include <motion/FreeRTOSConfig.h>
 #include <motion/constants.h>
 #include <motion/tasks.h>
 #include <motion/utils.h>

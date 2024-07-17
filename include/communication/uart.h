@@ -12,7 +12,6 @@
 #include <common/stepper_motor.h>
 #include <common/reflectance_sensor.h>
 
-#include <motion/FreeRTOSConfig.h>
 #include <motion/constants.h>
 #include <motion/tasks.h>
 #include <motion/utils.h>
