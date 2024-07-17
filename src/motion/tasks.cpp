@@ -5,6 +5,8 @@
 #include <motion/constants.h>
 #include <motion/tasks.h>
 #include <communication/decode.h>
+#include <motion/pid.h>
+
 
 #define POLL_SENSOR_DELAY_MS 5
 #define MOTOR_TASK_DELAY_MS 5
@@ -50,22 +52,25 @@ void TaskPollReflectance(void *pvParameters) {
 
     log_status("Succesfully initialized reflectance polling task!");
 
+    int lastError = 0;
     while (1) {
         // Read sensor values, pushing them onto the buffer
         read_tape_sensor(tapeSensor);
 
-        // Print direction of greater reflectance
-        if (PRINT_DRIVE_STATE) {
+        // Print direction of less reflectance (higher value -> less reflectance, they are inversly proportional)
+        if (VERBOSITY_LEVEL > MOST_VERBOSE) {
             int reflectance_right = tapeSensor->rightValue;
             int reflectance_left = tapeSensor->leftValue;
 
+            char drive_state[20] = "find tape";  // this could be a memory unsafe situation, as some chars are uninitialized
             if (reflectance_right - reflectance_left > THRESHOLD) {
-                Serial.println("---->>");
+                strcpy(drive_state, "---->>");
             } else if (reflectance_left - reflectance_right > THRESHOLD) {
-                Serial.println("<<----");
+                strcpy(drive_state, "<<----");
             } else {
-                Serial.println("^^^^^^");
+                strcpy(drive_state, "^^^^^^");
             }
+            Serial.println(drive_state);
         }
 
         vTaskDelay(delay_ticks);
@@ -74,6 +79,7 @@ void TaskPollReflectance(void *pvParameters) {
 
 void TaskFollowTape(void *pvParameters) {
     log_status("Beginning tape follow task initialization...");
+    TickType_t delay_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS);
 
     TapeAwarenessData_t* tapeAwarenessData = (TapeAwarenessData_t*)pvParameters;
     if (checkTapeAwarenessData(tapeAwarenessData)) {
@@ -84,14 +90,13 @@ void TaskFollowTape(void *pvParameters) {
 
     RobotMotorData_t* robotMotors = tapeAwarenessData->robotMotors;
 
-    TickType_t delay_ticks = pdMS_TO_TICKS(MOTOR_TASK_DELAY_MS);
+    
 
     log_status("Successfully initialized tape follow task!");
-
+    int lastError = 0;
     while (1) {
         // Read buffers
-
-        // If we lost the tape, let master know 
+        // // If we lost the tape, let master know 
         if (is_tape_visible(tapeAwarenessData->tapeSensor) < 0) {
             // Send message to TaskMaster that we lost the tape
             StatusMessage_t message = LOST_TAPE;
@@ -103,30 +108,20 @@ void TaskFollowTape(void *pvParameters) {
 
         int left_mean = tapeAwarenessData->tapeSensor->leftValue;
         int right_mean = tapeAwarenessData->tapeSensor->rightValue;
-        int tape_visibility = is_tape_left_or_right(tapeAwarenessData->tapeSensor);
-        
-        if (tape_visibility == 1) {                       // If we are detecting tape on the left, turn left
-            // log_message("Driving left...");
-            motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_LOW, FORWARD_DRIVE); 
-            motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_LOW, FORWARD_DRIVE);
-            motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
-            motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
-        } else if (tape_visibility == -1) {               // If we are detecting tape on the right, turn right
-            // log_message("Driving right...");
-            motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
-            motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
-            motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_LOW, FORWARD_DRIVE);
-            motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_LOW, FORWARD_DRIVE);
-        } else {                                                        // Otherwise, drive forwards
-            // log_message("Driving forward...");
-            motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_HIGH, FORWARD_DRIVE); 
-            motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
-            motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
-            motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_HIGH, FORWARD_DRIVE);
-        }
+
+        int error = left_mean - right_mean;
+        int pid_adjustment_value = pid_follow_tape(error, lastError);
+        lastError = error;
+        int motor_speed_1 = MOTOR_SPEED_FOLLOWING - pid_adjustment_value;
+        int motor_speed_2 = MOTOR_SPEED_FOLLOWING + pid_adjustment_value;
+        motor_set_drive(robotMotors->motorFL, motor_speed_1, FORWARD_DRIVE); 
+        motor_set_drive(robotMotors->motorBL, motor_speed_1, FORWARD_DRIVE);
+        motor_set_drive(robotMotors->motorFR, motor_speed_2, FORWARD_DRIVE);
+        motor_set_drive(robotMotors->motorBR, motor_speed_2, FORWARD_DRIVE);
 
         vTaskDelay(delay_ticks);
     }
+    Serial.println("Exiting tape follow");
 }
 
 int checkRobotControlData(RobotControlData_t* robotControlData) {
@@ -149,7 +144,7 @@ void TaskRotate(void *pvParameters) {
     }
 
     // convert ms delays into ticks
-    TickType_t inital_delay_ticks = pdMS_TO_TICKS(1000);
+    TickType_t inital_delay_ticks = pdMS_TO_TICKS(ROTATE_INITIAL_DELAY);
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_ROTATING_MS);
 
     RobotMotorData_t* robotMotors = robotControlData->tapeAwarenessData->robotMotors;
@@ -176,7 +171,6 @@ void TaskRotate(void *pvParameters) {
         {
             int left_mean = tapeSensor->leftValue;
             int right_mean = tapeSensor->rightValue;
-            // Serial.println("Difference:" + String(left_mean - right_mean));
 
             if (right_mean > THRESHOLD_SENSOR_SINGLE && left_mean > THRESHOLD_SENSOR_SINGLE)
             {

@@ -5,9 +5,8 @@
 
 
 // ______________ SPEEDS ______________
-#define MOTOR_SPEED_HIGH 7000
-#define MOTOR_SPEED_LOW 5500
-#define MOTOR_SPEED_ROTATION 6000
+#define MOTOR_SPEED_FOLLOWING 8000
+#define MOTOR_SPEED_ROTATION 8000
 
 
 
@@ -17,19 +16,18 @@
 #define MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS 5
 #define MOTOR_ADJUSTMENT_DELAY_ROTATING_MS 5
 
-#define POLL_RATE_REFLECTANCE_MS 3
+#define POLL_SENSOR_DELAY_MS 1
 
-#define ROTATE_INTO_TAPE_FOLLOW_DELAY 1500
-#define TAPE_FOLLOWING_INTERNAL_DELAY 10
+#define ROTATE_INTO_TAPE_FOLLOW_DELAY 300
+
+#define ROTATE_INITIAL_DELAY 1000
 
 
 
 // ______________ THRESHOLDS ______________
-// this defines the minimum difference between two reflectance sensor readings to determine that one is seeing tape
-// and the other is not
-#define THRESHOLD_SENSOR_DIFFERENCE 300
 
 // this defines the minimum  reflectance sensor reading to determine a sensor is seeing tape
+// black housing 1000
 #define THRESHOLD_SENSOR_SINGLE 1500
 
 #define MOTOR_BACK_RIGHT_FORWARD 32
