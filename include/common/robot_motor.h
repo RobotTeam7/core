@@ -7,64 +7,36 @@
 #include <common/pwm.h>
 
 
-// /**
-//  * \brief This enum exists to discretize between different driving modes that a motor can be in
-//  */
-// enum driveMode { forward, reverse, none };
-
-// /**
-//  * \brief This class represents a robot's motor.
-//  * 
-//  * \details Use this class to bind forward and reverse pins, and control the motor abstractly through simple commands.
-//  */
-// class RobotMotor {
-//     uint8_t boundForwardPin;        // Pin responsible for delivering a "drive forward" pulse train
-//     uint8_t boundReversePin;        // Pin responsible for delivering a "drive reverse" pulse train
-//     driveMode currentState;  
-//     uint16_t currentDrive;      // 0 – 65535
-
-//     public:
-//         /**
-//          * \brief Instantiate a motor, binding `forwardPin` and `reversePin` to it. The pins will be configured as necessary.
-//          */
-//         RobotMotor(uint8_t forwardPin, uint8_t reversePin);
-        
-//         /**
-//          * \brief Instantiate an empty motor.
-//          */
-//         RobotMotor();
-
-//         /**
-//          * \brief Set the drive state of this motor.
-//          * 
-//          * \param driveValue Drive power, where 0 is stopped and 65535 is full power
-//          * \param newState Direction of the motor, either `forward`, `reverse`, or `none`.
-//          */
-//         void set_drive(uint32_t driveValue, driveMode direction);
-
-//         /**
-//          * \brief Stop the motor.
-//          */
-//         void stop();
-
-//         /**
-//          * \brief Get the current motor direction.
-//          * 
-//          * \return The motor's current direction, either `forward`, `reverse`, or `none`.
-//          */
-//         driveMode report_drive();
-// };
-
-
+/**
+ * @brief This struct encapsulates the data of a robot's motor.
+ * 
+ * @details Use this class to bind forward and reverse pins, and control the motor abstractly through simple commands.
+ */
 typedef struct {
-    uint8_t boundForwardPin;
-    uint8_t boundReversePin;
-    uint8_t currentState;
-    uint16_t currentDrive;
+    uint8_t boundForwardPin;  // Pin responsible for delivering a "drive forward" pulse train
+    uint8_t boundReversePin;  // Pin responsible for delivering a "drive reverse" pulse train
+    uint8_t currentState;     // 0: none, 1: forward, 2:
+    uint16_t currentDrive;    // 0 – 65535
 } RobotMotor_t;
 
+/**
+ * @brief Instantiate a motor, binding `forwardPin` and `reversePin` to it. The pins will be configured as necessary.
+ */
 RobotMotor_t* instantiate_robot_motor(uint8_t forwardPin, uint8_t reversePin);
+
+/**
+ * @brief Set the drive state of this motor.
+ * 
+ * @param driveValue Drive power, where 0 is stopped and 65535 is full power
+ * @param newState Direction of the motor, either `forward`, `reverse`, or `none`.
+ * 
+ * @returns Heap-allocated (created with `malloc()`) pointer. Remember to free!
+ */
 void motor_set_drive(RobotMotor_t* robotMotor, uint16_t driveValue, uint8_t direction);
+
+/**
+ * @brief Stop the motor.
+ */
 void motor_stop(RobotMotor_t* robotMotor); 
 
 

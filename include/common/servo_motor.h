@@ -11,15 +11,36 @@
 #include <common/constants.h>
 #include <common/utils.h>
 
-
+/**
+ * @brief This struct encapsulates the data for a servo motor 
+ * 
+ * @details Use this struct and its methods to control a servo motor connected to this robot
+ */
 typedef struct {
     uint8_t boundControlPin;
     uint16_t position;
 } ServoMotor_t;
 
-void set_servo_position(ServoMotor_t*, uint16_t newPosition);
-ServoMotor_t* instantiate_servo_motor(uint8_t boundControlPin, uint16_t position);
-void set_servo_position_percentage(ServoMotor_t*, float percentage);
+/**
+ * @brief Set the `position` of this servo motor, where `position` is within the range 0 – 65535.
+ */
+void set_servo_position(ServoMotor_t* servoMotor, uint16_t newPosition);
+/**
+ * @brief Create a new servo motor, binding `controlPin` to it with `position` as its initial position.
+ * 
+ * @param controlPin The pin that will be used to control the servo motor's position.
+ * @param position The servo motor's initial position.
+ * 
+ * @returns Heap-allocated (created with `malloc()`) pointer. Remember to free!
+ */
+ServoMotor_t* instantiate_servo_motor(uint8_t controlPin, uint16_t position);
+
+/**
+ * @brief Set the position of this servo motor by passing a percentage where 0% is fully closed and 100% is fully open.
+ * 
+ * @param percentage value within the range 0.0 – 1.0.
+ */
+void set_servo_position_percentage(ServoMotor_t* servoMotor, float percentage);
 
 
 #endif // SERVO_MOTOR_H
