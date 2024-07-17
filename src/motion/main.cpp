@@ -63,12 +63,13 @@ void setup() {
         log_error("Reflectance polling task was not created successfully!");
     }
 
-    // check if tape following task was created
+    // check if task master was created
     if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
         log_status("Master task was created successfully.");
     } else {
         log_error("Master task was not created successfully!");
     }
+
 }
 
 void loop()
@@ -128,9 +129,14 @@ void begin_rotating() {
 
 void begin_following() {
     // check if tape following task was created
-    if (xTaskCreate(TaskFollowTape, "Tape Following", 2048, &config_following, PRIORITY_FOLLOW_TAPE, &xHandleFollowing) == pdPASS) {
+    if (xTaskCreate(TaskFollowTape, "Tape Following", 1024, &config_following, PRIORITY_FOLLOW_TAPE, &xHandleFollowing) == pdPASS) {
         log_status("Tape following task was created successfully.");
     } else {
         log_error("Tape following task was not created successfully!");
     }
+}
+
+
+void begin_following_pid() {
+    Serial.print("hey whats good");
 }

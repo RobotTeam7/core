@@ -33,6 +33,7 @@ typedef struct {
 void TaskRotate(void *pvParameters);
 void TaskFollowTape(void *pvParameters);
 void TaskPollReflectance(void *pvParameters);
+void TaskFollowPID(void *pvParameters);
 
 
 #endif 
