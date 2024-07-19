@@ -107,11 +107,11 @@ void setup() {
     right_wing_tape_sensor = instantiate_tape_sensor(RIGHT_WING_TAPE_SENSOR);
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
-    config_following = { &robotMotors, frontTapeSensor, &xSharedQueue };
+    config_following = { &robotMotors, backTapeSensor, &xSharedQueue };
     config_rotate = { &config_following, &xSharedQueue };
 
     // check if reflectance polling task was created
-    if (xTaskCreate(TaskPollReflectance, "ReflectancePolling", 2048, frontTapeSensor, PRIORITY_REFLECTANCE_POLLING, &xReflectanceHandle) == pdPASS) {
+    if (xTaskCreate(TaskPollReflectance, "ReflectancePolling", 2048, backTapeSensor, PRIORITY_REFLECTANCE_POLLING, &xReflectanceHandle) == pdPASS) {
         log_status("Reflectance polling task was created successfully."); 
     } else {
         log_error("Reflectance polling task was not created successfully!");
@@ -129,8 +129,8 @@ void setup() {
 
 void loop()
 {
-    monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle, &xStationTrackingHandle); // Monitor stack usage periodically
-    delay(2000);
+    // monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle, &xStationTrackingHandle); // Monitor stack usage periodically
+    // delay(2000);
 }
 
 void TaskMaster(void *pvParameters)
@@ -142,8 +142,6 @@ void TaskMaster(void *pvParameters)
     while (1) {
         StatusMessage_t receivedMessage;
         switch (state.current_action) {
-            Serial.println("Current task " + String(state.current_action));
-
             case ROTATE:
                 // Begin rotating and wait for a message that we see the tape
                 begin_rotating();
@@ -185,20 +183,14 @@ void TaskMaster(void *pvParameters)
 
                         stop_robot_motors(&robotMotors);
 
-                        send_uart_message(COMPLETED);
+                        // send_uart_message(COMPLETED);
                         log_status("Ending goto station...");
                         if (state.current_action == GOTO_STATION) {
                             state.current_action = IDLE;
                         }
                         break;
                     }
-                    vTaskDelay(1000 / portTICK_PERIOD_MS);
-                    send_uart_message(COMPLETED);
-                    log_status("Ending goto station...");
-                    if (state.current_action == GOTO_STATION) {
-                        state.current_action = IDLE;
-                    }
-                    break;
+                    vTaskDelay(10 / portTICK_PERIOD_MS);
                 }
                 break;
 

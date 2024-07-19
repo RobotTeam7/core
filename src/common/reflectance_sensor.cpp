@@ -74,7 +74,6 @@ MonoTapeSensor_t* instantiate_tape_sensor(uint8_t sensorPin) {
 
 void read_tape_sensor(MonoTapeSensor_t* tapeSensor) {
     uint16_t value = analogRead(tapeSensor->sensorPin);
-    Serial.println(analogRead(tapeSensor->sensorPin));
     tapeSensor->value = value;
 }
 

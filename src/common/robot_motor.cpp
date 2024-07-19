@@ -41,6 +41,7 @@ void motor_stop(RobotMotor_t* robotMotor) {
 }
 
 void stop_robot_motors(RobotMotorData_t* robot_motors) {
+    Serial.println("Stopping");
     motor_stop(robot_motors->motorBL);
     motor_stop(robot_motors->motorFL);
     motor_stop(robot_motors->motorFR);

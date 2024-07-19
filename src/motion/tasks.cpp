@@ -95,7 +95,8 @@ void TaskFollowTape(void *pvParameters) {
     while (1) {
         int left_mean = tapeAwarenessData->tapeSensor->leftValue;
         int right_mean = tapeAwarenessData->tapeSensor->rightValue;
-
+        Serial.println("Left" + String(left_mean));
+        Serial.println("Right" + String(right_mean));
         int error = left_mean - right_mean;
         int pid_adjustment_value = pid_follow_tape(error, lastError);
         lastError = error;
