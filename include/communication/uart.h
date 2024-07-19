@@ -26,7 +26,7 @@ typedef struct {
 
 void initialize_uart();
 void begin_uart_read(QueueHandle_t* uart_msg_queue);
-void send_uart_message(CommandMessage_t message, uint8_t value);
+void send_uart_message(CommandMessage_t message, uint8_t value = 0);
 
 
 #endif // ROBOT_UART_H

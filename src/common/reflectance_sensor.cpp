@@ -2,13 +2,16 @@
 #include <motion/constants.h>
 
 
-TapeSensor_t* instantiate_tape_sensor(uint8_t leftPin, uint8_t rightPin) {
-    TapeSensor_t* tapeSensor = (TapeSensor_t*)malloc(sizeof(TapeSensor_t));
+DualTapeSensor_t* instantiate_tape_sensor(uint8_t leftPin, uint8_t rightPin) {
+    DualTapeSensor_t* tapeSensor = (DualTapeSensor_t*)malloc(sizeof(DualTapeSensor_t));
     if (NULL == tapeSensor) {
         log_error("Couldn't allocate memory for tape sensor!");
         return NULL;
     }
-     
+
+    pinMode(leftPin, INPUT);
+    pinMode(rightPin, INPUT);
+
     tapeSensor->leftPin = leftPin;
     tapeSensor->rightPin = rightPin;
 
@@ -20,12 +23,12 @@ TapeSensor_t* instantiate_tape_sensor(uint8_t leftPin, uint8_t rightPin) {
     return tapeSensor;
 }
 
-void read_tape_sensor(TapeSensor_t* tapeSensor) {
+void read_tape_sensor(DualTapeSensor_t* tapeSensor) {
     tapeSensor->leftValue = analogRead(tapeSensor->leftPin);
     tapeSensor->rightValue = analogRead(tapeSensor->rightPin);
 }
 
-int is_tape_left_or_right(TapeSensor_t* tapeSensor) {
+int is_tape_left_or_right(DualTapeSensor_t* tapeSensor) {
     int left_mean = tapeSensor->leftValue;
     int right_mean = tapeSensor->rightValue;
 
@@ -38,7 +41,7 @@ int is_tape_left_or_right(TapeSensor_t* tapeSensor) {
     }
 }
 
-int is_tape_visible(TapeSensor_t* tapeSensor) {
+int is_tape_visible(DualTapeSensor_t* tapeSensor) {
     int left_mean = tapeSensor->leftValue;
     int right_mean = tapeSensor->rightValue;
 
@@ -49,4 +52,33 @@ int is_tape_visible(TapeSensor_t* tapeSensor) {
     } else {
         return 0;
     }
+}
+
+MonoTapeSensor_t* instantiate_tape_sensor(uint8_t sensorPin) {
+    MonoTapeSensor_t* tapeSensor = (MonoTapeSensor_t*)malloc(sizeof(MonoTapeSensor_t));
+    if (NULL == tapeSensor) {
+        log_error("Couldn't allocate memory for tape sensor!");
+        return NULL;
+    }
+     
+    pinMode(sensorPin, INPUT);
+
+    tapeSensor->sensorPin = sensorPin;
+
+    tapeSensor->value = 1111;
+
+    log_status("Created tape sensor!");
+
+    return tapeSensor;
+}
+
+void read_tape_sensor(MonoTapeSensor_t* tapeSensor) {
+    uint16_t value = analogRead(tapeSensor->sensorPin);
+    Serial.println(analogRead(tapeSensor->sensorPin));
+    tapeSensor->value = value;
+}
+
+int is_tape_visible(MonoTapeSensor_t* tapeSensor) {
+
+    return tapeSensor->value > THRESHOLD_SENSOR_SINGLE;
 }

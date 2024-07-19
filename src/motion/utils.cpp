@@ -27,7 +27,7 @@ void checkResetCause() {
     // __HAL_RCC_CLEAR_RESET_FLAGS();
 }
 
-void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectanceHandle, TaskHandle_t* xHandleFollowing, TaskHandle_t* xMasterHandle)
+void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectanceHandle, TaskHandle_t* xHandleFollowing, TaskHandle_t* xMasterHandle, TaskHandle_t* xStationTrackingHandle)
 {
     if (VERBOSITY_LEVEL < 3) {
         return;
@@ -35,21 +35,19 @@ void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectance
 
     UBaseType_t uxHighWaterMark;
 
+    size_t freeHeap = xPortGetFreeHeapSize();
+    Serial.print("Free Heap: ");
+    Serial.println((unsigned long)freeHeap, DEC);
+
     // For the rotate task
     uxHighWaterMark = uxTaskGetStackHighWaterMark(*xHandleRotating);
     Serial.print("TapeRotate stack high water mark: ");
     Serial.println(uxHighWaterMark);
 
-
     // For the reflectance task
     uxHighWaterMark = uxTaskGetStackHighWaterMark(*xReflectanceHandle);
     Serial.print("ReflectancePolling stack high water mark: ");
     Serial.println(uxHighWaterMark);
-
-    size_t freeHeap = xPortGetFreeHeapSize();
-    Serial.print("Free Heap: ");
-    Serial.println((unsigned long)freeHeap, DEC);
-
 
     // For the follow task
     uxHighWaterMark = uxTaskGetStackHighWaterMark(*xHandleFollowing);
@@ -60,6 +58,11 @@ void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectance
     // For the follow task
     uxHighWaterMark = uxTaskGetStackHighWaterMark(*xMasterHandle);
     Serial.print("Master stack high water mark: ");
+    Serial.println(uxHighWaterMark);
+
+    // For the station tracking task
+    uxHighWaterMark = uxTaskGetStackHighWaterMark(*xStationTrackingHandle);
+    Serial.print("Station tracking stack high water mark: ");
     Serial.println(uxHighWaterMark);
 }
 

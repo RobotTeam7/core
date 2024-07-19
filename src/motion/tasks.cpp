@@ -9,6 +9,7 @@
 #include <motion/constants.h>
 #include <motion/tasks.h>
 #include <motion/pid.h>
+#include <motion/state.h>
 
 
 // Ensure that a RobotMotorData_t* does not contain null values
@@ -21,8 +22,8 @@ int checkRobotMotors(RobotMotorData_t* robotMotors) {
 }
 
 
-// Ensure that a TapeSensor_t* does not include null values
-int checkTapeSensor(TapeSensor_t* tapeSensor) {
+// Ensure that a DualTapeSensor_t* does not include null values
+int checkTapeSensor(DualTapeSensor_t* tapeSensor) {
     return tapeSensor == NULL;
 }
 
@@ -39,7 +40,7 @@ void TaskPollReflectance(void *pvParameters) {
     log_status("Beginning reflectance task initialization...");
 
     // Acquire and verify pointers
-    TapeSensor_t* tapeSensor = (TapeSensor_t*)pvParameters;
+    DualTapeSensor_t* tapeSensor = (DualTapeSensor_t*)pvParameters;
     if (checkTapeSensor(tapeSensor)) {
         log_error("Error: Null pointers in reflectance sensor data!");  
         vTaskDelete(NULL);
@@ -61,15 +62,15 @@ void TaskPollReflectance(void *pvParameters) {
             int reflectance_right = tapeSensor->rightValue;
             int reflectance_left = tapeSensor->leftValue;
 
-            char drive_state[20] = "find tape";  // this could be a memory unsafe situation, as some chars are uninitialized
-            if (reflectance_right - reflectance_left > TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
-                strcpy(drive_state, "---->>");
-            } else if (reflectance_left - reflectance_right > TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
-                strcpy(drive_state, "<<----");
-            } else {
-                strcpy(drive_state, "^^^^^^");
-            }
-            Serial.println(drive_state);
+            // char drive_state[20] = "find tape";  // this could be a memory unsafe situation, as some chars are uninitialized
+            // if (reflectance_right - reflectance_left > TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
+            //     strcpy(drive_state, "---->>");
+            // } else if (reflectance_left - reflectance_right > TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
+            //     strcpy(drive_state, "<<----");
+            // } else {
+            //     strcpy(drive_state, "^^^^^^");
+            // }
+            // Serial.println(drive_state);
         }
 
         vTaskDelay(delay_ticks);
@@ -89,22 +90,9 @@ void TaskFollowTape(void *pvParameters) {
 
     RobotMotorData_t* robotMotors = tapeAwarenessData->robotMotors;
 
-    
-
     log_status("Successfully initialized tape follow task!");
     int lastError = 0;
     while (1) {
-        // Read buffers
-        // // If we lost the tape, let master know 
-        if (is_tape_visible(tapeAwarenessData->tapeSensor) < 0) {
-            // Send message to TaskMaster that we lost the tape
-            StatusMessage_t message = LOST_TAPE;
-            if (xQueueSend(*tapeAwarenessData->xSharedQueue, &message, portMAX_DELAY) != pdPASS)
-            {
-                log_error("Failed to send LOST_TAPE to xSharedQueue");
-            }
-        }
-
         int left_mean = tapeAwarenessData->tapeSensor->leftValue;
         int right_mean = tapeAwarenessData->tapeSensor->rightValue;
 
@@ -147,7 +135,7 @@ void TaskRotate(void *pvParameters) {
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_ROTATING_MS);
 
     RobotMotorData_t* robotMotors = robotControlData->tapeAwarenessData->robotMotors;
-    TapeSensor_t* tapeSensor = robotControlData->tapeAwarenessData->tapeSensor;
+    DualTapeSensor_t* tapeSensor = robotControlData->tapeAwarenessData->tapeSensor;
     bool rotating;
 
     log_status("Successfully initialized rotation!");
@@ -191,5 +179,55 @@ void TaskRotate(void *pvParameters) {
 
             vTaskDelay(poll_rate_ticks);
         }
+    }
+}
+
+int checkState(State_t* state) {
+    return state == NULL;
+}
+
+int checkMonoTapeSensor(MonoTapeSensor_t* tapeSensor) {
+    return tapeSensor == NULL;
+}
+
+
+void TaskStationTracking(void* pvParameters) {
+    MonoTapeSensor_t* tapeSensor = (MonoTapeSensor_t*)pvParameters;
+    if (checkMonoTapeSensor(tapeSensor)) {
+        log_error("Nulls in mono tape sensor!");
+        return;
+    }
+
+    TickType_t delay = pdMS_TO_TICKS(STATION_TRACKING_POLL_DELAY_MS);
+    uint16_t consecutive_count = 0;
+    int value = 0;
+
+    log_status("Initialized TaskStationTracking");
+    bool found_tape = false;
+    while (1) {
+        // Check sensors
+        read_tape_sensor(tapeSensor);
+        value = tapeSensor->value;
+       
+        // if (value > THRESHOLD_SENSOR_SINGLE) {
+        //     consecutive_count++;
+        // } else {
+        //     consecutive_count = 0;
+        // }
+
+        // if (consecutive_count > DEBOUNCE_TAPE_THRESHOLD) {
+        //     consecutive_count = 0;
+        //     state.last_station += state.orientation;
+
+        //     log_status("Passed station!");
+        // }
+        if (value > THRESHOLD_SENSOR_SINGLE) {
+            found_tape = true;
+        } else if ((value < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
+            state.last_station += state.orientation;
+            log_status("Passed station!");
+            found_tape = false;
+        }
+        vTaskDelay(delay);
     }
 }

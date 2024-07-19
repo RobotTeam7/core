@@ -36,5 +36,4 @@ void setup() {
 void loop() {
     Serial.println("Trying to send packet...");
     xQueueSend(outboundWiFiQueue, &new_packet, portMAX_DELAY);
-    delay(2000);
 }

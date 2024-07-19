@@ -11,15 +11,8 @@
 
 
 typedef struct {
-    RobotMotor_t* motorFR;
-    RobotMotor_t* motorFL;
-    RobotMotor_t* motorBR;
-    RobotMotor_t* motorBL;
-} RobotMotorData_t;
-
-typedef struct {
     RobotMotorData_t* robotMotors;
-    TapeSensor_t* tapeSensor;
+    DualTapeSensor_t* tapeSensor;
     QueueHandle_t* xSharedQueue;
 } TapeAwarenessData_t;
 
@@ -28,10 +21,10 @@ typedef struct {
     QueueHandle_t* xSharedQueue;
 } RobotControlData_t;
 
-void TaskRotate(void *pvParameters);
-void TaskFollowTape(void *pvParameters);
-void TaskPollReflectance(void *pvParameters);
-void TaskFollowPID(void *pvParameters);
+void TaskRotate(void* pvParameters);
+void TaskFollowTape(void* pvParameters);
+void TaskPollReflectance(void* pvParameters);
+void TaskStationTracking(void* pvParameters);
 
 
 #endif // MOTION_TASKS_H

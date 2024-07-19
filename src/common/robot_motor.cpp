@@ -39,3 +39,19 @@ void motor_set_drive(RobotMotor_t* robotMotor, uint16_t driveValue, uint8_t dire
 void motor_stop(RobotMotor_t* robotMotor) {
     motor_set_drive(robotMotor, 0, FORWARD_DRIVE);
 }
+
+void stop_robot_motors(RobotMotorData_t* robot_motors) {
+    motor_stop(robot_motors->motorBL);
+    motor_stop(robot_motors->motorFL);
+    motor_stop(robot_motors->motorFR);
+    motor_stop(robot_motors->motorBR);
+}
+
+void drive_robot_motors(RobotMotorData_t* robot_motors, uint16_t drive_value, uint8_t direction) {
+
+}
+
+void rotate_robot(RobotMotorData_t* robot_motors, uint16_t drive_value, uint8_t direction) {
+    
+}
+

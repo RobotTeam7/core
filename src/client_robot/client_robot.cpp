@@ -26,6 +26,9 @@ WiFiHandler_t wifi_handler = {
 
 ServoMotor_t* servoMotor;
 
+bool MOTION_READY = false;
+bool MOTION_BUSY = false;
+
 void uart_msg_handler(void *parameter) {
     log_status("Started message handler");
     while (1) {
@@ -35,6 +38,24 @@ void uart_msg_handler(void *parameter) {
             Serial.println(new_packet.command);
             Serial.println(new_packet.value);
             Serial.println("Received.");
+
+            switch (new_packet.command) {
+                case READY:
+                    MOTION_READY = true;
+                    break;
+                
+                case ACCEPTED:
+                    log_status("Motion accepted command.");
+                    break;
+
+                case OCCUPIED:
+                    log_error("Motion rejected command!");
+                    break;
+
+                case COMPLETED:
+                    MOTION_BUSY = false;
+                    break;
+            }
         }
         vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield    
     }
@@ -48,11 +69,40 @@ void wifi_msg_handler(void *parameter) {
             Serial.println("Received wifi packet...");
             Serial.println(new_packet.byte1);
             Serial.println(new_packet.byte2);
-            Serial.println("Sending over UART...");
-            send_uart_message((CommandMessage_t)new_packet.byte1, new_packet.byte2);
-            Serial.println("Sent packet over UART.");
+            // Serial.println("Sending over UART...");
+            // send_uart_message((CommandMessage_t)new_packet.byte1, new_packet.byte2);
+            // Serial.println("Sent packet over UART.");
         }
         vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield    
+    }
+}
+
+void TaskMaster(void* pvParameters) {
+    log_status("Beginning master...");
+
+    // Wait for green light from motion board
+    while (!MOTION_READY) {
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+
+    while (true) {
+        log_status("Motion ready! Sending move command");
+        send_uart_message(GOTO, 10);
+        MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+
+        log_status("Motion ready! Sending rotate command");
+        MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        send_uart_message(DO_SPIN);
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+
+        log_status("Completed circuit!");
+        vTaskDelete(NULL);
+        break;
     }
 }
 
@@ -61,13 +111,13 @@ void setup() {
 
     // servoMotor = instantiate_servo_motor(13, 0);
 
-    connect_to_wifi_as_client(&wifi_handler);
+    // connect_to_wifi_as_client(&wifi_handler);
 
     initialize_uart();
     begin_uart_read(&uart_msg_queue);
 
     xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
-    xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
+    // xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
 
     // send_uart_message(GOTO, 8);
     // delay(1000);
@@ -75,6 +125,8 @@ void setup() {
     // delay(1000);
     // send_uart_message(DO_SPIN, 0);
     // delay(1000);
+    // delay(500);
+    xTaskCreate(TaskMaster, "Master", 2048, NULL, 1, NULL);
 }
 
 // float dutyCycleHigh = 0.06;
