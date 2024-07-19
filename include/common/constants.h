@@ -24,10 +24,6 @@
 // Buffer Sizes
 #define REFLECTANCE_SENSOR_BUFFER_SIZE      1
 
-// UART Constants
-#define RX_PIN              21
-#define TX_PIN              22
-
 // PWM Constants
 #define TIMER_RESOLUTION    16   // Indicate 16-bit resolution such that 0 – 65535 is valid
 #define LEDC_PWM_FREQUENCY  50   // 50 Hz PWM pulse train
@@ -44,9 +40,8 @@
 
 // Robot Motor Constants
 #define DRIVE_MOTOR_PWM_FREQUENCY 50
-#define NO_DRIVE 0
 #define FORWARD_DRIVE 1
-#define REVERSE_DRIVE 2
+#define REVERSE_DRIVE -1
 
 
 #endif // COMMON_CONSTANTS_H

@@ -39,16 +39,6 @@ void motor_set_drive(RobotMotor_t* robotMotor, uint16_t driveValue, uint8_t dire
  */
 void motor_stop(RobotMotor_t* robotMotor); 
 
-typedef struct {
-    RobotMotor_t* motorFR;
-    RobotMotor_t* motorFL;
-    RobotMotor_t* motorBR;
-    RobotMotor_t* motorBL;
-} RobotMotorData_t;
-
-void stop_robot_motors(RobotMotorData_t* robot_motors);
-void drive_robot_motors(RobotMotorData_t* robot_motors, uint16_t drive_value, uint8_t direction);
-void rotate_robot(RobotMotorData_t* robot_motors, uint16_t drive_value, uint8_t direction);
 
 
 #endif // ROBOT_MOTOR_H
