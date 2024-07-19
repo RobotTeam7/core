@@ -203,6 +203,8 @@ void TaskMaster(void *pvParameters)
                 break;
 
             case IDLE:
+                // don't move while idling
+                stop_robot_motors(&robotMotors);
                 log_status("Idling...");
                 while (state.current_action == IDLE) {
                     vTaskDelay(20 / portTICK_PERIOD_MS);
