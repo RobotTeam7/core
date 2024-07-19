@@ -25,18 +25,20 @@ RobotMotor_t* motor_back_right;
 
 DualTapeSensor_t* frontTapeSensor;
 DualTapeSensor_t* backTapeSensor;
-MonoTapeSensor_t* left_wing_tape_sensor;
-MonoTapeSensor_t* right_wing_tape_sensor;
+DualTapeSensor_t* wingSensor;
 
 RobotMotorData_t robotMotors;
 TapeAwarenessData_t config_following;
+TapeAwarenessData_t config_docking;
 RobotControlData_t config_rotate;
+
 
 TaskHandle_t xHandleRotating = NULL;
 TaskHandle_t xReflectanceHandle = NULL;
 TaskHandle_t xHandleFollowing = NULL;
 TaskHandle_t xMasterHandle = NULL;
 TaskHandle_t xStationTrackingHandle = NULL;
+TaskHandle_t xDockingHandle = NULL;
 
 QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
 QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
@@ -103,12 +105,12 @@ void setup() {
 
     frontTapeSensor = instantiate_tape_sensor(FRONT_TAPE_SENSOR_LEFT, FRONT_TAPE_SENSOR_RIGHT);
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT, BACK_TAPE_SENSOR_RIGHT);
-    left_wing_tape_sensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR);
-    right_wing_tape_sensor = instantiate_tape_sensor(RIGHT_WING_TAPE_SENSOR);
+    wingSensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR, RIGHT_WING_TAPE_SENSOR);
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { &robotMotors, backTapeSensor, &xSharedQueue };
     config_rotate = { &config_following, &xSharedQueue };
+    config_docking = { &robotMotors, wingSensor };
 
     // check if reflectance polling task was created
     if (xTaskCreate(TaskPollReflectance, "ReflectancePolling", 2048, backTapeSensor, PRIORITY_REFLECTANCE_POLLING, &xReflectanceHandle) == pdPASS) {
@@ -225,7 +227,16 @@ void begin_following() {
 
 void begin_station_tracking() {
     // check if station tracking task was created
-    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, right_wing_tape_sensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
+    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, wingSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
+        log_status("Station tracking task was created successfully.");
+    } else {
+        log_error("Station tracking task was not created successfully!");
+    }
+}
+
+void begin_docking() {
+    // check if station tracking task was created
+    if (xTaskCreate(TaskDocking, "Station_Tracking", 4096, &config_docking, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
         log_status("Station tracking task was created successfully.");
     } else {
         log_error("Station tracking task was not created successfully!");

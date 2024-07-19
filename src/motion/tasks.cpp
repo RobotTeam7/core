@@ -187,28 +187,30 @@ int checkState(State_t* state) {
     return state == NULL;
 }
 
-int checkMonoTapeSensor(MonoTapeSensor_t* tapeSensor) {
+int checkDualTapeSensor(DualTapeSensor_t* tapeSensor) {
     return tapeSensor == NULL;
 }
 
 
 void TaskStationTracking(void* pvParameters) {
-    MonoTapeSensor_t* tapeSensor = (MonoTapeSensor_t*)pvParameters;
-    if (checkMonoTapeSensor(tapeSensor)) {
-        log_error("Nulls in mono tape sensor!");
+    DualTapeSensor_t* tapeSensor = (DualTapeSensor_t*)pvParameters;
+    if (checkDualTapeSensor(tapeSensor)) {
+        log_error("Nulls in dual tape sensor!");
         return;
     }
 
     TickType_t delay = pdMS_TO_TICKS(STATION_TRACKING_POLL_DELAY_MS);
     uint16_t consecutive_count = 0;
-    int value = 0;
+    int value_left = 0;
+    int value_right;
 
     log_status("Initialized TaskStationTracking");
     bool found_tape = false;
     while (1) {
         // Check sensors
         read_tape_sensor(tapeSensor);
-        value = tapeSensor->value;
+        value_left = tapeSensor->leftValue;
+        value_right = tapeSensor->rightValue;
        
         // if (value > THRESHOLD_SENSOR_SINGLE) {
         //     consecutive_count++;
@@ -222,13 +224,45 @@ void TaskStationTracking(void* pvParameters) {
 
         //     log_status("Passed station!");
         // }
-        if (value > THRESHOLD_SENSOR_SINGLE) {
+        if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
-        } else if ((value < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
+        } else if ((value_left < THRESHOLD_SENSOR_SINGLE || value_right < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
             state.last_station += state.orientation;
             log_status("Passed station!");
             found_tape = false;
+            vTaskDelay(pdMS_TO_TICKS(300));
         }
         vTaskDelay(delay);
     }
+}
+
+void TaskDocking(void* pvParameters) {
+    int delay_ms = MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS;
+    TapeAwarenessData_t* tapeAwarenessData = (TapeAwarenessData_t*)pvParameters;
+    if (checkTapeAwarenessData(tapeAwarenessData)) {
+        log_error("Error: tapeAwarenessData contains nulls!");
+        vTaskDelete(NULL);
+        return;
+    }
+
+    RobotMotorData_t* robotMotors = tapeAwarenessData->robotMotors;
+    DualTapeSensor_t* sensors = tapeAwarenessData->tapeSensor;
+
+    motor_set_drive(robotMotors->motorFR, MOTOR_SPED_DOCKING, REVERSE_DRIVE);
+    motor_set_drive(robotMotors->motorBR, MOTOR_SPED_DOCKING, REVERSE_DRIVE);
+    motor_set_drive(robotMotors->motorFL, MOTOR_SPED_DOCKING, REVERSE_DRIVE);
+    motor_set_drive(robotMotors->motorBL, MOTOR_SPED_DOCKING, REVERSE_DRIVE);
+
+    while(1) {
+        if(sensors->leftValue > THRESHOLD_SENSOR_SINGLE || sensors->rightValue > THRESHOLD_SENSOR_SINGLE) {
+            motor_stop(robotMotors->motorBL);
+            motor_stop(robotMotors->motorFL);
+            motor_stop(robotMotors->motorFR);
+            motor_stop(robotMotors->motorBR);
+            break;
+        }
+        vTaskDelay(delay_ms);
+    }
+    
+
 }

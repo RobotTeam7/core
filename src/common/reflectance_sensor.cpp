@@ -54,30 +54,30 @@ int is_tape_visible(DualTapeSensor_t* tapeSensor) {
     }
 }
 
-MonoTapeSensor_t* instantiate_tape_sensor(uint8_t sensorPin) {
-    MonoTapeSensor_t* tapeSensor = (MonoTapeSensor_t*)malloc(sizeof(MonoTapeSensor_t));
-    if (NULL == tapeSensor) {
-        log_error("Couldn't allocate memory for tape sensor!");
-        return NULL;
-    }
+// MonoTapeSensor_t* instantiate_tape_sensor(uint8_t sensorPin) {
+//     MonoTapeSensor_t* tapeSensor = (MonoTapeSensor_t*)malloc(sizeof(MonoTapeSensor_t));
+//     if (NULL == tapeSensor) {
+//         log_error("Couldn't allocate memory for tape sensor!");
+//         return NULL;
+//     }
      
-    pinMode(sensorPin, INPUT);
+//     pinMode(sensorPin, INPUT);
 
-    tapeSensor->sensorPin = sensorPin;
+//     tapeSensor->sensorPin = sensorPin;
 
-    tapeSensor->value = 1111;
+//     tapeSensor->value = 1111;
 
-    log_status("Created tape sensor!");
+//     log_status("Created tape sensor!");
 
-    return tapeSensor;
-}
+//     return tapeSensor;
+// }
 
-void read_tape_sensor(MonoTapeSensor_t* tapeSensor) {
-    uint16_t value = analogRead(tapeSensor->sensorPin);
-    tapeSensor->value = value;
-}
+// void read_tape_sensor(MonoTapeSensor_t* tapeSensor) {
+//     uint16_t value = analogRead(tapeSensor->sensorPin);
+//     tapeSensor->value = value;
+// }
 
-int is_tape_visible(MonoTapeSensor_t* tapeSensor) {
+// int is_tape_visible(MonoTapeSensor_t* tapeSensor) {
 
-    return tapeSensor->value > THRESHOLD_SENSOR_SINGLE;
-}
+//     return tapeSensor->value > THRESHOLD_SENSOR_SINGLE;
+// }
