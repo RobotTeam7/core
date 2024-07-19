@@ -17,7 +17,7 @@
 #define ROTATE_INITIAL_DELAY                        1000    // delay between rotation task beginning and checking for tape (ms)               
 #define POLL_SENSOR_DELAY_MS                        5       // Tape reflectance sensor polling delay (ms)
 #define STATION_TRACKING_POLL_DELAY_MS              20      // delay between polls for if we see station tape
-
+#define MOTOR_UPDATE_DELAY                          5       // delay between motor drive state updates 
 
 // Sensor Thresholds
 
@@ -42,11 +42,11 @@
 #define LEFT_WING_TAPE_SENSOR       32 // yellow cables right
 #define RIGHT_WING_TAPE_SENSOR      33 // green cables left
 
-// #define STEPPER_MOTOR_STEP  7
-// #define STEPPER_MOTOR_DIR   14
+#define RX_PIN              21
+#define TX_PIN              22
 
 // Motion Task Priorities
-#define PRIORITY_REFLECTANCE_POLLING    3
+#define PRIORITY_DRIVE_UPDATE           3
 #define PRIORITY_FOLLOW_TAPE            1
 #define PRIORITY_ROTATE                 2
 #define PRIORITY_STATION_TRACKING       1

@@ -10,6 +10,7 @@
 #include <motion/tasks.h>
 #include <motion/pid.h>
 #include <motion/state.h>
+#include <motion/motion.h>
 
 
 // Ensure that a RobotMotorData_t* does not contain null values
@@ -29,52 +30,15 @@ int checkTapeSensor(DualTapeSensor_t* tapeSensor) {
 
 // Ensure that a TapeAwarenessData_t* does not contain null values
 int checkTapeAwarenessData(TapeAwarenessData_t* tapeAwarenessData) {
-    if (tapeAwarenessData == NULL) {
-        return 1;
-    } else {
-        return checkTapeSensor(tapeAwarenessData->tapeSensor) == 1 || checkRobotMotors(tapeAwarenessData->robotMotors) == 1; 
-    }
+    return tapeAwarenessData == NULL || checkTapeSensor(tapeAwarenessData->tapeSensor) == 1;
 }
 
-void TaskPollReflectance(void *pvParameters) {
-    log_status("Beginning reflectance task initialization...");
+int checkState(State_t* state) {
+    return state == NULL;
+}
 
-    // Acquire and verify pointers
-    DualTapeSensor_t* tapeSensor = (DualTapeSensor_t*)pvParameters;
-    if (checkTapeSensor(tapeSensor)) {
-        log_error("Error: Null pointers in reflectance sensor data!");  
-        vTaskDelete(NULL);
-        return;
-    }
-
-    // Setup reflectance sensor
-    TickType_t delay_ticks = pdMS_TO_TICKS(POLL_SENSOR_DELAY_MS);
-
-    log_status("Succesfully initialized reflectance polling task!");
-
-    int lastError = 0;
-    while (1) {
-        // Read sensor values, pushing them onto the buffer
-        read_tape_sensor(tapeSensor);
-
-        // Print direction of less reflectance (higher value -> less reflectance, they are inversly proportional)
-        if (VERBOSITY_LEVEL > MOST_VERBOSE) {
-            int reflectance_right = tapeSensor->rightValue;
-            int reflectance_left = tapeSensor->leftValue;
-
-            // char drive_state[20] = "find tape";  // this could be a memory unsafe situation, as some chars are uninitialized
-            // if (reflectance_right - reflectance_left > TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
-            //     strcpy(drive_state, "---->>");
-            // } else if (reflectance_left - reflectance_right > TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
-            //     strcpy(drive_state, "<<----");
-            // } else {
-            //     strcpy(drive_state, "^^^^^^");
-            // }
-            // Serial.println(drive_state);
-        }
-
-        vTaskDelay(delay_ticks);
-    }
+int checkMonoTapeSensor(MonoTapeSensor_t* tapeSensor) {
+    return tapeSensor == NULL;
 }
 
 void TaskFollowTape(void *pvParameters) {
@@ -88,43 +52,34 @@ void TaskFollowTape(void *pvParameters) {
         return;
     }
 
-    RobotMotorData_t* robotMotors = tapeAwarenessData->robotMotors;
-
     log_status("Successfully initialized tape follow task!");
     int lastError = 0;
     while (1) {
+        state.drive_state = DriveState_t::DRIVE;
+        state.drive_speed = MOTOR_SPEED_FOLLOWING;
+
+        read_tape_sensor(tapeAwarenessData->tapeSensor);
         int left_mean = tapeAwarenessData->tapeSensor->leftValue;
         int right_mean = tapeAwarenessData->tapeSensor->rightValue;
+
         Serial.println("Left" + String(left_mean));
         Serial.println("Right" + String(right_mean));
+
         int error = left_mean - right_mean;
+
         int pid_adjustment_value = pid_follow_tape(error, lastError);
+        state.yaw = pid_adjustment_value;
         lastError = error;
-        int motor_speed_1 = MOTOR_SPEED_FOLLOWING - pid_adjustment_value;
-        int motor_speed_2 = MOTOR_SPEED_FOLLOWING + pid_adjustment_value;
-        motor_set_drive(robotMotors->motorFL, motor_speed_1, FORWARD_DRIVE); 
-        motor_set_drive(robotMotors->motorBL, motor_speed_1, FORWARD_DRIVE);
-        motor_set_drive(robotMotors->motorFR, motor_speed_2, FORWARD_DRIVE);
-        motor_set_drive(robotMotors->motorBR, motor_speed_2, FORWARD_DRIVE);
 
         vTaskDelay(delay_ticks);
-    }
-    Serial.println("Exiting tape follow");
-}
-
-int checkRobotControlData(RobotControlData_t* robotControlData) {
-    if (robotControlData == NULL) {
-        return 1;
-    } else {
-        return checkTapeAwarenessData(robotControlData->tapeAwarenessData) == 1 || robotControlData->xSharedQueue == NULL; 
     }
 }
 
 void TaskRotate(void *pvParameters) {
     log_status("Beginning rotate task initialization...");
 
-    RobotControlData_t* robotControlData = (RobotControlData_t*)pvParameters;
-    if (checkRobotControlData(robotControlData))
+    TapeAwarenessData_t* robotControlData = (TapeAwarenessData_t*)pvParameters;
+    if (checkTapeAwarenessData(robotControlData))
     {
         log_error("Error: nulls in robotControlData");
         vTaskDelete(NULL);
@@ -135,18 +90,15 @@ void TaskRotate(void *pvParameters) {
     TickType_t inital_delay_ticks = pdMS_TO_TICKS(ROTATE_INITIAL_DELAY);
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_ROTATING_MS);
 
-    RobotMotorData_t* robotMotors = robotControlData->tapeAwarenessData->robotMotors;
-    DualTapeSensor_t* tapeSensor = robotControlData->tapeAwarenessData->tapeSensor;
+    DualTapeSensor_t* tapeSensor = robotControlData->tapeSensor;
     bool rotating;
 
     log_status("Successfully initialized rotation!");
 
     while (1) {
         // start rotating, then delay to ensure that rotation isn't immediately canceled by tape detection
-        motor_set_drive(robotMotors->motorFR, MOTOR_SPEED_ROTATION, REVERSE_DRIVE);
-        motor_set_drive(robotMotors->motorBR, MOTOR_SPEED_ROTATION, REVERSE_DRIVE);
-        motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_ROTATION, FORWARD_DRIVE);
-        motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_ROTATION, FORWARD_DRIVE);
+        state.drive_state = DriveState_t::ROTATE;
+        state.drive_speed = MOTOR_SPEED_ROTATION;
         
         vTaskDelay(inital_delay_ticks);
 
@@ -157,6 +109,7 @@ void TaskRotate(void *pvParameters) {
 
         while (rotating)
         {
+            read_tape_sensor(tapeSensor);
             int left_mean = tapeSensor->leftValue;
             int right_mean = tapeSensor->rightValue;
 
@@ -165,10 +118,7 @@ void TaskRotate(void *pvParameters) {
                 log_status("Found tape. Ending rotation...");
                 rotating = false;
 
-                motor_stop(robotMotors->motorFR);
-                motor_stop(robotMotors->motorBR);
-                motor_stop(robotMotors->motorFL);
-                motor_stop(robotMotors->motorBL);
+                state.drive_state = DriveState_t::STOP;
 
                 // send message to TaskMaster that rotation has finished
                 StatusMessage_t message = ROTATION_DONE;
@@ -182,15 +132,6 @@ void TaskRotate(void *pvParameters) {
         }
     }
 }
-
-int checkState(State_t* state) {
-    return state == NULL;
-}
-
-int checkMonoTapeSensor(MonoTapeSensor_t* tapeSensor) {
-    return tapeSensor == NULL;
-}
-
 
 void TaskStationTracking(void* pvParameters) {
     MonoTapeSensor_t* tapeSensor = (MonoTapeSensor_t*)pvParameters;
@@ -210,18 +151,6 @@ void TaskStationTracking(void* pvParameters) {
         read_tape_sensor(tapeSensor);
         value = tapeSensor->value;
        
-        // if (value > THRESHOLD_SENSOR_SINGLE) {
-        //     consecutive_count++;
-        // } else {
-        //     consecutive_count = 0;
-        // }
-
-        // if (consecutive_count > DEBOUNCE_TAPE_THRESHOLD) {
-        //     consecutive_count = 0;
-        //     state.last_station += state.orientation;
-
-        //     log_status("Passed station!");
-        // }
         if (value > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
         } else if ((value < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
@@ -230,5 +159,32 @@ void TaskStationTracking(void* pvParameters) {
             found_tape = false;
         }
         vTaskDelay(delay);
+    }
+}
+
+void TaskDrive(void* pvParameters) {
+    log_status("Initializing drive task...");
+
+    RobotMotorData_t* robot_motors = (RobotMotorData_t*)pvParameters;
+    if (checkRobotMotors(robot_motors)) {
+        log_error("Nulls in robot motors!");
+        vTaskDelete(NULL);
+        return;
+    }
+
+    log_status("Initialized drive task!");
+
+    while (1) {
+        switch (state.drive_state) {
+            case STOP:
+                stop_robot_motors(robot_motors);
+
+            case DRIVE:
+                drive_robot_motors(robot_motors, state.drive_speed * state.direction);
+
+            case DriveState_t::ROTATE:
+                rotate_robot(robot_motors, state.drive_speed * state.helicity);
+        }
+        vTaskDelay(MOTOR_UPDATE_DELAY);
     }
 }

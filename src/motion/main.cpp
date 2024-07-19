@@ -16,6 +16,7 @@
 #include <motion/tasks.h>
 #include <motion/utils.h>
 #include <motion/state.h>
+#include <motion/motion.h>
 
 
 RobotMotor_t* motor_front_left;
@@ -30,10 +31,9 @@ MonoTapeSensor_t* right_wing_tape_sensor;
 
 RobotMotorData_t robotMotors;
 TapeAwarenessData_t config_following;
-RobotControlData_t config_rotate;
 
 TaskHandle_t xHandleRotating = NULL;
-TaskHandle_t xReflectanceHandle = NULL;
+TaskHandle_t xDriveHandle = NULL;
 TaskHandle_t xHandleFollowing = NULL;
 TaskHandle_t xMasterHandle = NULL;
 TaskHandle_t xStationTrackingHandle = NULL;
@@ -77,7 +77,7 @@ void uart_msg_handler(void *parameter) {
                         break;
 
                     case DO_SPIN:
-                        state.current_action = ROTATE;
+                        state.current_action = ActionType_t::ROTATE;
                         break;
                 }
                 send_uart_message(ACCEPTED);
@@ -107,11 +107,10 @@ void setup() {
     right_wing_tape_sensor = instantiate_tape_sensor(RIGHT_WING_TAPE_SENSOR);
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
-    config_following = { &robotMotors, backTapeSensor, &xSharedQueue };
-    config_rotate = { &config_following, &xSharedQueue };
+    config_following = { backTapeSensor, &xSharedQueue };
 
-    // check if reflectance polling task was created
-    if (xTaskCreate(TaskPollReflectance, "ReflectancePolling", 2048, backTapeSensor, PRIORITY_REFLECTANCE_POLLING, &xReflectanceHandle) == pdPASS) {
+    // check if driving task was created
+    if (xTaskCreate(TaskDrive, "ReflectancePolling", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
         log_status("Reflectance polling task was created successfully."); 
     } else {
         log_error("Reflectance polling task was not created successfully!");
@@ -196,8 +195,9 @@ void TaskMaster(void *pvParameters)
 
             case IDLE:
                 // don't move while idling
-                stop_robot_motors(&robotMotors);
+                state.drive_state = DriveState_t::STOP;
                 log_status("Idling...");
+
                 while (state.current_action == IDLE) {
                     vTaskDelay(20 / portTICK_PERIOD_MS);
                 }
@@ -207,7 +207,7 @@ void TaskMaster(void *pvParameters)
 
 void begin_rotating() {
     // check if tape following task was created
-    if (xTaskCreate(TaskRotate, "TapeRotate", 2048, &config_rotate, PRIORITY_ROTATE, &xHandleRotating) == pdPASS) {
+    if (xTaskCreate(TaskRotate, "TapeRotate", 2048, &config_following, PRIORITY_ROTATE, &xHandleRotating) == pdPASS) {
         log_status("Rotate task was created successfully.");
     } else {
         log_error("Rotate task was not created successfully!");
