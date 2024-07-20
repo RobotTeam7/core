@@ -18,6 +18,8 @@
 #include <motion/state.h>
 #include <motion/motion.h>
 
+#include <common/stepper_motor.h>
+
 
 RobotMotor_t* motor_front_left;
 RobotMotor_t* motor_front_right;
@@ -38,9 +40,13 @@ TaskHandle_t xHandleFollowing = NULL;
 TaskHandle_t xMasterHandle = NULL;
 TaskHandle_t xStationTrackingHandle = NULL;
 
+StepperMotor_t* stepper_motor;
+
 QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
 QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
 QueueHandle_t task_queue = xQueueCreate(10, sizeof(Packet_t));
+
+
 
 void TaskMaster(void *pvParameters);
 void begin_rotating();
@@ -77,7 +83,7 @@ void uart_msg_handler(void *parameter) {
                         break;
 
                     case DO_SPIN:
-                        state.current_action = ActionType_t::ROTATE;
+                        state.current_action = ActionType_t::SPIN;
                         break;
                 }
                 send_uart_message(ACCEPTED);
@@ -106,14 +112,16 @@ void setup() {
     left_wing_tape_sensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR);
     right_wing_tape_sensor = instantiate_tape_sensor(RIGHT_WING_TAPE_SENSOR);
 
+    stepper_motor = instantiateStepperMotor(STEPPER_STEP, STEPPER_DIR, 0);
+
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
-    config_following = { backTapeSensor, &xSharedQueue };
+    config_following = { backTapeSensor, &xSharedQueue }; // actually the front one 
 
     // check if driving task was created
-    if (xTaskCreate(TaskDrive, "ReflectancePolling", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
-        log_status("Reflectance polling task was created successfully."); 
+    if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
+        log_status("Driving task was created successfully."); 
     } else {
-        log_error("Reflectance polling task was not created successfully!");
+        log_error("Driving task was not created successfully!");
     }
 
     delay(100);
@@ -141,7 +149,7 @@ void TaskMaster(void *pvParameters)
     while (1) {
         StatusMessage_t receivedMessage;
         switch (state.current_action) {
-            case ROTATE:
+            case SPIN:
                 // Begin rotating and wait for a message that we see the tape
                 begin_rotating();
                 if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
@@ -153,17 +161,17 @@ void TaskMaster(void *pvParameters)
 
                         send_uart_message(COMPLETED);
                         log_status("Ending rotation...");
-                        if (state.current_action == ROTATE) {
+                        if (state.current_action == SPIN) {
                             state.current_action = IDLE;
                         }
                     }
                 }
                 vTaskDelay(2000);
-                send_uart_message(COMPLETED);
-                log_status("Ending rotation...");
-                if (state.current_action == ROTATE) {
-                    state.current_action = IDLE;
-                }
+                // send_uart_message(COMPLETED);
+                // log_status("Ending rotation...");
+                // if (state.current_action == SPIN) {
+                //     state.current_action = IDLE;
+                // }
                 break;
 
             case GOTO_STATION:
@@ -180,12 +188,13 @@ void TaskMaster(void *pvParameters)
                         vTaskDelete(xStationTrackingHandle);
                         vTaskDelete(xHandleFollowing);
 
-                        stop_robot_motors(&robotMotors);
+                        state.drive_state = STOP;
 
                         // send_uart_message(COMPLETED);
                         log_status("Ending goto station...");
                         if (state.current_action == GOTO_STATION) {
                             state.current_action = IDLE;
+                            state.direction = FORWARD_DRIVE;
                         }
                         break;
                     }
@@ -225,7 +234,7 @@ void begin_following() {
 
 void begin_station_tracking() {
     // check if station tracking task was created
-    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, right_wing_tape_sensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
+    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, left_wing_tape_sensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
         log_status("Station tracking task was created successfully.");
     } else {
         log_error("Station tracking task was not created successfully!");

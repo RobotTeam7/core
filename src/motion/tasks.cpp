@@ -52,18 +52,19 @@ void TaskFollowTape(void *pvParameters) {
         return;
     }
 
+    state.drive_state = DriveState_t::DRIVE;
+    state.drive_speed = MOTOR_SPEED_FOLLOWING;
+
     log_status("Successfully initialized tape follow task!");
     int lastError = 0;
     while (1) {
-        state.drive_state = DriveState_t::DRIVE;
-        state.drive_speed = MOTOR_SPEED_FOLLOWING;
 
         read_tape_sensor(tapeAwarenessData->tapeSensor);
         int left_mean = tapeAwarenessData->tapeSensor->leftValue;
         int right_mean = tapeAwarenessData->tapeSensor->rightValue;
 
-        Serial.println("Left" + String(left_mean));
-        Serial.println("Right" + String(right_mean));
+        // Serial.println("Left" + String(left_mean));
+        // Serial.println("Right" + String(right_mean));
 
         int error = left_mean - right_mean;
 
@@ -95,11 +96,11 @@ void TaskRotate(void *pvParameters) {
 
     log_status("Successfully initialized rotation!");
 
+    state.drive_state = DriveState_t::ROTATE;
+    state.drive_speed = MOTOR_SPEED_ROTATION;
+
     while (1) {
         // start rotating, then delay to ensure that rotation isn't immediately canceled by tape detection
-        state.drive_state = DriveState_t::ROTATE;
-        state.drive_speed = MOTOR_SPEED_ROTATION;
-        
         vTaskDelay(inital_delay_ticks);
 
         // look for tape detection
@@ -119,6 +120,7 @@ void TaskRotate(void *pvParameters) {
                 rotating = false;
 
                 state.drive_state = DriveState_t::STOP;
+                state.drive_speed = 0;
 
                 // send message to TaskMaster that rotation has finished
                 StatusMessage_t message = ROTATION_DONE;
@@ -150,7 +152,7 @@ void TaskStationTracking(void* pvParameters) {
         // Check sensors
         read_tape_sensor(tapeSensor);
         value = tapeSensor->value;
-       
+        Serial.println(value);
         if (value > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
         } else if ((value < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
@@ -177,13 +179,17 @@ void TaskDrive(void* pvParameters) {
     while (1) {
         switch (state.drive_state) {
             case STOP:
-                stop_robot_motors(robot_motors);
+                stop_all_motors(robot_motors);
+                break;
 
             case DRIVE:
-                drive_robot_motors(robot_motors, state.drive_speed * state.direction);
+                // set_robot_drive(robot_motors, state.drive_speed * state.direction);
+                set_robot_drive(robot_motors, state.drive_speed * state.direction);
+                break;
 
             case DriveState_t::ROTATE:
                 rotate_robot(robot_motors, state.drive_speed * state.helicity);
+                break;
         }
         vTaskDelay(MOTOR_UPDATE_DELAY);
     }

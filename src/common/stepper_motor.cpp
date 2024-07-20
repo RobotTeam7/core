@@ -18,13 +18,13 @@ void stepperMotorTask(void *pvParameters) {
     }
 
     // Write direction
-    digitalWrite(data->stepperMotor->directionPin, data->direction);
+    digitalWrite(data->stepperMotor->directionPin, data->direction == UP ? HIGH : LOW);
     int numStepsTaken = 0;
 
     // Calculate timings
     int half_period_ms = (int)(1 / data->frequency * 1000 / 2); // First, convert to period in seconds, then convert to ms, then get the half.
     TickType_t delay_ticks = pdMS_TO_TICKS(half_period_ms);
-
+    Serial.println(delay_ticks);
     log_message("Stepper motor stepping...");
 
     // Perform action
@@ -87,7 +87,7 @@ void actuateStepperMotor(StepperMotor_t* stepperMotor, int direction, int numSte
     data->stepperMotor = stepperMotor;
     
     // Start a task to execute the stepper motor action
-    if (xTaskCreate(stepperMotorTask, "StepperTask", 128, data, PRIORITY_STEPPER_TASK, NULL) == pdPASS) {
+    if (xTaskCreate(stepperMotorTask, "StepperTask", 1024, data, PRIORITY_STEPPER_TASK, NULL) == pdPASS) {
         log_status("Stepper task was created successfully.");
     } else {
         log_error("Stepper task was not created successfully!");

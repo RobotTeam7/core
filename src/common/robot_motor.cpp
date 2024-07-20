@@ -26,12 +26,12 @@ int get_output_pin(RobotMotor_t* robotMotor, int robot_state) {
 }
 
 void motor_set_drive(RobotMotor_t* robotMotor, int16_t driveValue) {
-    int direction = driveValue > 0 ? FORWARD_DRIVE : REVERSE_DRIVE;
+    int direction = FORWARD_DRIVE;
 
-    int newPin = get_output_pin(robotMotor, direction);
-    int oldPin = get_output_pin(robotMotor, robotMotor->currentState);
+    int oldPin = direction != FORWARD_DRIVE ? robotMotor->boundForwardPin : robotMotor->boundReversePin;
+    int newPin = direction == FORWARD_DRIVE ? robotMotor->boundForwardPin : robotMotor->boundReversePin;
 
-    if (newPin != oldPin) {
+    if (direction != robotMotor->currentState) {
         set_pwm(oldPin, 0);
     }
 
@@ -42,29 +42,5 @@ void motor_set_drive(RobotMotor_t* robotMotor, int16_t driveValue) {
 }
 
 void motor_stop(RobotMotor_t* robotMotor) {
-    motor_set_drive(robotMotor, 0, FORWARD_DRIVE);
+    motor_set_drive(robotMotor, 0);
 }
-
-void stop_robot_motors(RobotMotorData_t* robot_motors) {
-    log_message("Stopping all motors...");
-
-    motor_stop(robot_motors->motorBL);
-    motor_stop(robot_motors->motorFL);
-    motor_stop(robot_motors->motorFR);
-    motor_stop(robot_motors->motorBR);
-}
-
-void drive_robot_motors(RobotMotorData_t* robot_motors, uint16_t drive_value, uint8_t direction) {
-    motor_set_drive(robot_motors->motorFR, drive_value, direction);
-    motor_set_drive(robot_motors->motorBR, drive_value, direction);
-    motor_set_drive(robot_motors->motorFL, drive_value, direction);
-    motor_set_drive(robot_motors->motorBL, drive_value, direction);
-}
-
-void rotate_robot(RobotMotorData_t* robot_motors, uint16_t drive_value) {
-    motor_set_drive(robotMotors->motorFR, -MOTOR_SPEED_ROTATION * state->helicity);
-    motor_set_drive(robotMotors->motorBR, -MOTOR_SPEED_ROTATION);
-    motor_set_drive(robotMotors->motorFL, MOTOR_SPEED_ROTATION);
-    motor_set_drive(robotMotors->motorBL, MOTOR_SPEED_ROTATION);
-}
-

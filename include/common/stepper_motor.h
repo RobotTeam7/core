@@ -25,7 +25,7 @@ typedef struct {
 
 typedef struct {
     int numSteps;
-    int frequency;
+    float frequency;
     int direction;
     StepperMotor_t* stepperMotor;
 } StepperMotorCommandBuffer_t;

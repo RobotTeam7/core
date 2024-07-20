@@ -11,13 +11,12 @@
 
 // Delays
 
-#define MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS    5       // delay between motor PID adjustment (ms)
-#define MOTOR_ADJUSTMENT_DELAY_ROTATING_MS          5       // delay between checks for tape during rotation (ms)
+#define MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS    1       // delay between motor PID adjustment (ms)
+#define MOTOR_ADJUSTMENT_DELAY_ROTATING_MS          1       // delay between checks for tape during rotation (ms)
 #define ROTATE_INTO_TAPE_FOLLOW_DELAY               300     // delay between rotation task end and tape following beginning (ms)
 #define ROTATE_INITIAL_DELAY                        1000    // delay between rotation task beginning and checking for tape (ms)               
-#define POLL_SENSOR_DELAY_MS                        5       // Tape reflectance sensor polling delay (ms)
 #define STATION_TRACKING_POLL_DELAY_MS              20      // delay between polls for if we see station tape
-#define MOTOR_UPDATE_DELAY                          5       // delay between motor drive state updates 
+#define MOTOR_UPDATE_DELAY                          1       // delay between motor drive state updates 
 
 // Sensor Thresholds
 
@@ -42,8 +41,12 @@
 #define LEFT_WING_TAPE_SENSOR       32 // yellow cables right
 #define RIGHT_WING_TAPE_SENSOR      33 // green cables left
 
-#define RX_PIN              21
-#define TX_PIN              22
+#define RX_PIN                      21
+#define TX_PIN                      22
+
+// Stepper  
+#define STEPPER_DIR                 15
+#define STEPPER_STEP                12
 
 // Motion Task Priorities
 #define PRIORITY_DRIVE_UPDATE           3

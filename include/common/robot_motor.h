@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include <math.h>
 #include <common/pwm.h>
-
+#include <common/utils.h>
 
 /**
  * @brief This struct encapsulates the data of a robot's motor.
@@ -32,7 +32,7 @@ RobotMotor_t* instantiate_robot_motor(uint8_t forwardPin, uint8_t reversePin);
  * 
  * @returns Heap-allocated (created with `malloc()`) pointer. Remember to free!
  */
-void motor_set_drive(RobotMotor_t* robotMotor, uint16_t driveValue, uint8_t direction);
+void motor_set_drive(RobotMotor_t* robotMotor, int16_t driveValue);
 
 /**
  * @brief Stop the motor.

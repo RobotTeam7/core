@@ -16,12 +16,12 @@ typedef struct {
 /**
  * @brief Stop all motors. 
  */
-void stop_robot_motors(RobotMotorData_t* robot_motors);
+void stop_all_motors(RobotMotorData_t* robot_motors);
 
 /**
  * @brief Drive all motors with base speed `drive_value`. Individual motors will be set to a speed dependent on `state.pid_action`.
  */
-void drive_robot_motors(RobotMotorData_t* robot_motors, int16_t drive_value);
+void set_robot_drive(RobotMotorData_t* robot_motors, int16_t drive_value);
 
 /**
  * @brief Rotate the robot with power `drive_value`.
