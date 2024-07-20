@@ -19,6 +19,7 @@ void TaskRotate(void* pvParameters);
 void TaskFollowTape(void* pvParameters);
 void TaskStationTracking(void* pvParameters);
 void TaskDrive(void* pvParameters);
+void TaskDocking(void* pvParameters);
 
 
 #endif // MOTION_TASKS_H
