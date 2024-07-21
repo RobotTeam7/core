@@ -47,13 +47,11 @@ QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
 QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
 QueueHandle_t task_queue = xQueueCreate(10, sizeof(Packet_t));
 
-
-
 void TaskMaster(void *pvParameters);
 void begin_rotating();
 void begin_following();
 void begin_station_tracking();
-
+void begin_docking();
 
 void uart_msg_handler(void *parameter) {
     log_status("Started message handler");
@@ -116,6 +114,7 @@ void setup() {
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { backTapeSensor, &xSharedQueue };
+    config_docking = { wingSensor, &xSharedQueue };
 
     // check if driving task was created
     if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
@@ -175,32 +174,53 @@ void TaskMaster(void *pvParameters)
                 break;
 
             case GOTO_STATION:
+            {
                 // Activate tape follow 
                 log_status("Tape following!");
                 begin_following();
 
                 log_status("Station tracking!");
                 begin_station_tracking();
+                int docking = 0;
 
                 while (state.current_action == GOTO_STATION) {
-                    if (state.last_station == state.desired_station) {
-                        log_status("Arrived at station!");
+                    if ((state.last_station == state.desired_station) && !docking) {
+                        log_status("Beginning docking...!");
                         vTaskDelete(xStationTrackingHandle);
                         vTaskDelete(xHandleFollowing);
+                        begin_docking();
+                        docking = 1;
 
                         state.drive_state = STOP;
 
                         // send_uart_message(COMPLETED);
-                        log_status("Ending goto station...");
-                        if (state.current_action == GOTO_STATION) {
-                            state.current_action = IDLE;
-                            state.direction = FORWARD_DRIVE;
+                    }
+
+                    if (docking) {
+                        if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
+                            if (receivedMessage == REACHED_POSITION) {
+                                log_status("Reached position: found tape!");                        
+                                vTaskDelete(xDockingHandle);
+
+                                vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
+
+                                // send_uart_message(COMPLETED);
+                                log_status("Ending goto station...");
+                                if (state.current_action == GOTO_STATION) {
+                                    state.current_action = IDLE;
+                                    state.drive_state = STOP;
+                                    state.direction = FORWARD_DRIVE;
+                                }
+                                break;
+                            }
                         }
-                        break;
                     }
                     vTaskDelay(10 / portTICK_PERIOD_MS);
+
+                    
                 }
                 break;
+            }
 
             case IDLE:
                 // don't move while idling
@@ -243,7 +263,7 @@ void begin_station_tracking() {
 
 void begin_docking() {
     // check if station tracking task was created
-    if (xTaskCreate(TaskDocking, "Station_Tracking", 4096, wingSensor, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
+    if (xTaskCreate(TaskDocking, "Station_Tracking", 4096, &config_docking, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
         log_status("Station tracking task was created successfully.");
     } else {
         log_error("Station tracking task was not created successfully!");

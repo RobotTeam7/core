@@ -143,8 +143,8 @@ void TaskStationTracking(void* pvParameters) {
     }
 
     TickType_t delay = pdMS_TO_TICKS(STATION_TRACKING_POLL_DELAY_MS);
-    uint16_t consecutive_count = 0;
-    int value_left = 0;
+
+    int value_left;
     int value_right;
 
     log_status("Initialized TaskStationTracking");
@@ -153,15 +153,18 @@ void TaskStationTracking(void* pvParameters) {
         // Check sensors
         read_tape_sensor(tapeSensor);
         value_left = tapeSensor->leftValue;
-        value_right = tapeSensor->rightValue;
+        value_right = 0; // right tape sensor isn't working rn
+        // Serial.println("Right" + String (value_right));
+        // Serial.println("Left" + String (value_left));
        
         if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
         } else if ((value_left < THRESHOLD_SENSOR_SINGLE || value_right < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
-            state.last_station += state.orientation;
+            state.last_station += state.orientation * state.direction;
             log_status("Passed station!");
             found_tape = false;
-            vTaskDelay(pdMS_TO_TICKS(300));
+
+            vTaskDelay(pdMS_TO_TICKS(150));
         }
         vTaskDelay(delay);
     }
@@ -171,9 +174,35 @@ void TaskStationTracking(void* pvParameters) {
 void TaskDocking(void* pvParameters) {
     TapeAwarenessData_t* tapeAwarenessData = (TapeAwarenessData_t*)pvParameters;
     if (checkTapeAwarenessData(tapeAwarenessData)) {
-        log_error("Error: tapeAwarenessData contains nulls!");
+        log_error("Error: Tape Awareness data buffer contains nulls!");
         vTaskDelete(NULL);
         return;
+    }
+
+    TickType_t delay = pdMS_TO_TICKS(STATION_TRACKING_POLL_DELAY_MS);
+
+    state.direction = -state.direction; // Invert direction
+    state.drive_speed = MOTOR_SPEED_DOCKING;
+    state.drive_state = DRIVE;
+
+    int value_left;
+    int value_right;
+    bool found_tape = false;
+
+    while (1) {
+        // Check sensors
+        read_tape_sensor(tapeAwarenessData->tapeSensor);
+        value_left = tapeAwarenessData->tapeSensor->leftValue;
+        value_right = 0; // right tape sensor isn't working rn
+       
+        if ((value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) && !found_tape) {
+            state.last_station += state.orientation * state.direction;
+            found_tape = true;
+            StatusMessage_t message = REACHED_POSITION;
+            xQueueSend(*tapeAwarenessData->xSharedQueue, &message, portMAX_DELAY);
+        } 
+
+        vTaskDelay(delay);
     }
 }
 
@@ -193,7 +222,6 @@ void TaskDrive(void* pvParameters) {
                 break;
 
             case DRIVE:
-                // set_robot_drive(robot_motors, state.drive_speed * state.direction);
                 set_robot_drive(robot_motors, state.drive_speed * state.direction);
                 break;
 
