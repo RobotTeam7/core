@@ -6,7 +6,7 @@
 
 // Motor Speeds
 
-#define MOTOR_SPEED_FOLLOWING   7000    // Base motor speed whilst tape following
+#define MOTOR_SPEED_FOLLOWING   8000    // Base motor speed whilst tape following
 #define MOTOR_SPEED_ROTATION    8000    // Base motor speed whilst rotating
 #define MOTOR_SPEED_DOCKING     5500    // Base speed for when we are trying to dock
 
@@ -18,6 +18,7 @@
 #define ROTATE_INITIAL_DELAY                        1000    // delay between rotation task beginning and checking for tape (ms)               
 #define STATION_TRACKING_POLL_DELAY_MS              20      // delay between polls for if we see station tape
 #define MOTOR_UPDATE_DELAY                          1       // delay between motor drive state updates 
+#define TAPE_TRACKING_INTITAL_DELAY                 500     // delay between when we start driving and when we start tracking tape (ms)
 
 // Sensor Thresholds
 

@@ -82,9 +82,9 @@ void TaskMaster(void* pvParameters) {
 
     // Wait for green light from motion board
     while (!MOTION_READY) {
+        Serial.println("awaitng motion to be ready");
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
-
     while (true) {
         log_status("Motion ready! Sending move command");
         send_uart_message(GOTO, 1);
@@ -92,13 +92,15 @@ void TaskMaster(void* pvParameters) {
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        
         log_status("Motion ready! Sending move command");
-        send_uart_message(GOTO, 4);
+        send_uart_message(GOTO, 3);
         MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
         log_status("Motion ready! Sending move command");
         send_uart_message(GOTO, 2);
@@ -106,7 +108,7 @@ void TaskMaster(void* pvParameters) {
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-
+        vTaskDelay(pdMS_TO_TICKS(1000));
         // log_status("Motion ready! Sending rotate command");
         // MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
         // send_uart_message(DO_SPIN);

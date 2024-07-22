@@ -108,7 +108,7 @@ void setup() {
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
     config_docking = { wingSensor, &xSharedQueue };
 
-    // check if driving task was created
+    // // check if driving task was created
     if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
         log_status("Driving task was created successfully."); 
     } else {
@@ -130,8 +130,15 @@ void loop()
     // monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle, &xStationTrackingHandle); // Monitor stack usage periodically
     // delay(2000);
 
-    Serial.println("here in motion board");
-    delay(10000);
+    if(state.current_action == GOTO_STATION) {
+        Serial.print("going to station: ");
+        Serial.println(state.desired_station);
+    }else if(state.current_action == SPIN) {
+        Serial.println("rotating");
+    }else if(state.current_action == IDLE) {
+        Serial.println("idling");
+    }
+    delay(2000);
 }
 
 void TaskMaster(void *pvParameters)
@@ -173,14 +180,23 @@ void TaskMaster(void *pvParameters)
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
-
-                if(station_difference * state.orientation < 0) {
-                    state.orientation *= -1;
+                
+                // check if station difference and direction have opposite sign
+                // if they do flip the sign direction
+                if(station_difference * state.direction < 0) {
+                    state.direction = -state.direction;
                 }
+
+                // Start Driving
+                state.drive_state = DRIVE;
+                state.drive_speed = MOTOR_SPEED_FOLLOWING;
 
                 // Activate tape follow 
                 log_status("Tape following!");
                 begin_following();
+
+                // Delay in case we are already on tape
+                vTaskDelay(pdMS_TO_TICKS(TAPE_TRACKING_INTITAL_DELAY));
 
                 log_status("Station tracking!");
                 begin_station_tracking();
@@ -197,14 +213,18 @@ void TaskMaster(void *pvParameters)
                         xHandleFollowing = NULL;
 
                         state.drive_state = STOP;
-                        vTaskDelay(200 / portTICK_PERIOD_MS);
+                        vTaskDelay(pdMS_TO_TICKS(2000));
 
+                        state.drive_state = DRIVE;
+                        state.direction = -state.direction; // Invert direction
+                        state.drive_speed = MOTOR_SPEED_DOCKING;
+                        state.yaw = 0;
                         begin_docking();
                         docking = 1;
                     }
 
                     if (docking) {
-                        if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
+                        if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {
                             if (receivedMessage == REACHED_POSITION) {
                                 log_status("Reached position: found tape!");     
 

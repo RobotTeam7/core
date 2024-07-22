@@ -76,9 +76,8 @@ void TaskFollowTape(void *pvParameters) {
         int left_mean = sensor->leftValue;
         int right_mean = sensor->rightValue;
 
-        Serial.println("Left" + String(left_mean));
-        Serial.println("Right" + String(right_mean));
-        vTaskDelay(pdMS_TO_TICKS(500));
+        // Serial.println("Left" + String(left_mean));
+        // Serial.println("Right" + String(right_mean));
 
         int error = left_mean - right_mean;
 
@@ -191,13 +190,17 @@ void TaskStationTracking(void* pvParameters) {
     }
 }
 
+// Ensure that a NavigationData_t* does not contain null values
+int checkDockingData(DockingData_t* dockingData) {
+    return dockingData == NULL || checkTapeSensor(dockingData->wingSensor);
+}
 
 void TaskDocking(void* pvParameters) {
     log_status("Initializing docking...");
     
-    NavigationData_t* navigationData = (NavigationData_t*)pvParameters;
+    DockingData_t* dockingData = (DockingData_t*)pvParameters;
 
-    if (checkNavigationData(navigationData)) {
+    if (checkDockingData(dockingData)) {
         log_error("Error: Tape Awareness data buffer contains nulls!");
 
         vTaskDelete(xDockingHandle);
@@ -206,23 +209,13 @@ void TaskDocking(void* pvParameters) {
         return;
     }
 
+    DualTapeSensor_t* sensor = dockingData->wingSensor;
     TickType_t delay = pdMS_TO_TICKS(STATION_TRACKING_POLL_DELAY_MS);
-
-    state.direction = -state.direction; // Invert direction
-    state.drive_speed = MOTOR_SPEED_DOCKING;
-    state.drive_state = DRIVE;
 
     int value_left;
     int value_right;
 
     log_status("Initialized docking!");
-
-    DualTapeSensor_t* sensor;
-    if(state.direction == 1) {
-        sensor = navigationData->fontTapeSensor;
-    } else {
-        sensor = navigationData->backTapeSensor;
-    }
 
     while (1) {
         // Check sensors
@@ -233,7 +226,7 @@ void TaskDocking(void* pvParameters) {
         if ((value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE)) {
             // state.last_station += state.orientation * state.direction;
             StatusMessage_t message = REACHED_POSITION;
-            xQueueSend(*navigationData->xSharedQueue, &message, portMAX_DELAY);
+            xQueueSend(*dockingData->xSharedQueue, &message, portMAX_DELAY);
             log_status("Finished docking!");
             state.drive_state = STOP;
         } 

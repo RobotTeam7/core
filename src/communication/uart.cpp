@@ -12,9 +12,9 @@ void receiveData(void *parameter) {
             uint8_t value1 = Serial2.read(); // Read the first byte
             uint8_t value2 = Serial2.read(); // Read second byte
 
-            Serial.print("Received ");
-            Serial.print(value1);
-            Serial.println(value2);
+            // Serial.print("Received ");
+            // Serial.print(value1);
+            // Serial.println(value2);
 
             CommandMessage_t command = decode_command(value1);
             Packet_t new_packet = { (CommandMessage_t)value1, value2 };
