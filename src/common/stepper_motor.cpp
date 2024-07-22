@@ -6,13 +6,6 @@ int checkStepperMotorData(StepperMotorCommandBuffer_t* data) {
 }
 
 /**
- * @brief Get the half period in milliseconds of a signal with `frequency` in Hz.
- */
-int get_half_period_ms(float frequency) {
-    return (int)(1 / frequency * 1000 / 2);
-}
-
-/**
  * @brief Evaluate the time, in whole milliseconds, that it will require to complete the specified stepper action
  * @param data Must be already checked to be non-null
  */
