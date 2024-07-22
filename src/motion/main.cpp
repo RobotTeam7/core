@@ -110,7 +110,7 @@ void setup() {
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT, BACK_TAPE_SENSOR_RIGHT);
     wingSensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR, RIGHT_WING_TAPE_SENSOR);
 
-    stepper_motor = instantiateStepperMotor(STEPPER_STEP, STEPPER_DIR, 0);
+    stepper_motor = instantiate_stepper_motor(STEPPER_STEP, STEPPER_DIR, 0, 500);
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { backTapeSensor, &xSharedQueue };
