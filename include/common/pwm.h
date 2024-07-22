@@ -11,8 +11,9 @@
 /**
  * @brief Bind a pin to become a PWM signal emitter
  * @param pin The pin that will be bound.
+ * @param frequency frequency in Hz
  */
-void bind_pwm(int pin);
+void bind_pwm(int pin, int frequency = LEDC_PWM_FREQUENCY);
 
 /**
  * @brief Set the drive power of a PWM emitting pin.
