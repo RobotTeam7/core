@@ -6,11 +6,12 @@ int checkStepperMotorData(StepperMotorCommandBuffer_t* data) {
 }
 
 /**
- * @brief Evaluate the time, in whole milliseconds, that it will require to complete the specified stepper action
+ * @brief Evaluate the time, in ticks, that it will require to complete the specified stepper action
  * @param data Must be already checked to be non-null
  */
-int get_stepper_action_duration(StepperMotorCommandBuffer_t* data) {
-    return (int)(data->numSteps / data->stepperMotor->speed);
+TickType_t get_stepper_action_duration(StepperMotorCommandBuffer_t* data) {
+    int delay = (int)(data->numSteps / data->stepperMotor->speed) * 1000;
+    return pdMS_TO_TICKS(delay);
 }
 
 
@@ -34,7 +35,8 @@ void stepperMotorTask(void *pvParameters) {
         // Perform action
         set_pwm(data->stepperMotor->stepPin, (uint32_t)(UINT16_MAX / 2));
         vTaskDelay(get_stepper_action_duration(data));
-        
+        set_pwm(data->stepperMotor->stepPin, 0);
+
         // Mutate stepper motor position to update position after the action
         data->stepperMotor->position += data->numSteps * data->direction;        
 
