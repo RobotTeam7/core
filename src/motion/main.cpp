@@ -207,12 +207,8 @@ void TaskMaster(void *pvParameters)
                     if (docking) {
                         if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
                             if (receivedMessage == REACHED_POSITION) {
-<<<<<<< HEAD
-                                log_status("Reached position: found tape!");                
-=======
                                 log_status("Reached position: found tape!");     
 
->>>>>>> main
                                 vTaskDelete(xDockingHandle);
                                 xDockingHandle = NULL;
 
