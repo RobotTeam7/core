@@ -188,11 +188,12 @@ void TaskMaster(void *pvParameters)
                         log_status("Beginning docking...!");
                         vTaskDelete(xStationTrackingHandle);
                         vTaskDelete(xHandleFollowing);
-                        begin_docking();
-                        docking = 1;
 
                         state.drive_state = STOP;
+                        vTaskDelay(200 / portTICK_PERIOD_MS);
 
+                        begin_docking();
+                        docking = 1;
                         // send_uart_message(COMPLETED);
                     }
 
