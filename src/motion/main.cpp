@@ -34,13 +34,6 @@ RobotMotorData_t robotMotors;
 TapeAwarenessData_t config_following;
 TapeAwarenessData_t config_docking;
 
-TaskHandle_t xHandleRotating = NULL;
-TaskHandle_t xDriveHandle = NULL;
-TaskHandle_t xHandleFollowing = NULL;
-TaskHandle_t xMasterHandle = NULL;
-TaskHandle_t xStationTrackingHandle = NULL;
-TaskHandle_t xDockingHandle = NULL;
-
 StepperMotor_t* stepper_motor;
 
 QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
@@ -153,8 +146,10 @@ void TaskMaster(void *pvParameters)
                 begin_rotating();
                 if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
                     if (receivedMessage == ROTATION_DONE) {
-                        log_status("Completed rotation: found tape!");                        
+                        log_status("Completed rotation: found tape!");         
+                        
                         vTaskDelete(xHandleRotating);
+                        xHandleRotating = NULL;
 
                         vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
 
@@ -186,8 +181,13 @@ void TaskMaster(void *pvParameters)
                 while (state.current_action == GOTO_STATION) {
                     if ((state.last_station == state.desired_station) && !docking) {
                         log_status("Beginning docking...!");
+
                         vTaskDelete(xStationTrackingHandle);
+                        xStationTrackingHandle = NULL;
+
                         vTaskDelete(xHandleFollowing);
+                        xHandleFollowing = NULL;
+
                         begin_docking();
                         docking = 1;
 
@@ -199,8 +199,10 @@ void TaskMaster(void *pvParameters)
                     if (docking) {
                         if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
                             if (receivedMessage == REACHED_POSITION) {
-                                log_status("Reached position: found tape!");                        
+                                log_status("Reached position: found tape!");     
+
                                 vTaskDelete(xDockingHandle);
+                                xDockingHandle = NULL;
 
                                 vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
 

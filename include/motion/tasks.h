@@ -10,6 +10,15 @@
 #include <motion/utils.h>
 
 
+extern TaskHandle_t xHandleRotating;
+extern TaskHandle_t xDriveHandle;
+extern TaskHandle_t xHandleFollowing;
+extern TaskHandle_t xMasterHandle;
+extern TaskHandle_t xStationTrackingHandle;
+extern TaskHandle_t xDockingHandle;
+extern TaskHandle_t xCounterDockingHandle;
+extern TaskHandle_t xReturnToTapeHandle;
+
 typedef struct {
     DualTapeSensor_t* tapeSensor;
     QueueHandle_t* xSharedQueue;
