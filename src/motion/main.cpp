@@ -34,13 +34,6 @@ RobotMotorData_t robotMotors;
 NavigationData_t config_following;
 DockingData_t config_docking;
 
-TaskHandle_t xHandleRotating = NULL;
-TaskHandle_t xDriveHandle = NULL;
-TaskHandle_t xHandleFollowing = NULL;
-TaskHandle_t xMasterHandle = NULL;
-TaskHandle_t xStationTrackingHandle = NULL;
-TaskHandle_t xDockingHandle = NULL;
-
 StepperMotor_t* stepper_motor;
 
 QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
@@ -109,7 +102,7 @@ void setup() {
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT, BACK_TAPE_SENSOR_RIGHT);
     wingSensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR, RIGHT_WING_TAPE_SENSOR);
 
-    stepper_motor = instantiateStepperMotor(STEPPER_STEP, STEPPER_DIR, 0);
+    stepper_motor = instantiate_stepper_motor(STEPPER_STEP, STEPPER_DIR, 0, 500);
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
@@ -155,8 +148,10 @@ void TaskMaster(void *pvParameters)
                 begin_rotating();
                 if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
                     if (receivedMessage == ROTATION_DONE) {
-                        log_status("Completed rotation: found tape!");                        
+                        log_status("Completed rotation: found tape!");         
+                        
                         vTaskDelete(xHandleRotating);
+                        xHandleRotating = NULL;
 
                         vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
 
@@ -194,8 +189,13 @@ void TaskMaster(void *pvParameters)
                 while (state.current_action == GOTO_STATION) {
                     if ((state.last_station == state.desired_station) && !docking) {
                         log_status("Beginning docking...!");
+
                         vTaskDelete(xStationTrackingHandle);
+                        xStationTrackingHandle = NULL;
+
                         vTaskDelete(xHandleFollowing);
+                        xHandleFollowing = NULL;
+
                         begin_docking();
                         docking = 1;
 
@@ -207,8 +207,14 @@ void TaskMaster(void *pvParameters)
                     if (docking) {
                         if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
                             if (receivedMessage == REACHED_POSITION) {
+<<<<<<< HEAD
                                 log_status("Reached position: found tape!");                
+=======
+                                log_status("Reached position: found tape!");     
+
+>>>>>>> main
                                 vTaskDelete(xDockingHandle);
+                                xDockingHandle = NULL;
 
                                 vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
 

@@ -13,6 +13,15 @@
 #include <motion/motion.h>
 
 
+TaskHandle_t xHandleRotating = NULL;
+TaskHandle_t xDriveHandle = NULL;
+TaskHandle_t xHandleFollowing = NULL;
+TaskHandle_t xMasterHandle = NULL;
+TaskHandle_t xStationTrackingHandle = NULL;
+TaskHandle_t xDockingHandle = NULL;
+TaskHandle_t xCounterDockingHandle = NULL;
+TaskHandle_t xReturnToTapeHandle = NULL;
+
 // Ensure that a RobotMotorData_t* does not contain null values
 int checkRobotMotors(RobotMotorData_t* robotMotors) {
     if (robotMotors == NULL) {
@@ -44,7 +53,10 @@ void TaskFollowTape(void *pvParameters) {
     NavigationData_t* navigationData = (NavigationData_t*)pvParameters;
     if (checkNavigationData(navigationData)) {
         log_error("Error: tapeAwarenessData contains nulls!");
-        vTaskDelete(NULL);
+
+        vTaskDelete(xHandleFollowing);
+        xHandleFollowing = NULL;
+
         return;
     }
 
@@ -85,7 +97,10 @@ void TaskRotate(void *pvParameters) {
     if (checkNavigationData(navigationData))
     {
         log_error("Error: nulls in robotControlData");
-        vTaskDelete(NULL);
+
+        vTaskDelete(xHandleRotating);
+        xHandleRotating = NULL;
+
         return;
     }
 
@@ -181,7 +196,10 @@ void TaskDocking(void* pvParameters) {
     NavigationData_t* navigationData = (NavigationData_t*)pvParameters;
     if (checkNavigationData(navigationData)) {
         log_error("Error: Tape Awareness data buffer contains nulls!");
-        vTaskDelete(NULL);
+
+        vTaskDelete(xDockingHandle);
+        xDockingHandle = NULL;
+
         return;
     }
 
@@ -243,5 +261,26 @@ void TaskDrive(void* pvParameters) {
                 break;
         }
         vTaskDelay(MOTOR_UPDATE_DELAY);
+    }
+}
+
+void TaskCounterDocking(void* pvParameters) {
+    // begin move to counter
+
+    uint32_t ulNotificationValue;
+    while (1) {
+        // Wait to be notified that limit switch hit the counter
+        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
+
+        // Stop moving
+        vTaskDelete(xCounterDockingHandle);
+        xCounterDockingHandle = NULL;
+        // send message to master that we reached the counter? 
+    }
+}
+
+void TaskReturnToTape(void* pvParameters) {
+    while (1) {
+        vTaskDelay(1);
     }
 }
