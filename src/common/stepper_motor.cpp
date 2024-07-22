@@ -5,10 +5,17 @@ int checkStepperMotorData(StepperMotorCommandBuffer_t* data) {
     return data == NULL || data->stepperMotor == NULL;
 }
 
+/**
+ * @brief Evaluate the time, in whole milliseconds, that it will require to complete the specified stepper action
+ * @param data Must be already checked to be non-null
+ */
+int get_stepper_action_duration(StepperMotorCommandBuffer_t* data) {
+    return (int)(data->numSteps / data->stepperMotor->speed);
+}
+
+
 // This task manages the execution of a stepper motor action
 void stepperMotorTask(void *pvParameters) {
-    log_status("Starting stepper motor action...");
-
     // Cast and check points
     StepperMotorCommandBuffer_t* data = (StepperMotorCommandBuffer_t*)pvParameters;
     if (checkStepperMotorData(data)) {
@@ -17,28 +24,24 @@ void stepperMotorTask(void *pvParameters) {
         return;
     }
 
-    // Write direction
-    digitalWrite(data->stepperMotor->directionPin, data->direction == UP ? HIGH : LOW);
-    int numStepsTaken = 0;
+    // Acquire the stepper motor's mutex (we do NOT want to have two stepper motor actions going at the same time!)
+    if (xSemaphoreTake(data->stepperMotor->xMutex, portMAX_DELAY) == pdTRUE) {
+        log_status("Starting stepper motor action...");
 
-    // Calculate timings
-    int half_period_ms = (int)(1 / data->frequency * 1000 / 2); // First, convert to period in seconds, then convert to ms, then get the half.
-    TickType_t delay_ticks = pdMS_TO_TICKS(half_period_ms);
-    Serial.println(delay_ticks);
-    log_message("Stepper motor stepping...");
+        // Write direction
+        digitalWrite(data->stepperMotor->directionPin, data->direction == UP ? HIGH : LOW);
 
-    // Perform action
-    while (numStepsTaken < data->numSteps) {
-        digitalWrite(data->stepperMotor->stepPin, HIGH);
-        vTaskDelay(delay_ticks);
-        digitalWrite(data->stepperMotor->stepPin, LOW);
-        vTaskDelay(delay_ticks);
+        // Perform action
+        set_pwm(data->stepperMotor->stepPin, (uint32_t)(UINT16_MAX / 2));
+        vTaskDelay(get_stepper_action_duration(data));
+        
+        // Mutate stepper motor position to update position after the action
+        data->stepperMotor->position += data->numSteps * data->direction;        
 
-        numStepsTaken++;
+        xSemaphoreGive(data->stepperMotor->xMutex); // We need to release the lock
+    } else {
+        log_error("Couldn't acquire mutex to perform stepper motor action!");
     }
-    
-    // Mutate stepper motor position to update position after the action
-    data->stepperMotor->position += numStepsTaken;
 
     log_status("Stepper motor action completed.");
 
@@ -51,26 +54,34 @@ void stepperMotorTask(void *pvParameters) {
  * @brief Instantiate a stepper motor bound to `stepPin` and `dirPin`.
  * @returns a pointer to a StepperMotor_t allocated on the heap with malloc(). Returns instantiation if creation failed.
  */
-StepperMotor_t* instantiateStepperMotor(uint8_t stepPin, uint8_t dirPin, int position) {
+StepperMotor_t* instantiate_stepper_motor(uint8_t stepPin, uint8_t dirPin, int position, int speed) {
     StepperMotor_t* stepperMotor = (StepperMotor_t*)malloc(sizeof(StepperMotor_t));
     if (stepperMotor == NULL) {
         log_error("Failed to allocate memory for stepper motor!");
         return NULL;
     }
 
-    pinMode(stepPin, OUTPUT);
+    // Create the mutex that we will use to ensure only one stepper motor command runs at a given time
+    stepperMotor->xMutex = xSemaphoreCreateMutex();
+    if (stepperMotor->xMutex == NULL) {
+        log_error("Stepper motor mutex couldn't be created!");
+        return NULL;
+    }
+
+    bind_pwm(stepPin, speed);
     pinMode(dirPin, OUTPUT);
-    
+
     stepperMotor->stepPin = stepPin;
     stepperMotor->directionPin = dirPin;
     stepperMotor->position = position;
+    stepperMotor->speed = speed;
 
     log_status("Instantiated stepper motor!");
     
     return stepperMotor;
 }
 
-void actuateStepperMotor(StepperMotor_t* stepperMotor, int direction, int numSteps, uint16_t motorFrequency) {
+void actuate_stepper_motor(StepperMotor_t* stepperMotor, int direction, int numSteps) {
     log_status("Preparing stepper motor action...");
 
     // Allocate memory on the heap for StepperMotorCommandData_t
@@ -82,7 +93,6 @@ void actuateStepperMotor(StepperMotor_t* stepperMotor, int direction, int numSte
     
     // Populate the data structure
     data->numSteps = numSteps;
-    data->frequency = motorFrequency;
     data->direction = direction;
     data->stepperMotor = stepperMotor;
     

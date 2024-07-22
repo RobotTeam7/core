@@ -31,7 +31,7 @@
 // Stepper Motor Constants
 #define MAX_STEPPER_FREQENCY    100000
 #define TEST_FREQUENCY          500
-#define PRIORITY_STEPPER_TASK   1
+#define PRIORITY_STEPPER_TASK   5
 #define UP                      HIGH
 #define DOWN                    LOW
 
