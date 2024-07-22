@@ -193,7 +193,10 @@ void TaskStationTracking(void* pvParameters) {
 
 
 void TaskDocking(void* pvParameters) {
+    log_status("Initializing docking...");
+    
     NavigationData_t* navigationData = (NavigationData_t*)pvParameters;
+
     if (checkNavigationData(navigationData)) {
         log_error("Error: Tape Awareness data buffer contains nulls!");
 
@@ -211,7 +214,8 @@ void TaskDocking(void* pvParameters) {
 
     int value_left;
     int value_right;
-    bool found_tape = false;
+
+    log_status("Initialized docking!");
 
     DualTapeSensor_t* sensor;
     if(state.direction == 1) {
@@ -226,11 +230,12 @@ void TaskDocking(void* pvParameters) {
         value_left = sensor->leftValue;
         value_right = 0; // right tape sensor isn't working rn
        
-        if ((value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) && !found_tape) {
-            state.last_station += state.orientation * state.direction;
-            found_tape = true;
+        if ((value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE)) {
+            // state.last_station += state.orientation * state.direction;
             StatusMessage_t message = REACHED_POSITION;
             xQueueSend(*navigationData->xSharedQueue, &message, portMAX_DELAY);
+            log_status("Finished docking!");
+            state.drive_state = STOP;
         } 
 
         vTaskDelay(delay);
