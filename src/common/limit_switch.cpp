@@ -2,7 +2,7 @@
 
 
 volatile uint8_t limit_switch_count = 0;
-LimitSwitch_t* limit_switches[MAX_LIMIT_SWITCHES];
+volatile LimitSwitch_t* limit_switches[MAX_LIMIT_SWITCHES];
 
 void IRAM_ATTR GenericISR() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -10,11 +10,11 @@ void IRAM_ATTR GenericISR() {
     // Iterate over all registered limit switches, determine which one is currently triggered, and notify that task
     for (uint8_t i = 0; i < limit_switch_count; i++) {
         if (digitalRead(limit_switches[i]->interrupt_pin) == HIGH) {
-            TaskHandle_t task_to_notify = limit_switches[i]->task_to_notify;
+            TaskHandle_t task_to_notify = *limit_switches[i]->task_to_notify;
 
             // Notify the corresponding task, if its a valid 
             if (task_to_notify != NULL) {
-                vTaskNotifyGiveFromISR(*limit_switches[i]->task_to_notify, &xHigherPriorityTaskWoken);
+                vTaskNotifyGiveFromISR(task_to_notify, &xHigherPriorityTaskWoken);
             } else {
                 log_error("Interrupt tried to notify a deleted task!");
             }

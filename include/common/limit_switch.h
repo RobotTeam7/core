@@ -20,7 +20,7 @@ typedef struct
 } LimitSwitch_t;
 
 extern volatile uint8_t limit_switch_count;                 // Counter to keep track of the number of created limit switches
-extern LimitSwitch_t* limit_switches[MAX_LIMIT_SWITCHES];   // Array to keep track of all registered limit switches
+extern volatile LimitSwitch_t* limit_switches[MAX_LIMIT_SWITCHES];   // Array to keep track of all registered limit switches
 
 /**
  * @brief Instantiate a limit switch, registering an interrupt on `interrupt_pin` to notify `task_to_notify`.
