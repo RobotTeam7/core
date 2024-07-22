@@ -34,16 +34,16 @@
 #define MOTOR_FRONT_RIGHT_FORWARD   10
 #define MOTOR_FRONT_RIGHT_REVERSE   9
 
-#define FRONT_TAPE_SENSOR_LEFT      34
-#define FRONT_TAPE_SENSOR_RIGHT     35
-#define BACK_TAPE_SENSOR_LEFT       38
-#define BACK_TAPE_SENSOR_RIGHT      37
+#define FRONT_TAPE_SENSOR_LEFT      38
+#define FRONT_TAPE_SENSOR_RIGHT     37
+#define BACK_TAPE_SENSOR_LEFT       34
+#define BACK_TAPE_SENSOR_RIGHT      35
 
 #define LEFT_WING_TAPE_SENSOR       32 // yellow cables right
 #define RIGHT_WING_TAPE_SENSOR      33 // green cables left
 
-#define RX_PIN                      21
-#define TX_PIN                      22
+#define RX_PIN                      27
+#define TX_PIN                      14
 
 // Stepper  
 #define STEPPER_DIR                 15

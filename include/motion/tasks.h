@@ -11,9 +11,15 @@
 
 
 typedef struct {
-    DualTapeSensor_t* tapeSensor;
+    DualTapeSensor_t* fontTapeSensor;
+    DualTapeSensor_t* backTapeSensor;
     QueueHandle_t* xSharedQueue;
-} TapeAwarenessData_t;
+} NavigationData_t;
+
+typedef struct {
+    DualTapeSensor_t* wingSensor;
+    QueueHandle_t* xSharedQueue;
+} DockingData_t;
 
 void TaskRotate(void* pvParameters);
 void TaskFollowTape(void* pvParameters);

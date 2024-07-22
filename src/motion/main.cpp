@@ -31,8 +31,8 @@ DualTapeSensor_t* backTapeSensor;
 DualTapeSensor_t* wingSensor;
 
 RobotMotorData_t robotMotors;
-TapeAwarenessData_t config_following;
-TapeAwarenessData_t config_docking;
+NavigationData_t config_following;
+DockingData_t config_docking;
 
 TaskHandle_t xHandleRotating = NULL;
 TaskHandle_t xDriveHandle = NULL;
@@ -45,7 +45,6 @@ StepperMotor_t* stepper_motor;
 
 QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
 QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
-QueueHandle_t task_queue = xQueueCreate(10, sizeof(Packet_t));
 
 void TaskMaster(void *pvParameters);
 void begin_rotating();
@@ -96,10 +95,10 @@ void uart_msg_handler(void *parameter) {
 void setup() {
     Serial.begin(115200);
 
-    // initialize_uart();
-    // begin_uart_read(&uart_msg_queue);
+    initialize_uart();
+    begin_uart_read(&uart_msg_queue);
 
-    // xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
+    xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
 
     motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
     motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
@@ -113,7 +112,7 @@ void setup() {
     stepper_motor = instantiateStepperMotor(STEPPER_STEP, STEPPER_DIR, 0);
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
-    config_following = { backTapeSensor, &xSharedQueue };
+    config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
     config_docking = { wingSensor, &xSharedQueue };
 
     // check if driving task was created
@@ -123,7 +122,7 @@ void setup() {
         log_error("Driving task was not created successfully!");
     }
 
-    delay(100);
+    // delay(100);
 
     // check if task master was created
     if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
@@ -137,6 +136,9 @@ void loop()
 {
     // monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle, &xStationTrackingHandle); // Monitor stack usage periodically
     // delay(2000);
+
+    Serial.println("here in motion board");
+    delay(10000);
 }
 
 void TaskMaster(void *pvParameters)
@@ -166,15 +168,21 @@ void TaskMaster(void *pvParameters)
                     }
                 }
                 vTaskDelay(2000);
-                // send_uart_message(COMPLETED);
-                // log_status("Ending rotation...");
-                // if (state.current_action == SPIN) {
-                //     state.current_action = IDLE;
-                // }
                 break;
 
             case GOTO_STATION:
-            {
+            {   
+                int station_difference = state.desired_station - state.last_station;
+                if(station_difference == 0) {
+                    Serial.println("already at desired station!");
+                    send_uart_message(COMPLETED);
+                    state.current_action == IDLE;
+                }
+
+                if(station_difference * state.orientation < 0) {
+                    state.orientation *= -1;
+                }
+
                 // Activate tape follow 
                 log_status("Tape following!");
                 begin_following();
@@ -199,12 +207,12 @@ void TaskMaster(void *pvParameters)
                     if (docking) {
                         if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
                             if (receivedMessage == REACHED_POSITION) {
-                                log_status("Reached position: found tape!");                        
+                                log_status("Reached position: found tape!");                
                                 vTaskDelete(xDockingHandle);
 
                                 vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
 
-                                // send_uart_message(COMPLETED);
+                                send_uart_message(COMPLETED);
                                 log_status("Ending goto station...");
                                 if (state.current_action == GOTO_STATION) {
                                     state.current_action = IDLE;

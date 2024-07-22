@@ -28,9 +28,9 @@ int checkTapeSensor(DualTapeSensor_t* tapeSensor) {
     return tapeSensor == NULL;
 }
 
-// Ensure that a TapeAwarenessData_t* does not contain null values
-int checkTapeAwarenessData(TapeAwarenessData_t* tapeAwarenessData) {
-    return tapeAwarenessData == NULL || checkTapeSensor(tapeAwarenessData->tapeSensor) == 1;
+// Ensure that a NavigationData_t* does not contain null values
+int checkNavigationData(NavigationData_t* navigationData) {
+    return navigationData == NULL || checkTapeSensor(navigationData->backTapeSensor) || checkTapeSensor(navigationData->fontTapeSensor) == 1;
 }
 
 int checkState(State_t* state) {
@@ -41,8 +41,8 @@ void TaskFollowTape(void *pvParameters) {
     log_status("Beginning tape follow task initialization...");
     TickType_t delay_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS);
 
-    TapeAwarenessData_t* tapeAwarenessData = (TapeAwarenessData_t*)pvParameters;
-    if (checkTapeAwarenessData(tapeAwarenessData)) {
+    NavigationData_t* navigationData = (NavigationData_t*)pvParameters;
+    if (checkNavigationData(navigationData)) {
         log_error("Error: tapeAwarenessData contains nulls!");
         vTaskDelete(NULL);
         return;
@@ -54,13 +54,19 @@ void TaskFollowTape(void *pvParameters) {
     log_status("Successfully initialized tape follow task!");
     int lastError = 0;
     while (1) {
+        DualTapeSensor_t* sensor;
+        if(state.direction == 1) {
+            sensor = navigationData->fontTapeSensor;
+        } else {
+            sensor = navigationData->backTapeSensor;
+        }
+        read_tape_sensor(sensor);
+        int left_mean = sensor->leftValue;
+        int right_mean = sensor->rightValue;
 
-        read_tape_sensor(tapeAwarenessData->tapeSensor);
-        int left_mean = tapeAwarenessData->tapeSensor->leftValue;
-        int right_mean = tapeAwarenessData->tapeSensor->rightValue;
-
-        // Serial.println("Left" + String(left_mean));
-        // Serial.println("Right" + String(right_mean));
+        Serial.println("Left" + String(left_mean));
+        Serial.println("Right" + String(right_mean));
+        vTaskDelay(pdMS_TO_TICKS(500));
 
         int error = left_mean - right_mean;
 
@@ -75,8 +81,8 @@ void TaskFollowTape(void *pvParameters) {
 void TaskRotate(void *pvParameters) {
     log_status("Beginning rotate task initialization...");
 
-    TapeAwarenessData_t* robotControlData = (TapeAwarenessData_t*)pvParameters;
-    if (checkTapeAwarenessData(robotControlData))
+    NavigationData_t* navigationData = (NavigationData_t*)pvParameters;
+    if (checkNavigationData(navigationData))
     {
         log_error("Error: nulls in robotControlData");
         vTaskDelete(NULL);
@@ -87,7 +93,7 @@ void TaskRotate(void *pvParameters) {
     TickType_t inital_delay_ticks = pdMS_TO_TICKS(ROTATE_INITIAL_DELAY);
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_ROTATING_MS);
 
-    DualTapeSensor_t* tapeSensor = robotControlData->tapeSensor;
+    DualTapeSensor_t* tapeSensor = navigationData->fontTapeSensor;
     bool rotating;
 
     log_status("Successfully initialized rotation!");
@@ -120,7 +126,7 @@ void TaskRotate(void *pvParameters) {
 
                 // send message to TaskMaster that rotation has finished
                 StatusMessage_t message = ROTATION_DONE;
-                if (xQueueSend(*robotControlData->xSharedQueue, &message, portMAX_DELAY) != pdPASS)
+                if (xQueueSend(*navigationData->xSharedQueue, &message, portMAX_DELAY) != pdPASS)
                 {
                     log_error("Failed to send ROTATION_DONE to xSharedQueue");
                 }
@@ -172,8 +178,8 @@ void TaskStationTracking(void* pvParameters) {
 
 
 void TaskDocking(void* pvParameters) {
-    TapeAwarenessData_t* tapeAwarenessData = (TapeAwarenessData_t*)pvParameters;
-    if (checkTapeAwarenessData(tapeAwarenessData)) {
+    NavigationData_t* navigationData = (NavigationData_t*)pvParameters;
+    if (checkNavigationData(navigationData)) {
         log_error("Error: Tape Awareness data buffer contains nulls!");
         vTaskDelete(NULL);
         return;
@@ -189,17 +195,24 @@ void TaskDocking(void* pvParameters) {
     int value_right;
     bool found_tape = false;
 
+    DualTapeSensor_t* sensor;
+    if(state.direction == 1) {
+        sensor = navigationData->fontTapeSensor;
+    } else {
+        sensor = navigationData->backTapeSensor;
+    }
+
     while (1) {
         // Check sensors
-        read_tape_sensor(tapeAwarenessData->tapeSensor);
-        value_left = tapeAwarenessData->tapeSensor->leftValue;
+        read_tape_sensor(sensor);
+        value_left = sensor->leftValue;
         value_right = 0; // right tape sensor isn't working rn
        
         if ((value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) && !found_tape) {
             state.last_station += state.orientation * state.direction;
             found_tape = true;
             StatusMessage_t message = REACHED_POSITION;
-            xQueueSend(*tapeAwarenessData->xSharedQueue, &message, portMAX_DELAY);
+            xQueueSend(*navigationData->xSharedQueue, &message, portMAX_DELAY);
         } 
 
         vTaskDelay(delay);

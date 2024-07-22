@@ -2,7 +2,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include <client_robot/constants.h>
+#include <serving_robot/constants.h>
 
 #include <common/resource_manager.h>
 #include <common/servo_motor.h>
@@ -87,22 +87,36 @@ void TaskMaster(void* pvParameters) {
 
     while (true) {
         log_status("Motion ready! Sending move command");
-        send_uart_message(GOTO, 10);
+        send_uart_message(GOTO, 1);
         MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
 
-        log_status("Motion ready! Sending rotate command");
+        log_status("Motion ready! Sending move command");
+        send_uart_message(GOTO, 4);
         MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
-        send_uart_message(DO_SPIN);
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
 
-        log_status("Completed circuit!");
-        vTaskDelete(NULL);
-        break;
+        log_status("Motion ready! Sending move command");
+        send_uart_message(GOTO, 2);
+        MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+
+        // log_status("Motion ready! Sending rotate command");
+        // MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        // send_uart_message(DO_SPIN);
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+
+        // log_status("Completed circuit!");
+        // vTaskDelete(NULL);
+        // break;
     }
 }
 
@@ -153,4 +167,6 @@ void loop() {
     // Serial.print("Free heap: ");
     // Serial.println(ESP.getFreeHeap());
     // delay(1000); // Check every second
+    Serial.println("here in main board");
+    delay(10000);
 }
