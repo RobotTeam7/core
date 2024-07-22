@@ -36,6 +36,7 @@ LimitSwitch_t* instantiate_limit_switch(uint8_t interrupt_pin, TaskHandle_t* tas
     LimitSwitch_t* new_switch = (LimitSwitch_t*)malloc(sizeof(LimitSwitch_t));
     if (new_switch == NULL) {
         log_error("Couldn't instantiate limit switch!");
+        return NULL;
     }
 
     new_switch->interrupt_pin = interrupt_pin;
@@ -47,4 +48,6 @@ LimitSwitch_t* instantiate_limit_switch(uint8_t interrupt_pin, TaskHandle_t* tas
     attachInterrupt(digitalPinToInterrupt(interrupt_pin), GenericISR, RISING);
 
     log_status("Created new limit switch!");
+
+    return new_switch;
 }
