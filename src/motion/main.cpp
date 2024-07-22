@@ -103,7 +103,7 @@ void setup() {
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT, BACK_TAPE_SENSOR_RIGHT);
     wingSensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR, RIGHT_WING_TAPE_SENSOR);
 
-    stepper_motor = instantiate_stepper_motor(STEPPER_STEP, STEPPER_DIR, 0, 500);
+    stepper_motor = instantiate_stepper_motor(STEPPER_STEP, STEPPER_DIR, 0, 100);
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { backTapeSensor, &xSharedQueue };
@@ -188,15 +188,11 @@ void TaskMaster(void *pvParameters)
                         vTaskDelete(xHandleFollowing);
                         xHandleFollowing = NULL;
 
-                        begin_docking();
-                        docking = 1;
-
                         state.drive_state = STOP;
                         vTaskDelay(200 / portTICK_PERIOD_MS);
 
                         begin_docking();
                         docking = 1;
-                        // send_uart_message(COMPLETED);
                     }
 
                     if (docking) {
@@ -207,7 +203,7 @@ void TaskMaster(void *pvParameters)
                                 vTaskDelete(xDockingHandle);
                                 xDockingHandle = NULL;
 
-                                vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
+                                // vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
 
                                 // send_uart_message(COMPLETED);
                                 log_status("Ending goto station...");
@@ -269,8 +265,8 @@ void begin_station_tracking() {
 void begin_docking() {
     // check if station tracking task was created
     if (xTaskCreate(TaskDocking, "Station_Tracking", 4096, &config_docking, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
-        log_status("Station tracking task was created successfully.");
+        log_status("Docking task was created successfully.");
     } else {
-        log_error("Station tracking task was not created successfully!");
+        log_error("Docking task was not created successfully!");
     }
 }

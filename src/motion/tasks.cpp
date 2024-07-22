@@ -206,7 +206,6 @@ void TaskDocking(void* pvParameters) {
 
     int value_left;
     int value_right;
-    bool found_tape = false;
 
     log_status("Initialized docking!");
 
@@ -216,12 +215,12 @@ void TaskDocking(void* pvParameters) {
         value_left = tapeAwarenessData->tapeSensor->leftValue;
         value_right = 0; // right tape sensor isn't working rn
        
-        if ((value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) && !found_tape) {
+        if ((value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE)) {
             // state.last_station += state.orientation * state.direction;
-            found_tape = true;
             StatusMessage_t message = REACHED_POSITION;
             xQueueSend(*tapeAwarenessData->xSharedQueue, &message, portMAX_DELAY);
             log_status("Finished docking!");
+            state.drive_state = STOP;
         } 
 
         vTaskDelay(delay);
