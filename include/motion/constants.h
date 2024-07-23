@@ -22,8 +22,8 @@
 
 // Sensor Thresholds
 
-#define THRESHOLD_SENSOR_SINGLE     1500 //defines the minimum  reflectance sensor reading to determine a sensor is seeing tape
-#define DEBOUNCE_TAPE_THRESHOLD     10 // Consecutive polls in which we need to see tape to affirm that we are on a station
+#define THRESHOLD_SENSOR_SINGLE     1500    //defines the minimum  reflectance sensor reading to determine a sensor is seeing tape
+#define DEBOUNCE_TAPE_THRESHOLD     10      // Consecutive polls in which we need to see tape to affirm that we are on a station
  
 // Pin Definitions
 #define MOTOR_BACK_RIGHT_FORWARD    25
