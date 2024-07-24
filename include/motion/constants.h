@@ -10,6 +10,7 @@
 #define MOTOR_SPEED_ROTATION    7000    // Base motor speed whilst rotating
 #define MOTOR_SPEED_DOCKING     6000    // Base speed for when we are trying to dock
 #define MOTOR_SPEED_TRANSLATION 12000    // Base speed for when we are trying to dock
+#define MOTOR_SPEED_TRANSLATION_HIGH 15000 // Motors spin quickly to account for drift
 
 // Delays
 

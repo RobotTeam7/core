@@ -329,6 +329,10 @@ void TaskMaster(void *pvParameters)
                 log_status("Counter docking!");
 
                 state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION_HIGH;
+
+                vTaskDelay(pdMS_TO_TICKS(666));
+                
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.tape_displacement_direction = -state.y_direction; // Update memory so we know how to get back
 
