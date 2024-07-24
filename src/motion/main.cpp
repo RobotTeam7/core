@@ -266,14 +266,19 @@ void TaskMaster(void *pvParameters)
 
                 while (state.current_action == GOTO_STATION) {
                     if ((state.last_station == state.desired_station) && !docking) {
+                        log_status("breaking!");
+                        state.direction = -state.direction;
+                        state.drive_speed = MOTOR_SPEED_BREAKING;
+                        vTaskDelay(pdMS_TO_TICKS(DELAY_BREAKING));
+                        
                         log_status("Beginning docking...!");
-
+                        
                         vTaskDelete(xStationTrackingHandle);
                         xStationTrackingHandle = NULL;
 
                         // delay before backing up
                         state.drive_state = STOP;
-                        vTaskDelay(pdMS_TO_TICKS(2000));
+                        vTaskDelay(pdMS_TO_TICKS(500));
 
                         state.direction = -state.direction; // Invert direction
                         state.drive_state = DRIVE;
