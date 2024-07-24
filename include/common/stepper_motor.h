@@ -21,6 +21,7 @@ typedef struct {
     int position;
     uint8_t stepPin;
     uint8_t directionPin;
+    uint8_t sleep_pin;
     SemaphoreHandle_t xMutex; // This mutex is used to ensure that multiple stepper motor commands run sequentially (never at the same time!).
     int speed;
 } StepperMotor_t;
@@ -45,7 +46,7 @@ typedef struct {
  * 
  * @returns Heap-allocated (created with `malloc()`) pointer. Remember to free!
  */
-StepperMotor_t* instantiate_stepper_motor(uint8_t stepPin, uint8_t dirPin, int position, int speed);
+StepperMotor_t* instantiate_stepper_motor(uint8_t stepPin, uint8_t dirPin, uint8_t sleep_pin, int position, int speed);
 
 /**
  * @brief Actuate the stepper motor to make `numSteps` steps in `direction`, at a given frequency.
