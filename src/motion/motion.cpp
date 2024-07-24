@@ -17,10 +17,10 @@ void set_robot_drive(RobotMotorData_t* robot_motors, int16_t drive_value) {
 }
 
 void rotate_robot(RobotMotorData_t* robot_motors, uint16_t drive_value) {
-    motor_set_drive(robot_motors->motorFR, -drive_value);
-    motor_set_drive(robot_motors->motorBR, -drive_value);
-    motor_set_drive(robot_motors->motorFL, drive_value);
-    motor_set_drive(robot_motors->motorBL, drive_value);
+    motor_set_drive(robot_motors->motorFR, -drive_value * state.helicity);
+    motor_set_drive(robot_motors->motorBR, -drive_value * state.helicity);
+    motor_set_drive(robot_motors->motorFL, drive_value * state.helicity);
+    motor_set_drive(robot_motors->motorBL, drive_value * state.helicity);
 }
 
 void translate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
