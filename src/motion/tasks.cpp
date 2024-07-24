@@ -16,7 +16,6 @@
 TaskHandle_t xHandleRotating = NULL;
 TaskHandle_t xDriveHandle = NULL;
 TaskHandle_t xHandleFollowing = NULL;
-TaskHandle_t xMasterHandle = NULL;
 TaskHandle_t xStationTrackingHandle = NULL;
 TaskHandle_t xDockingHandle = NULL;
 TaskHandle_t xCounterDockingHandle = NULL;
@@ -259,13 +258,24 @@ void TaskDrive(void* pvParameters) {
             case DriveState_t::ROTATE:
                 rotate_robot(robot_motors, state.drive_speed * state.helicity);
                 break;
+
+            case TRANSLATE:
+                translate_robot(robot_motors, state.drive_speed * state.y_direction);
+                break;
         }
         vTaskDelay(MOTOR_UPDATE_DELAY);
     }
 }
 
 void TaskCounterDocking(void* pvParameters) {
-    // begin move to counter
+    log_status("Initializing counter docking task...");
+
+    TaskHandle_t* xMasterHandle = (TaskHandle_t*)pvParameters;
+    if (xMasterHandle == NULL || *xMasterHandle == NULL) {
+        log_error("Nulls in master task handle!");
+        vTaskDelete(NULL);
+        return;
+    }
 
     uint32_t ulNotificationValue;
     while (1) {
@@ -273,9 +283,16 @@ void TaskCounterDocking(void* pvParameters) {
         xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
 
         // Stop moving
+        state.drive_speed = 0;
+        state.drive_state = STOP;
+        taskYIELD(); // Yield so that the change in drive state can immediately be processed
+
+        // Notify master that we reached the counter
+        xTaskNotifyGive(*xMasterHandle);
+
+        // Task is over
         vTaskDelete(xCounterDockingHandle);
         xCounterDockingHandle = NULL;
-        // send message to master that we reached the counter? 
     }
 }
 

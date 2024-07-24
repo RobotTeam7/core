@@ -3,11 +3,13 @@
 #include "freertos/task.h"
 
 #include <serving_robot/constants.h>
+#include <main/constants.h>
 
 #include <common/resource_manager.h>
 #include <common/servo_motor.h>
 #include <common/robot_motor.h>
 #include <common/pwm.h>
+#include <common/limit_switch.h>
 
 #include <communication/wifi_client.h>
 #include <communication/uart.h>
@@ -87,38 +89,34 @@ void TaskMaster(void* pvParameters) {
     }
     while (true) {
         log_status("Motion ready! Sending move command");
-        send_uart_message(GOTO, 1);
-        MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        
-        log_status("Motion ready! Sending move command");
-        send_uart_message(GOTO, 3);
-        MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
-
-        log_status("Motion ready! Sending move command");
-        send_uart_message(GOTO, 2);
-        MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        // log_status("Motion ready! Sending rotate command");
+        // send_uart_message(GOTO, 1);
         // MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
-        // send_uart_message(DO_SPIN);
         // while (MOTION_BUSY) {
         //     vTaskDelay(10 / portTICK_PERIOD_MS);
         // }
+        // vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        // log_status("Motion ready! Sending move command");
+        // send_uart_message(GOTO, 3);
+        // MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        // vTaskDelay(pdMS_TO_TICKS(1000));
 
-        // log_status("Completed circuit!");
-        // vTaskDelete(NULL);
-        // break;
+        // log_status("Motion ready! Sending move command");
+        // send_uart_message(GOTO, 2);
+        // MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        
+        MOTION_BUSY = true;
+        send_uart_message(COUNTER_DOCK, -1);
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(1000);
     }
 }
 
@@ -142,6 +140,7 @@ void setup() {
     // send_uart_message(DO_SPIN, 0);
     // delay(1000);
     // delay(500);
+    
     xTaskCreate(TaskMaster, "Master", 2048, NULL, 1, NULL);
 }
 
