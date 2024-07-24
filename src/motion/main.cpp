@@ -140,10 +140,10 @@ TaskHandle_t switch_handle_4 = NULL;
 void setup() {
     Serial.begin(115200);
 
-    initialize_uart();
-    begin_uart_read(&uart_msg_queue);
+    // initialize_uart();
+    // begin_uart_read(&uart_msg_queue);
 
-    xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
+    // xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
 
     motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
     motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
@@ -170,16 +170,16 @@ void setup() {
     delay(100);
 
     // check if task master was created
-    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
-        log_status("Master task was created successfully.");
-    } else {
-        log_error("Master task was not created successfully!");
-    }
+    // if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
+    //     log_status("Master task was created successfully.");
+    // } else {
+    //     log_error("Master task was not created successfully!");
+    // }
 
-    xTaskCreate(TaskSwitch1, "switxh1", 2048, NULL, 1, &switch_handle_1);
-    xTaskCreate(TaskSwitch2, "swithc2", 2048, NULL, 1, &switch_handle_2);
-    xTaskCreate(TaskSwitch3, "switch3", 2048, NULL, 1, &switch_handle_3);
-    xTaskCreate(TaskSwitch4, "swithc34", 2048, NULL, 1, &switch_handle_4);
+    // xTaskCreate(TaskSwitch1, "switxh1", 2048, NULL, 1, &switch_handle_1);
+    // xTaskCreate(TaskSwitch2, "swithc2", 2048, NULL, 1, &switch_handle_2);
+    // xTaskCreate(TaskSwitch3, "switch3", 2048, NULL, 1, &switch_handle_3);
+    // xTaskCreate(TaskSwitch4, "swithc34", 2048, NULL, 1, &switch_handle_4);
 
 
     limit_switch_back_right = instantiate_limit_switch(SWITCH_COUNTER_2, &xDockingHandle); // back right

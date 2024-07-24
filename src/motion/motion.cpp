@@ -1,4 +1,5 @@
 #include <motion/motion.h>
+#include <motion/constants.h>
 
 
 void stop_all_motors(RobotMotorData_t* robot_motors) {
@@ -9,10 +10,10 @@ void stop_all_motors(RobotMotorData_t* robot_motors) {
 }
 
 void set_robot_drive(RobotMotorData_t* robot_motors, int16_t drive_value) {
-    motor_set_drive(robot_motors->motorFL, drive_value - state.yaw);
-    motor_set_drive(robot_motors->motorBL, drive_value - state.yaw);
-    motor_set_drive(robot_motors->motorFR, drive_value + state.yaw);
-    motor_set_drive(robot_motors->motorBR, drive_value + state.yaw);
+    motor_set_drive(robot_motors->motorFL, (drive_value * EFFICIENCY_FRONT_LEFT) - state.yaw);
+    motor_set_drive(robot_motors->motorBL, (drive_value * EFFICIENCY_BACK_LEFT) - state.yaw);
+    motor_set_drive(robot_motors->motorFR, (drive_value * EFFICIENCY_FRONT_RIGHT) + state.yaw);
+    motor_set_drive(robot_motors->motorBR, (drive_value * EFFICIENCY_BACK_RIGHT) + state.yaw);
 }
 
 void rotate_robot(RobotMotorData_t* robot_motors, uint16_t drive_value) {

@@ -56,14 +56,19 @@
 #define TX_PIN                      14
 
 // Motion Task Priorities
-#define PRIORITY_DRIVE_UPDATE           3
-#define PRIORITY_FOLLOW_TAPE            1
-#define PRIORITY_ROTATE                 2
-#define PRIORITY_STATION_TRACKING       1
+#define PRIORITY_DRIVE_UPDATE       3
+#define PRIORITY_FOLLOW_TAPE        1
+#define PRIORITY_ROTATE             2
+#define PRIORITY_STATION_TRACKING   1
 
 // Motion PID
-#define kp 1.1
-#define kd 1.8
+#define kp                          1.1
+#define kd                          1.8
+
+#define EFFICIENCY_FRONT_RIGHT      0.8
+#define EFFICIENCY_FRONT_LEFT       0.8
+#define EFFICIENCY_BACK_RIGHT       1
+#define EFFICIENCY_BACK_LEFT        1
 
 
 #endif // MOTION_CONSTANTS_H
