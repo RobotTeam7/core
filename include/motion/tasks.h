@@ -13,7 +13,6 @@
 extern TaskHandle_t xHandleRotating;
 extern TaskHandle_t xDriveHandle;
 extern TaskHandle_t xHandleFollowing;
-extern TaskHandle_t xMasterHandle;
 extern TaskHandle_t xStationTrackingHandle;
 extern TaskHandle_t xDockingHandle;
 extern TaskHandle_t xCounterDockingHandle;
@@ -29,6 +28,8 @@ void TaskFollowTape(void* pvParameters);
 void TaskStationTracking(void* pvParameters);
 void TaskDrive(void* pvParameters);
 void TaskDocking(void* pvParameters);
+void TaskCounterDocking(void* pvParameters);
+void TaskReturnToTape(void* pvParameters);
 
 
 #endif // MOTION_TASKS_H

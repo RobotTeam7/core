@@ -40,11 +40,14 @@ QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
 QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
 QueueHandle_t task_queue = xQueueCreate(10, sizeof(Packet_t));
 
+TaskHandle_t xMasterHandle = NULL;
+
 void TaskMaster(void *pvParameters);
 void begin_rotating();
 void begin_following();
 void begin_station_tracking();
 void begin_docking();
+void begin_counter_docking();
 
 void uart_msg_handler(void *parameter) {
     log_status("Started message handler");
@@ -109,21 +112,24 @@ void setup() {
     config_following = { backTapeSensor, &xSharedQueue };
     config_docking = { wingSensor, &xSharedQueue };
 
-    // check if driving task was created
-    if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
-        log_status("Driving task was created successfully."); 
-    } else {
-        log_error("Driving task was not created successfully!");
-    }
+    // // check if driving task was created
+    // if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
+    //     log_status("Driving task was created successfully."); 
+    // } else {
+    //     log_error("Driving task was not created successfully!");
+    // }
 
-    delay(100);
+    // delay(100);
 
-    // check if task master was created
-    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
-        log_status("Master task was created successfully.");
-    } else {
-        log_error("Master task was not created successfully!");
-    }
+    // // check if task master was created
+    // if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
+    //     log_status("Master task was created successfully.");
+    // } else {
+    //     log_error("Master task was not created successfully!");
+    // }
+    // actuate_stepper_motor(stepper_motor, UP, 1000);
+    bind_pwm(21, 500);
+    set_pwm(21, (int)(1.0 / 2.0 * UINT16_MAX));
 }
 
 void loop()
@@ -136,13 +142,15 @@ void TaskMaster(void *pvParameters)
 {
     log_status("Beginning master task...");
     // state.current_action = IDLE;
+
     send_uart_message(READY);
 
     while (1) {
         StatusMessage_t receivedMessage;
         switch (state.current_action) {
             case SPIN:
-                // Begin rotating and wait for a message that we see the tape
+            {                
+                 // Begin rotating and wait for a message that we see the tape
                 begin_rotating();
                 if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
                     if (receivedMessage == ROTATION_DONE) {
@@ -161,12 +169,8 @@ void TaskMaster(void *pvParameters)
                     }
                 }
                 vTaskDelay(2000);
-                // send_uart_message(COMPLETED);
-                // log_status("Ending rotation...");
-                // if (state.current_action == SPIN) {
-                //     state.current_action = IDLE;
-                // }
                 break;
+            }
 
             case GOTO_STATION:
             {
@@ -224,6 +228,7 @@ void TaskMaster(void *pvParameters)
             }
 
             case IDLE:
+            {
                 // don't move while idling
                 state.drive_state = DriveState_t::STOP;
                 log_status("Idling...");
@@ -231,6 +236,31 @@ void TaskMaster(void *pvParameters)
                 while (state.current_action == IDLE) {
                     vTaskDelay(20 / portTICK_PERIOD_MS);
                 }
+            }
+
+            case DOCK_AT_STATION:
+            {
+                log_status("Counter docking!");
+
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.y_direction = 1; // this should get set by the UART message (it should contain the direction to travel in)
+                state.tape_displacement_direction = -state.y_direction; // Update memory so we know how to get back
+
+                begin_counter_docking();
+
+                uint32_t ulNotificationValue;
+                xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task
+
+                log_status("Arrived at station counter!");
+
+                // send_uart_message(COMPLETED);
+                if (state.current_action == DOCK_AT_STATION) {
+                    state.current_action = IDLE;
+                    state.drive_state = STOP;
+                    state.direction = FORWARD_DRIVE;
+                }
+            }
         }
     }
 }
@@ -265,6 +295,15 @@ void begin_station_tracking() {
 void begin_docking() {
     // check if station tracking task was created
     if (xTaskCreate(TaskDocking, "Station_Tracking", 4096, &config_docking, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
+        log_status("Docking task was created successfully.");
+    } else {
+        log_error("Docking task was not created successfully!");
+    }
+}
+
+void begin_counter_docking() {
+    // check if counter docking task was created
+    if (xTaskCreate(TaskCounterDocking, "Counter_Docking", 2048, &xMasterHandle, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
         log_status("Docking task was created successfully.");
     } else {
         log_error("Docking task was not created successfully!");

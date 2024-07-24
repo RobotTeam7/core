@@ -28,5 +28,11 @@ void set_robot_drive(RobotMotorData_t* robot_motors, int16_t drive_value);
  */
 void rotate_robot(RobotMotorData_t* robot_motors, uint16_t drive_value);
 
+/**
+ * @brief Order the robot to translate horizontally.
+ * @param drive_value Positive value will indicate upwards, negative value will indicate downwards
+ */
+void translate_robot(RobotMotorData_t* robot_motors, int16_t drive_value);
+
 
 #endif // MOTION_H
