@@ -28,6 +28,9 @@ void stepperMotorTask(void *pvParameters) {
     if (xSemaphoreTake(data->stepperMotor->xMutex, portMAX_DELAY) == pdTRUE) {
         log_status("Starting stepper motor action...");
 
+        digitalWrite(data->stepperMotor->sleep_pin, HIGH); // Disable sleep mode
+        vTaskDelay(pdMS_TO_TICKS(1)); // Driver takes maximum 1ms to wake up from sleep
+
         // Write direction
         digitalWrite(data->stepperMotor->directionPin, data->direction == UP ? HIGH : LOW);
 
@@ -38,6 +41,7 @@ void stepperMotorTask(void *pvParameters) {
         // Mutate stepper motor position to update position after the action
         data->stepperMotor->position += data->numSteps * data->direction;        
 
+        digitalWrite(data->stepperMotor->sleep_pin, LOW);
         xSemaphoreGive(data->stepperMotor->xMutex); // We need to release the lock
     } else {
         log_error("Couldn't acquire mutex to perform stepper motor action!");
@@ -54,7 +58,7 @@ void stepperMotorTask(void *pvParameters) {
  * @brief Instantiate a stepper motor bound to `stepPin` and `dirPin`.
  * @returns a pointer to a StepperMotor_t allocated on the heap with malloc(). Returns instantiation if creation failed.
  */
-StepperMotor_t* instantiate_stepper_motor(uint8_t stepPin, uint8_t dirPin, int position, int speed) {
+StepperMotor_t* instantiate_stepper_motor(uint8_t stepPin, uint8_t dirPin, uint8_t sleep_pin, int position, int speed) {
     StepperMotor_t* stepperMotor = (StepperMotor_t*)malloc(sizeof(StepperMotor_t));
     if (stepperMotor == NULL) {
         log_error("Failed to allocate memory for stepper motor!");
@@ -70,9 +74,12 @@ StepperMotor_t* instantiate_stepper_motor(uint8_t stepPin, uint8_t dirPin, int p
 
     bind_pwm(stepPin, speed);
     pinMode(dirPin, OUTPUT);
+    pinMode(sleep_pin, OUTPUT);
+    digitalWrite(sleep_pin, LOW);
 
     stepperMotor->stepPin = stepPin;
     stepperMotor->directionPin = dirPin;
+    stepperMotor->sleep_pin = sleep_pin;
     stepperMotor->position = position;
     stepperMotor->speed = speed;
 
