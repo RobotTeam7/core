@@ -43,12 +43,16 @@
 #define LEFT_WING_TAPE_SENSOR       32 // yellow cables right
 #define RIGHT_WING_TAPE_SENSOR      33 // green cables left
 
+#define IR_1                        36 // VP
+#define IR_2                        39 // VN
+
+#define SWITCH_COUNTER_1            22
+#define SWITCH_COUNTER_2            19
+#define SWITCH_COUNTER_3            20
+#define SWITCH_COUNTER_4            21
+
 #define RX_PIN                      27
 #define TX_PIN                      14
-
-// Stepper  
-#define STEPPER_DIR                 15
-#define STEPPER_STEP                12
 
 // Motion Task Priorities
 #define PRIORITY_DRIVE_UPDATE           3

@@ -21,6 +21,7 @@
 #include <common/stepper_motor.h>
 
 
+
 RobotMotor_t* motor_front_left;
 RobotMotor_t* motor_front_right;
 RobotMotor_t* motor_back_left;
@@ -102,8 +103,6 @@ void setup() {
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT, BACK_TAPE_SENSOR_RIGHT);
     wingSensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR, RIGHT_WING_TAPE_SENSOR);
 
-    stepper_motor = instantiate_stepper_motor(STEPPER_STEP, STEPPER_DIR, 0, 100);
-
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
     config_docking = { wingSensor, &xSharedQueue };
@@ -144,7 +143,6 @@ void loop()
 void TaskMaster(void *pvParameters)
 {
     log_status("Beginning master task...");
-    // state.current_action = IDLE;
     send_uart_message(READY);
 
     while (1) {
@@ -209,16 +207,13 @@ void TaskMaster(void *pvParameters)
                         vTaskDelete(xStationTrackingHandle);
                         xStationTrackingHandle = NULL;
 
-                        vTaskDelete(xHandleFollowing);
-                        xHandleFollowing = NULL;
-
+                        // delay before backing up
                         state.drive_state = STOP;
                         vTaskDelay(pdMS_TO_TICKS(2000));
 
-                        state.drive_state = DRIVE;
                         state.direction = -state.direction; // Invert direction
+                        state.drive_state = DRIVE;
                         state.drive_speed = MOTOR_SPEED_DOCKING;
-                        state.yaw = 0;
                         begin_docking();
                         docking = 1;
                     }
@@ -231,7 +226,9 @@ void TaskMaster(void *pvParameters)
                                 vTaskDelete(xDockingHandle);
                                 xDockingHandle = NULL;
 
-                                // vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
+                                vTaskDelete(xHandleFollowing);
+                                xHandleFollowing = NULL;
+                                state.yaw = 0;
 
                                 send_uart_message(COMPLETED);
                                 log_status("Ending goto station...");

@@ -173,9 +173,9 @@ void TaskStationTracking(void* pvParameters) {
         // Check sensors
         read_tape_sensor(tapeSensor);
         value_left = tapeSensor->leftValue;
-        value_right = 0; // right tape sensor isn't working rn
-        // Serial.println("Right" + String (value_right));
-        // Serial.println("Left" + String (value_left));
+        value_right = tapeSensor->rightValue;
+        // Serial.println("Right Sensor: " + String(value_right));
+        // Serial.println("Left Sensor: " + String(value_left));
        
         if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
@@ -221,7 +221,9 @@ void TaskDocking(void* pvParameters) {
         // Check sensors
         read_tape_sensor(sensor);
         value_left = sensor->leftValue;
-        value_right = 0; // right tape sensor isn't working rn
+        value_right = sensor->rightValue; // right tape sensor isn't working rn
+        // Serial.println("Right Sensor: " + String(value_right));
+        // Serial.println("Left Sensor: " + String(value_left));
        
         if ((value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE)) {
             // state.last_station += state.orientation * state.direction;
