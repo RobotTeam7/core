@@ -12,6 +12,9 @@
 #include <communication/decode.h>
 #include <common/limit_switch.h>
 
+#include <common/servo_motor.h>
+#include <serving_robot/constants.h>
+
 
 QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
 QueueHandle_t inboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));

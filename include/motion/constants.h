@@ -6,12 +6,12 @@
 
 // Motor Speeds
 
-#define MOTOR_SPEED_FOLLOWING   9000    // Base motor speed whilst tape following
-#define MOTOR_SPEED_ROTATION    7000    // Base motor speed whilst rotating
-#define MOTOR_SPEED_DOCKING     6000    // Base speed for when we are trying to dock
-#define MOTOR_SPEED_TRANSLATION 12000    // Base speed for when we are trying to dock
-#define MOTOR_SPEED_TRANSLATION_HIGH 15000 // Motors spin quickly to account for drift
-#define MOTOR_SPEED_BREAKING 12000
+#define MOTOR_SPEED_FOLLOWING                       9000    // Base motor speed whilst tape following
+#define MOTOR_SPEED_ROTATION                        7000    // Base motor speed whilst rotating
+#define MOTOR_SPEED_DOCKING                         6000    // Base speed for when we are trying to dock
+#define MOTOR_SPEED_TRANSLATION                     12000   // Base speed for when we are trying to dock
+#define MOTOR_SPEED_TRANSLATION_HIGH                15000   // Motors spin quickly to account for drift
+#define MOTOR_SPEED_BREAKING                        12000
 
 // Delays
 
@@ -44,8 +44,8 @@
 #define BACK_TAPE_SENSOR_LEFT       34
 #define BACK_TAPE_SENSOR_RIGHT      35
 
-#define LEFT_WING_TAPE_SENSOR       32 // yellow cables right
-#define RIGHT_WING_TAPE_SENSOR      33 // green cables left
+#define LEFT_WING_TAPE_SENSOR       32 
+#define RIGHT_WING_TAPE_SENSOR      33 
 
 #define IR_1                        36 // VP
 #define IR_2                        39 // VN
