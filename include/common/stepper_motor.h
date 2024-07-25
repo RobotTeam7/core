@@ -8,7 +8,6 @@
 #include <freertos/task.h>
 #include <freertos/semphr.h>
 
-#include <common/pwm.h>
 #include <common/utils.h>
 
 

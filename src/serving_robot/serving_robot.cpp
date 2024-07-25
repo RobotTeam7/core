@@ -14,6 +14,8 @@
 #include <communication/uart.h>
 #include <communication/decode.h>
 
+#include <ESP32Servo.h>
+
 
 QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
 QueueHandle_t inboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
@@ -25,8 +27,8 @@ WiFiHandler_t wifi_handler = {
     .outbound_wifi_queue = &outboundWiFiQueue
 };
 
-ServoMotor_t* claw_servo;
-ServoMotor_t* draw_bridge_servo;
+Servo claw_servo;
+Servo draw_bridge_servo;
 
 StepperMotor_t* stepper_motor;
 
@@ -114,7 +116,7 @@ void TaskMaster(void* pvParameters) {
         }
         
         MOTION_BUSY = true;
-        send_uart_message(COUNTER_DOCK, -1);
+        send_uart_message(COUNTER_DOCK, 1);
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
@@ -123,7 +125,7 @@ void TaskMaster(void* pvParameters) {
         actuate_stepper_motor(stepper_motor, UP, 3000);
         vTaskDelay(pdMS_TO_TICKS(8000));
 
-        set_servo_position_percentage(claw_servo, 0.1);
+        claw_servo.write(30);
         vTaskDelay(pdMS_TO_TICKS(2000));
 
         actuate_stepper_motor(stepper_motor, DOWN, 3000);
@@ -136,15 +138,21 @@ void setup() {
     Serial.begin(115200); // Initialize serial monitor
 
     Serial.println("servos initialized!");
-    claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, SERVO_CLAW_MAX, SERVO_CLAW_MIN);
-    draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_MAX, SERVO_DRAW_BRIDGE_MIN);
 
-    delay(1000);
-
-    set_servo_position_percentage(draw_bridge_servo, 0);
-    delay(1000);
+    claw_servo = Servo();
+    claw_servo.attach(SERVO_CLAW_PIN);
+    draw_bridge_servo = Servo();
+    draw_bridge_servo.attach(SERVO_DRAW_BRIDGE_PIN);
 
     stepper_motor = instantiate_stepper_motor(STEPPER_CONTROL_PIN, STEPPER_DIRECTION_PIN, STEPPER_SLEEP_PIN, 0, 500);
+    // actuate_stepper_motor(stepper_motor, UP, 1000);
+    // delay(2000);
+    // claw_servo.write(90);
+    // delay(1000);
+    // claw_servo.write(30);
+    // delay(1000);
+    // actuate_stepper_motor(stepper_motor, DOWN, 1000);
+    // delay(2000);
 
     // connect_to_wifi_as_client(&wifi_handler);
 

@@ -35,10 +35,16 @@ void stepperMotorTask(void *pvParameters) {
         // Write direction
         digitalWrite(data->stepperMotor->directionPin, data->direction == UP ? HIGH : LOW);
 
+        int num_steps = 0;
+        
         // Perform action
-        set_pwm(data->stepperMotor->stepPin, (uint32_t)(UINT16_MAX / 2));
-        vTaskDelay(get_stepper_action_duration(data));
-        set_pwm(data->stepperMotor->stepPin, 0);
+        while (num_steps < data->numSteps) {
+            digitalWrite(data->stepperMotor->stepPin, HIGH);
+            vTaskDelay(pdMS_TO_TICKS(1));
+            digitalWrite(data->stepperMotor->stepPin, LOW);
+            vTaskDelay(pdMS_TO_TICKS(1));
+            num_steps++;
+        }
 
         // Mutate stepper motor position to update position after the action
         data->stepperMotor->position += data->numSteps * data->direction;        
@@ -74,7 +80,7 @@ StepperMotor_t* instantiate_stepper_motor(uint8_t stepPin, uint8_t dirPin, uint8
         return NULL;
     }
 
-    bind_pwm(stepPin, speed);
+    pinMode(stepPin, OUTPUT);
     pinMode(dirPin, OUTPUT);
     pinMode(sleep_pin, OUTPUT);
     digitalWrite(sleep_pin, LOW);
