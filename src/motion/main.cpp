@@ -38,6 +38,7 @@ LimitSwitch_t* limit_switch_back_left;
 RobotMotorData_t robotMotors;
 NavigationData_t config_following;
 DockingData_t config_docking;
+ReturnToTapeData_t return_data;
 
 StepperMotor_t* stepper_motor;
 
@@ -52,6 +53,7 @@ void begin_following();
 void begin_station_tracking();
 void begin_docking();
 void begin_counter_docking();
+void begin_return_to_tape();
 
 void uart_msg_handler(void *parameter) {
     log_status("Started message handler");
@@ -89,6 +91,13 @@ void uart_msg_handler(void *parameter) {
                         state.y_direction = new_packet.value;
                         Serial.println("Setting y-direction: " + String(state.y_direction));
                         break;
+
+                    case TAPE_RETURN:
+                    {
+                        state.current_action = ActionType_t::RETURN_TO_TAPE;
+                        state.direction = new_packet.value;
+                        break;
+                    }
                 }
                 send_uart_message(ACCEPTED);
             }
@@ -141,10 +150,12 @@ TaskHandle_t switch_handle_4 = NULL;
 void setup() {
     Serial.begin(115200);
 
-    initialize_uart();
-    begin_uart_read(&uart_msg_queue);
+    // initialize_uart();
+    // begin_uart_read(&uart_msg_queue);
 
-    xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
+    // xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
+
+    state.current_action = ActionType_t::RETURN_TO_TAPE;
 
     motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
     motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
@@ -158,6 +169,7 @@ void setup() {
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
     config_docking = { wingSensor, &xSharedQueue };
+    return_data = {frontTapeSensor, backTapeSensor, &xMasterHandle };
 
     // // check if driving task was created
     if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
@@ -337,9 +349,6 @@ void TaskMaster(void *pvParameters)
                 log_status("Counter docking!");
 
                 state.drive_state = TRANSLATE;
-                // state.drive_speed = MOTOR_SPEED_TRANSLATION_HIGH;
-
-                // vTaskDelay(pdMS_TO_TICKS(666));
                 
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.tape_displacement_direction = -state.y_direction; // Update memory so we know how to get back
@@ -357,7 +366,31 @@ void TaskMaster(void *pvParameters)
                     state.drive_state = STOP;
                     state.direction = FORWARD_DRIVE;
                 }
+                break;
+            }
+
+            case ActionType_t::RETURN_TO_TAPE:
+            {
+                state.y_direction = state.tape_displacement_direction; // Go in the direction we came
+                state.drive_state = TRANSLATE;                         
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.tape_displacement_direction = 0;                  // We will be back on the tape
+
+                begin_return_to_tape();
+
+                uint32_t ulNotificationValue;
+                xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task
+
+                log_status("Arrived at station counter!");
+
+                send_uart_message(COMPLETED);
+                if (state.current_action == ActionType_t::RETURN_TO_TAPE) {
+                    state.current_action = IDLE;
+                    state.drive_state = STOP;
+                    state.direction = FORWARD_DRIVE;
+                }
                 taskYIELD();
+
                 break;
             }
         }
@@ -406,5 +439,14 @@ void begin_counter_docking() {
         log_status("Docking task was created successfully.");
     } else {
         log_error("Docking task was not created successfully!");
+    }
+}
+
+void begin_return_to_tape() {
+    // check if counter docking task was created
+    if (xTaskCreate(TaskReturnToTape, "Tape_Return", 2048, &return_data, PRIORITY_STATION_TRACKING, &xReturnToTapeHandle) == pdPASS) {
+        log_status("Tape return task was created successfully.");
+    } else {
+        log_error("Tape return task was not created successfully!");
     }
 }

@@ -25,6 +25,12 @@ typedef struct {
 } NavigationData_t;
 
 typedef struct {
+    DualTapeSensor_t* fontTapeSensor;
+    DualTapeSensor_t* backTapeSensor;
+    TaskHandle_t* masterHandle;
+} ReturnToTapeData_t;
+
+typedef struct {
     DualTapeSensor_t* wingSensor;
     QueueHandle_t* xSharedQueue;
 } DockingData_t;

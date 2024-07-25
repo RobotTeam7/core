@@ -10,7 +10,6 @@
 #define MOTOR_SPEED_ROTATION                        7000    // Base motor speed whilst rotating
 #define MOTOR_SPEED_DOCKING                         6000    // Base speed for when we are trying to dock
 #define MOTOR_SPEED_TRANSLATION                     11000   // Base speed for when we are trying to dock
-// #define MOTOR_SPEED_TRANSLATION_HIGH                15000   // Motors spin quickly to account for drift
 #define MOTOR_SPEED_BREAKING                        12000
 
 // Delays
@@ -23,6 +22,7 @@
 #define MOTOR_UPDATE_DELAY                          1       // delay between motor drive state updates 
 #define TAPE_TRACKING_INTITAL_DELAY                 500     // delay between when we start driving and when we start tracking tape (ms)
 #define DELAY_BREAKING                              150     // delay between running motors in reverse and stopping for sharp robot breaking
+#define DELAY_RETURN_TO_TAPE_POLL                   5       // delay between polls to see if we see tape while returning to tape
 
 // Sensor Thresholds
 
