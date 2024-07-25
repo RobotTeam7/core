@@ -8,7 +8,7 @@ ServoMotor_t* instantiate_servo_motor(uint8_t boundControlPin, float max_duty_cy
         return NULL;
     }
 
-    uint16_t closed_position = max_duty_cycle * UINT16_MAX;
+    int closed_position = max_duty_cycle * UINT16_MAX;
     servoMotor->position = closed_position;
     servoMotor->boundControlPin = boundControlPin;
     servoMotor->max_duty_cycle = max_duty_cycle;
@@ -40,5 +40,6 @@ void set_servo_position_percentage(ServoMotor_t* servoMotor, float percentange) 
 
 void set_servo_position(ServoMotor_t* servoMotor, uint16_t newPosition) {
     servoMotor->position = newPosition;
+    Serial.println("setting servo to power: " + String(newPosition));
     set_pwm(servoMotor->boundControlPin, servoMotor->position);
 }

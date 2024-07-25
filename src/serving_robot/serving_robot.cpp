@@ -28,6 +28,8 @@ WiFiHandler_t wifi_handler = {
 ServoMotor_t* claw_servo;
 ServoMotor_t* draw_bridge_servo;
 
+StepperMotor_t* stepper_motor;
+
 bool MOTION_READY = false;
 bool MOTION_BUSY = false;
 
@@ -83,20 +85,11 @@ void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
     // Wait for green light from motion board
+    Serial.println("awaitng motion to be ready");
     while (!MOTION_READY) {
-        Serial.println("awaitng motion to be ready");
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
     while (true) {
-        set_servo_position_percentage(draw_bridge_servo, 0);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-
-        log_status("GRABBY GRABBY!");
-        set_servo_position(claw_servo, 0);
-        vTaskDelay(pdMS_TO_TICKS(500));
-        set_servo_position(claw_servo, 1);
-        vTaskDelay(pdMS_TO_TICKS(500));
-
         log_status("Motion ready! Sending move command");
         send_uart_message(GOTO, 1);
         MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
@@ -127,8 +120,14 @@ void TaskMaster(void* pvParameters) {
         }
         vTaskDelay(1000);
 
-        
-        set_servo_position_percentage(claw_servo, 0.2);
+        actuate_stepper_motor(stepper_motor, UP, 3000);
+        vTaskDelay(pdMS_TO_TICKS(8000));
+
+        set_servo_position_percentage(claw_servo, 0.1);
+        vTaskDelay(pdMS_TO_TICKS(2000));
+
+        actuate_stepper_motor(stepper_motor, DOWN, 3000);
+        vTaskDelay(pdMS_TO_TICKS(8000));
         break;
     }
 }
@@ -136,8 +135,16 @@ void TaskMaster(void* pvParameters) {
 void setup() {
     Serial.begin(115200); // Initialize serial monitor
 
+    Serial.println("servos initialized!");
     claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, SERVO_CLAW_MAX, SERVO_CLAW_MIN);
     draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_MAX, SERVO_DRAW_BRIDGE_MIN);
+
+    delay(1000);
+
+    set_servo_position_percentage(draw_bridge_servo, 0);
+    delay(1000);
+
+    stepper_motor = instantiate_stepper_motor(STEPPER_CONTROL_PIN, STEPPER_DIRECTION_PIN, STEPPER_SLEEP_PIN, 0, 500);
 
     // connect_to_wifi_as_client(&wifi_handler);
 

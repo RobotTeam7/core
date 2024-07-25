@@ -281,7 +281,7 @@ void TaskCounterDocking(void* pvParameters) {
     while (1) {
         // Wait to be notified that limit switch hit the counter
         xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
-
+        log_status("Hit counter!");
         // Stop moving
         state.drive_speed = 0;
         state.drive_state = STOP;
