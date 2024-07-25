@@ -2,12 +2,13 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include <client_robot/constants.h>
+#include <serving_robot/constants.h>
 
 #include <common/resource_manager.h>
 #include <common/servo_motor.h>
 #include <common/robot_motor.h>
 #include <common/pwm.h>
+#include <common/limit_switch.h>
 
 #include <communication/wifi_client.h>
 #include <communication/uart.h>
@@ -24,7 +25,10 @@ WiFiHandler_t wifi_handler = {
     .outbound_wifi_queue = &outboundWiFiQueue
 };
 
-ServoMotor_t* servoMotor;
+ServoMotor_t* claw_servo;
+ServoMotor_t* draw_bridge_servo;
+
+StepperMotor_t* stepper_motor;
 
 bool MOTION_READY = false;
 bool MOTION_BUSY = false;
@@ -57,7 +61,7 @@ void uart_msg_handler(void *parameter) {
                     break;
             }
         }
-        vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield    
+        vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield
     }
 }
 
@@ -81,27 +85,49 @@ void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
     // Wait for green light from motion board
+    Serial.println("awaitng motion to be ready");
     while (!MOTION_READY) {
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
-
     while (true) {
         log_status("Motion ready! Sending move command");
-        send_uart_message(GOTO, 10);
+        send_uart_message(GOTO, 1);
         MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-
-        log_status("Motion ready! Sending rotate command");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        log_status("Motion ready! Sending move command");
+        send_uart_message(GOTO, 3);
         MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
-        send_uart_message(DO_SPIN);
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        log_status("Completed circuit!");
-        vTaskDelete(NULL);
+        log_status("Motion ready! Sending move command");
+        send_uart_message(GOTO, 2);
+        MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        
+        MOTION_BUSY = true;
+        send_uart_message(COUNTER_DOCK, -1);
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(1000);
+
+        actuate_stepper_motor(stepper_motor, UP, 3000);
+        vTaskDelay(pdMS_TO_TICKS(8000));
+
+        set_servo_position_percentage(claw_servo, 0.1);
+        vTaskDelay(pdMS_TO_TICKS(2000));
+
+        actuate_stepper_motor(stepper_motor, DOWN, 3000);
+        vTaskDelay(pdMS_TO_TICKS(8000));
         break;
     }
 }
@@ -109,7 +135,16 @@ void TaskMaster(void* pvParameters) {
 void setup() {
     Serial.begin(115200); // Initialize serial monitor
 
-    // servoMotor = instantiate_servo_motor(13, 0);
+    Serial.println("servos initialized!");
+    claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, SERVO_CLAW_MAX, SERVO_CLAW_MIN);
+    draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_MAX, SERVO_DRAW_BRIDGE_MIN);
+
+    delay(1000);
+
+    set_servo_position_percentage(draw_bridge_servo, 0);
+    delay(1000);
+
+    stepper_motor = instantiate_stepper_motor(STEPPER_CONTROL_PIN, STEPPER_DIRECTION_PIN, STEPPER_SLEEP_PIN, 0, 500);
 
     // connect_to_wifi_as_client(&wifi_handler);
 
@@ -118,39 +153,15 @@ void setup() {
 
     xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
     // xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
-
-    // send_uart_message(GOTO, 8);
-    // delay(1000);
-    // send_uart_message(GOTO, 9);
-    // delay(1000);
-    // send_uart_message(DO_SPIN, 0);
-    // delay(1000);
-    // delay(500);
+    
     xTaskCreate(TaskMaster, "Master", 2048, NULL, 1, NULL);
 }
 
-// float dutyCycleHigh = 0.06;
-// float dutyCycleLow = 0.02;
-// int powerValueHigh = dutyCycleHigh * 65536;
-// int powerValueLow = dutyCycleLow * 65536;
-// int unit_16_number = 65536;
-
-// float granularity = 0.001;
-// float dutyCycle;
-// int delay_value = 5;
-
 void loop() {
-    // motor_lit.set_position_percentage(0);
-    // delay(500);
-    // motor_lit.set_position_percentage(.50);
-    // delay(500);
-    // motor_lit.set_position_percentage(1);
-    // delay(500);
-    // set_servo_position_percentage(servoMotor, 0.00);
-    // delay(1500);
-    // set_servo_position_percentage(servoMotor, 1.00);
     // delay(1500);
     // Serial.print("Free heap: ");
     // Serial.println(ESP.getFreeHeap());
     // delay(1000); // Check every second
+    Serial.println("here in main board");
+    delay(10000);
 }

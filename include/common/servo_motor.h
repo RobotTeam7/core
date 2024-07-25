@@ -19,6 +19,8 @@
 typedef struct {
     uint8_t boundControlPin;
     uint16_t position;
+    float max_duty_cycle;
+    float min_duty_cycle;
 } ServoMotor_t;
 
 /**
@@ -33,7 +35,7 @@ void set_servo_position(ServoMotor_t* servoMotor, uint16_t newPosition);
  * 
  * @returns Heap-allocated (created with `malloc()`) pointer. Remember to free!
  */
-ServoMotor_t* instantiate_servo_motor(uint8_t controlPin, uint16_t position);
+ServoMotor_t* instantiate_servo_motor(uint8_t controlPin, float max_duty_cycle, float min_duty_cycle);
 
 /**
  * @brief Set the position of this servo motor by passing a percentage where 0% is fully closed and 100% is fully open.

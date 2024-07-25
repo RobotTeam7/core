@@ -16,7 +16,6 @@
 TaskHandle_t xHandleRotating = NULL;
 TaskHandle_t xDriveHandle = NULL;
 TaskHandle_t xHandleFollowing = NULL;
-TaskHandle_t xMasterHandle = NULL;
 TaskHandle_t xStationTrackingHandle = NULL;
 TaskHandle_t xDockingHandle = NULL;
 TaskHandle_t xCounterDockingHandle = NULL;
@@ -37,9 +36,9 @@ int checkTapeSensor(DualTapeSensor_t* tapeSensor) {
     return tapeSensor == NULL;
 }
 
-// Ensure that a TapeAwarenessData_t* does not contain null values
-int checkTapeAwarenessData(TapeAwarenessData_t* tapeAwarenessData) {
-    return tapeAwarenessData == NULL || checkTapeSensor(tapeAwarenessData->tapeSensor) == 1;
+// Ensure that a NavigationData_t* does not contain null values
+int checkNavigationData(NavigationData_t* navigationData) {
+    return navigationData == NULL || checkTapeSensor(navigationData->backTapeSensor) || checkTapeSensor(navigationData->fontTapeSensor) == 1;
 }
 
 int checkState(State_t* state) {
@@ -50,8 +49,8 @@ void TaskFollowTape(void *pvParameters) {
     log_status("Beginning tape follow task initialization...");
     TickType_t delay_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS);
 
-    TapeAwarenessData_t* tapeAwarenessData = (TapeAwarenessData_t*)pvParameters;
-    if (checkTapeAwarenessData(tapeAwarenessData)) {
+    NavigationData_t* navigationData = (NavigationData_t*)pvParameters;
+    if (checkNavigationData(navigationData)) {
         log_error("Error: tapeAwarenessData contains nulls!");
 
         vTaskDelete(xHandleFollowing);
@@ -66,10 +65,15 @@ void TaskFollowTape(void *pvParameters) {
     log_status("Successfully initialized tape follow task!");
     int lastError = 0;
     while (1) {
-
-        read_tape_sensor(tapeAwarenessData->tapeSensor);
-        int left_mean = tapeAwarenessData->tapeSensor->leftValue;
-        int right_mean = tapeAwarenessData->tapeSensor->rightValue;
+        DualTapeSensor_t* sensor;
+        if(state.direction == 1) {
+            sensor = navigationData->fontTapeSensor;
+        } else {
+            sensor = navigationData->backTapeSensor;
+        }
+        read_tape_sensor(sensor);
+        int left_mean = sensor->leftValue;
+        int right_mean = sensor->rightValue;
 
         // Serial.println("Left" + String(left_mean));
         // Serial.println("Right" + String(right_mean));
@@ -87,8 +91,8 @@ void TaskFollowTape(void *pvParameters) {
 void TaskRotate(void *pvParameters) {
     log_status("Beginning rotate task initialization...");
 
-    TapeAwarenessData_t* robotControlData = (TapeAwarenessData_t*)pvParameters;
-    if (checkTapeAwarenessData(robotControlData))
+    NavigationData_t* navigationData = (NavigationData_t*)pvParameters;
+    if (checkNavigationData(navigationData))
     {
         log_error("Error: nulls in robotControlData");
 
@@ -102,7 +106,7 @@ void TaskRotate(void *pvParameters) {
     TickType_t inital_delay_ticks = pdMS_TO_TICKS(ROTATE_INITIAL_DELAY);
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_ROTATING_MS);
 
-    DualTapeSensor_t* tapeSensor = robotControlData->tapeSensor;
+    DualTapeSensor_t* tapeSensor = navigationData->fontTapeSensor;
     bool rotating;
 
     log_status("Successfully initialized rotation!");
@@ -135,7 +139,7 @@ void TaskRotate(void *pvParameters) {
 
                 // send message to TaskMaster that rotation has finished
                 StatusMessage_t message = ROTATION_DONE;
-                if (xQueueSend(*robotControlData->xSharedQueue, &message, portMAX_DELAY) != pdPASS)
+                if (xQueueSend(*navigationData->xSharedQueue, &message, portMAX_DELAY) != pdPASS)
                 {
                     log_error("Failed to send ROTATION_DONE to xSharedQueue");
                 }
@@ -168,9 +172,9 @@ void TaskStationTracking(void* pvParameters) {
         // Check sensors
         read_tape_sensor(tapeSensor);
         value_left = tapeSensor->leftValue;
-        value_right = 0; // right tape sensor isn't working rn
-        // Serial.println("Right" + String (value_right));
-        // Serial.println("Left" + String (value_left));
+        value_right = tapeSensor->rightValue;
+        // Serial.println("Right Sensor: " + String(value_right));
+        // Serial.println("Left Sensor: " + String(value_left));
        
         if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
@@ -185,11 +189,17 @@ void TaskStationTracking(void* pvParameters) {
     }
 }
 
+// Ensure that a NavigationData_t* does not contain null values
+int checkDockingData(DockingData_t* dockingData) {
+    return dockingData == NULL || checkTapeSensor(dockingData->wingSensor);
+}
 
 void TaskDocking(void* pvParameters) {
     log_status("Initializing docking...");
-    TapeAwarenessData_t* tapeAwarenessData = (TapeAwarenessData_t*)pvParameters;
-    if (checkTapeAwarenessData(tapeAwarenessData)) {
+    
+    DockingData_t* dockingData = (DockingData_t*)pvParameters;
+
+    if (checkDockingData(dockingData)) {
         log_error("Error: Tape Awareness data buffer contains nulls!");
 
         vTaskDelete(xDockingHandle);
@@ -198,11 +208,8 @@ void TaskDocking(void* pvParameters) {
         return;
     }
 
+    DualTapeSensor_t* sensor = dockingData->wingSensor;
     TickType_t delay = pdMS_TO_TICKS(STATION_TRACKING_POLL_DELAY_MS);
-
-    state.direction = -state.direction; // Invert direction
-    state.drive_speed = MOTOR_SPEED_DOCKING;
-    state.drive_state = DRIVE;
 
     int value_left;
     int value_right;
@@ -211,14 +218,16 @@ void TaskDocking(void* pvParameters) {
 
     while (1) {
         // Check sensors
-        read_tape_sensor(tapeAwarenessData->tapeSensor);
-        value_left = tapeAwarenessData->tapeSensor->leftValue;
-        value_right = 0; // right tape sensor isn't working rn
+        read_tape_sensor(sensor);
+        value_left = sensor->leftValue;
+        value_right = sensor->rightValue; // right tape sensor isn't working rn
+        // Serial.println("Right Sensor: " + String(value_right));
+        // Serial.println("Left Sensor: " + String(value_left));
        
         if ((value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE)) {
             // state.last_station += state.orientation * state.direction;
             StatusMessage_t message = REACHED_POSITION;
-            xQueueSend(*tapeAwarenessData->xSharedQueue, &message, portMAX_DELAY);
+            xQueueSend(*dockingData->xSharedQueue, &message, portMAX_DELAY);
             log_status("Finished docking!");
             state.drive_state = STOP;
         } 
@@ -249,23 +258,41 @@ void TaskDrive(void* pvParameters) {
             case DriveState_t::ROTATE:
                 rotate_robot(robot_motors, state.drive_speed * state.helicity);
                 break;
+
+            case TRANSLATE:
+                translate_robot(robot_motors, state.drive_speed * state.y_direction);
+                break;
         }
         vTaskDelay(MOTOR_UPDATE_DELAY);
     }
 }
 
 void TaskCounterDocking(void* pvParameters) {
-    // begin move to counter
+    log_status("Initializing counter docking task...");
+
+    TaskHandle_t* xMasterHandle = (TaskHandle_t*)pvParameters;
+    if (xMasterHandle == NULL || *xMasterHandle == NULL) {
+        log_error("Nulls in master task handle!");
+        vTaskDelete(NULL);
+        return;
+    }
 
     uint32_t ulNotificationValue;
     while (1) {
         // Wait to be notified that limit switch hit the counter
         xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
-
+        log_status("Hit counter!");
         // Stop moving
+        state.drive_speed = 0;
+        state.drive_state = STOP;
+        taskYIELD(); // Yield so that the change in drive state can immediately be processed
+
+        // Notify master that we reached the counter
+        xTaskNotifyGive(*xMasterHandle);
+
+        // Task is over
         vTaskDelete(xCounterDockingHandle);
         xCounterDockingHandle = NULL;
-        // send message to master that we reached the counter? 
     }
 }
 

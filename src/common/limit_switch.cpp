@@ -6,7 +6,7 @@ volatile LimitSwitch_t* limit_switches[MAX_LIMIT_SWITCHES];
 
 void IRAM_ATTR GenericISR() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
+    Serial.println("ISR!");
     // Iterate over all registered limit switches, determine which one is currently triggered, and notify that task
     for (uint8_t i = 0; i < limit_switch_count; i++) {
         if (digitalRead(limit_switches[i]->interrupt_pin) == HIGH) {
@@ -45,6 +45,7 @@ LimitSwitch_t* instantiate_limit_switch(uint8_t interrupt_pin, TaskHandle_t* tas
     limit_switches[limit_switch_count++] = new_switch;
 
     // Attach the generic ISR
+    pinMode(interrupt_pin, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(interrupt_pin), GenericISR, RISING);
 
     log_status("Created new limit switch!");
