@@ -133,19 +133,8 @@ void TaskRotate(void *pvParameters) {
             int left_mean = tapeSensor->leftValue;
             int right_mean = tapeSensor->rightValue;
 
-            if ((right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE))
-            {
-                if (!on_tape) {
-                    count++;
-                    on_tape = true;
-                    Serial.println("See tape!");
-                    vTaskDelay(pdMS_TO_TICKS((int)(ROTATE_INITIAL_DELAY / 4)));
-                }
-            } else if (right_mean < THRESHOLD_SENSOR_SINGLE || left_mean < THRESHOLD_SENSOR_SINGLE) {
-                on_tape = false;
-            }  
-
-            if (count >= 2) {
+            if ((right_mean > THRESHOLD_SENSOR_SINGLE && left_mean > THRESHOLD_SENSOR_SINGLE)) {
+                vTaskDelay(pdMS_TO_TICKS(25));
                 log_status("Found tape. Ending rotation...");
                 state.drive_state = DriveState_t::STOP;
                 state.drive_speed = 0;
@@ -158,7 +147,6 @@ void TaskRotate(void *pvParameters) {
                     log_error("Failed to send ROTATION_DONE to xSharedQueue");
                 }
             }
-
             vTaskDelay(poll_rate_ticks);
         }
     }
