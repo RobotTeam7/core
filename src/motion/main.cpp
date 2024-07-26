@@ -85,11 +85,12 @@ void uart_msg_handler(void *parameter) {
 
                     case DO_SPIN:
                         state.current_action = ActionType_t::SPIN;
+                        state.direction = new_packet.value;
                         break;
+
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
                         state.y_direction = new_packet.value;
-                        Serial.println("Setting y-direction: " + String(state.y_direction));
                         break;
 
                     case TAPE_RETURN:
@@ -150,12 +151,10 @@ TaskHandle_t switch_handle_4 = NULL;
 void setup() {
     Serial.begin(115200);
 
-    // initialize_uart();
-    // begin_uart_read(&uart_msg_queue);
+    initialize_uart();
+    begin_uart_read(&uart_msg_queue);
 
-    // xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
-
-    state.current_action = ActionType_t::RETURN_TO_TAPE;
+    xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
 
     motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
     motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
@@ -197,8 +196,8 @@ void setup() {
     // LimitSwitch_t* test_switch_3 = instantiate_limit_switch(SWITCH_COUNTER_3, &switch_handle_3);
     // LimitSwitch_t* test_switch_4 = instantiate_limit_switch(SWITCH_COUNTER_4, &switch_handle_4);
 
-    limit_switch_front_left = instantiate_limit_switch(SWITCH_COUNTER_3, &xDockingHandle); 
-    limit_switch_back_left = instantiate_limit_switch(SWITCH_COUNTER_4, &xDockingHandle);
+    // limit_switch_front_left = instantiate_limit_switch(SWITCH_COUNTER_3, &xDockingHandle); 
+    // limit_switch_back_left = instantiate_limit_switch(SWITCH_COUNTER_4, &xDockingHandle);
 }
 
 void loop()
@@ -206,16 +205,16 @@ void loop()
     // monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle, &xStationTrackingHandle); // Monitor stack usage periodically
     // delay(2000);
 
-    if(state.current_action == GOTO_STATION) {
-        Serial.print("going to station: ");
-        Serial.println(state.desired_station);
-        Serial.println("direction: " + String(state.direction));
-    }else if(state.current_action == SPIN) {
-        Serial.println("rotating");
-    }else if(state.current_action == IDLE) {
-        Serial.println("idling");
-    }
-    delay(2000);
+    // if(state.current_action == GOTO_STATION) {
+    //     Serial.print("going to station: ");
+    //     Serial.println(state.desired_station);
+    //     Serial.println("direction: " + String(state.direction));
+    // }else if(state.current_action == SPIN) {
+    //     Serial.println("rotating");
+    // }else if(state.current_action == IDLE) {
+    //     Serial.println("idling");
+    // }
+    // delay(2000);
 }
 
 void TaskMaster(void *pvParameters)
@@ -261,7 +260,7 @@ void TaskMaster(void *pvParameters)
                 
                 // check if station difference and direction have opposite sign
                 // if they do flip the sign direction
-                if(station_difference * state.direction < 0) {
+                if(station_difference * state.direction * state.orientation < 0) {
                     state.direction = -state.direction;
                 }
 
@@ -389,7 +388,6 @@ void TaskMaster(void *pvParameters)
                     state.drive_state = STOP;
                     state.direction = FORWARD_DRIVE;
                 }
-                taskYIELD();
 
                 break;
             }

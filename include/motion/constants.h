@@ -7,7 +7,7 @@
 // Motor Speeds
 
 #define MOTOR_SPEED_FOLLOWING                       9000    // Base motor speed whilst tape following
-#define MOTOR_SPEED_ROTATION                        7000    // Base motor speed whilst rotating
+#define MOTOR_SPEED_ROTATION                        8000    // Base motor speed whilst rotating
 #define MOTOR_SPEED_DOCKING                         6000    // Base speed for when we are trying to dock
 #define MOTOR_SPEED_TRANSLATION                     14000   // Base speed for when we are trying to dock
 #define MOTOR_SPEED_BREAKING                        12000

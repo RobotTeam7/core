@@ -110,36 +110,46 @@ void TaskRotate(void *pvParameters) {
     TickType_t inital_delay_ticks = pdMS_TO_TICKS(ROTATE_INITIAL_DELAY);
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_ROTATING_MS);
 
-    DualTapeSensor_t* tapeSensor = navigationData->fontTapeSensor;
-    bool rotating;
-
+    DualTapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
+    
+    int count = 0;
+    bool on_tape = false;
     log_status("Successfully initialized rotation!");
 
     state.drive_state = DriveState_t::ROTATE;
     state.drive_speed = MOTOR_SPEED_ROTATION;
 
+    vTaskDelay(pdMS_TO_TICKS(ROTATE_INITIAL_DELAY));
+
     while (1) {
         // start rotating, then delay to ensure that rotation isn't immediately canceled by tape detection
         vTaskDelay(inital_delay_ticks);
-
-        // look for tape detection
-        rotating = true;
         
         log_message("Looking for tape...");
 
-        while (rotating)
+        while (count < 2)
         {
             read_tape_sensor(tapeSensor);
             int left_mean = tapeSensor->leftValue;
             int right_mean = tapeSensor->rightValue;
 
-            if (right_mean > THRESHOLD_SENSOR_SINGLE && left_mean > THRESHOLD_SENSOR_SINGLE)
+            if ((right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE))
             {
-                log_status("Found tape. Ending rotation...");
-                rotating = false;
+                if (!on_tape) {
+                    count++;
+                    on_tape = true;
+                    Serial.println("See tape!");
+                    vTaskDelay(pdMS_TO_TICKS((int)(ROTATE_INITIAL_DELAY / 2)));
+                }
+            } else if (right_mean < THRESHOLD_SENSOR_SINGLE || left_mean < THRESHOLD_SENSOR_SINGLE) {
+                on_tape = false;
+            }  
 
+            if (count >= 2) {
+                log_status("Found tape. Ending rotation...");
                 state.drive_state = DriveState_t::STOP;
                 state.drive_speed = 0;
+                state.orientation = -state.orientation;
 
                 // send message to TaskMaster that rotation has finished
                 StatusMessage_t message = ROTATION_DONE;
