@@ -314,7 +314,7 @@ void TaskReturnToTape(void* pvParameters) {
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(DELAY_RETURN_TO_TAPE_POLL);
     DualTapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
 
-    log_status("Successfully initialized rotation!");
+    log_status("Successfully initialized tape return!");
 
     state.drive_state = DriveState_t::TRANSLATE;
     state.drive_speed = MOTOR_SPEED_TRANSLATION;
@@ -326,8 +326,8 @@ void TaskReturnToTape(void* pvParameters) {
         read_tape_sensor(tapeSensor);
         int left_mean = tapeSensor->leftValue;
         int right_mean = tapeSensor->rightValue;
-        Serial.println("Left" + String(left_mean));
-        Serial.println("Right" + String(right_mean));
+        // Serial.println("Left" + String(left_mean));
+        // Serial.println("Right" + String(right_mean));
 
         if (right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE)
         {

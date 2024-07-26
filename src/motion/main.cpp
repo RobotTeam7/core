@@ -92,13 +92,13 @@ void uart_msg_handler(void *parameter) {
 
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
-                        // state.y_direction = new_packet.value;
+                        state.y_direction = new_packet.value;
                         break;
 
                     case TAPE_RETURN:
                     {
                         state.current_action = ActionType_t::RETURN_TO_TAPE;
-                        state.direction = -1;
+                        state.direction = new_packet.value;
                         break;
                     }
                 }
@@ -392,6 +392,7 @@ void TaskMaster(void *pvParameters)
                     state.drive_state = STOP;
                     state.direction = FORWARD_DRIVE;
                 }
+                state.y_direction = -state.y_direction;
 
                 break;
             }
