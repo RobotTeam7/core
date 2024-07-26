@@ -8,7 +8,7 @@
 #include <common/robot_motor.h>
 #include <common/stepper_motor.h>
 #include <common/reflectance_sensor.h>
-#include <common/limit_switch.h>
+#include <motion/limit_switch.h>
 
 #include <communication/uart.h>
 #include <communication/decode.h>
@@ -34,10 +34,13 @@ DualTapeSensor_t* wingSensor;
 
 LimitSwitch_t* limit_switch_front_left;
 LimitSwitch_t* limit_switch_back_left;
+LimitSwitch_t* limit_switch_front_right;
+LimitSwitch_t* limit_switch_back_right;
 
 RobotMotorData_t robotMotors;
 NavigationData_t config_following;
 DockingData_t config_docking;
+ReturnToTapeData_t return_data;
 
 StepperMotor_t* stepper_motor;
 
@@ -52,6 +55,7 @@ void begin_following();
 void begin_station_tracking();
 void begin_docking();
 void begin_counter_docking();
+void begin_return_to_tape();
 
 void uart_msg_handler(void *parameter) {
     log_status("Started message handler");
@@ -83,12 +87,20 @@ void uart_msg_handler(void *parameter) {
 
                     case DO_SPIN:
                         state.current_action = ActionType_t::SPIN;
+                        state.direction = new_packet.value;
                         break;
+
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
-                        state.y_direction = new_packet.value;
-                        Serial.println("Setting y-direction: " + String(state.y_direction));
+                        // state.y_direction = new_packet.value;
                         break;
+
+                    case TAPE_RETURN:
+                    {
+                        state.current_action = ActionType_t::RETURN_TO_TAPE;
+                        state.direction = -1;
+                        break;
+                    }
                 }
                 send_uart_message(ACCEPTED);
             }
@@ -158,6 +170,7 @@ void setup() {
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
     config_docking = { wingSensor, &xSharedQueue };
+    return_data = {frontTapeSensor, backTapeSensor, &xMasterHandle };
 
     // // check if driving task was created
     if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
@@ -185,8 +198,10 @@ void setup() {
     // LimitSwitch_t* test_switch_3 = instantiate_limit_switch(SWITCH_COUNTER_3, &switch_handle_3);
     // LimitSwitch_t* test_switch_4 = instantiate_limit_switch(SWITCH_COUNTER_4, &switch_handle_4);
 
-    limit_switch_front_left = instantiate_limit_switch(SWITCH_COUNTER_3, &xDockingHandle); 
-    limit_switch_back_left = instantiate_limit_switch(SWITCH_COUNTER_4, &xDockingHandle);
+    limit_switch_front_left = instantiate_limit_switch(SWITCH_COUNTER_3); 
+    limit_switch_back_left = instantiate_limit_switch(SWITCH_COUNTER_4);
+    limit_switch_front_right = instantiate_limit_switch(SWITCH_COUNTER_1); 
+    limit_switch_back_right = instantiate_limit_switch(SWITCH_COUNTER_2);
 }
 
 void loop()
@@ -194,16 +209,16 @@ void loop()
     // monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle, &xStationTrackingHandle); // Monitor stack usage periodically
     // delay(2000);
 
-    if(state.current_action == GOTO_STATION) {
-        Serial.print("going to station: ");
-        Serial.println(state.desired_station);
-        Serial.println("direction: " + String(state.direction));
-    }else if(state.current_action == SPIN) {
-        Serial.println("rotating");
-    }else if(state.current_action == IDLE) {
-        Serial.println("idling");
-    }
-    delay(2000);
+    // if(state.current_action == GOTO_STATION) {
+    //     Serial.print("going to station: ");
+    //     Serial.println(state.desired_station);
+    //     Serial.println("direction: " + String(state.direction));
+    // }else if(state.current_action == SPIN) {
+    //     Serial.println("rotating");
+    // }else if(state.current_action == IDLE) {
+    //     Serial.println("idling");
+    // }
+    // delay(2000);
 }
 
 void TaskMaster(void *pvParameters)
@@ -249,7 +264,7 @@ void TaskMaster(void *pvParameters)
                 
                 // check if station difference and direction have opposite sign
                 // if they do flip the sign direction
-                if(station_difference * state.direction < 0) {
+                if(station_difference * state.direction * state.orientation < 0) {
                     state.direction = -state.direction;
                 }
 
@@ -342,9 +357,6 @@ void TaskMaster(void *pvParameters)
                 log_status("Counter docking!");
 
                 state.drive_state = TRANSLATE;
-                // state.drive_speed = MOTOR_SPEED_TRANSLATION_HIGH;
-
-                // vTaskDelay(pdMS_TO_TICKS(666));
                 
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.tape_displacement_direction = -state.y_direction; // Update memory so we know how to get back
@@ -362,7 +374,30 @@ void TaskMaster(void *pvParameters)
                     state.drive_state = STOP;
                     state.direction = FORWARD_DRIVE;
                 }
-                taskYIELD();
+                break;
+            }
+
+            case ActionType_t::RETURN_TO_TAPE:
+            {
+                state.y_direction = state.tape_displacement_direction; // Go in the direction we came
+                state.drive_state = TRANSLATE;                         
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.tape_displacement_direction = 0;                  // We will be back on the tape
+
+                begin_return_to_tape();
+
+                uint32_t ulNotificationValue;
+                xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task
+
+                log_status("Arrived at station counter!");
+
+                send_uart_message(COMPLETED);
+                if (state.current_action == ActionType_t::RETURN_TO_TAPE) {
+                    state.current_action = IDLE;
+                    state.drive_state = STOP;
+                    state.direction = FORWARD_DRIVE;
+                }
+
                 break;
             }
         }
@@ -411,5 +446,14 @@ void begin_counter_docking() {
         log_status("Docking task was created successfully.");
     } else {
         log_error("Docking task was not created successfully!");
+    }
+}
+
+void begin_return_to_tape() {
+    // check if counter docking task was created
+    if (xTaskCreate(TaskReturnToTape, "Tape_Return", 2048, &return_data, PRIORITY_STATION_TRACKING, &xReturnToTapeHandle) == pdPASS) {
+        log_status("Tape return task was created successfully.");
+    } else {
+        log_error("Tape return task was not created successfully!");
     }
 }

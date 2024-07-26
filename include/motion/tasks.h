@@ -8,6 +8,7 @@
 
 #include <motion/constants.h>
 #include <motion/utils.h>
+#include <common/reflectance_sensor.h>
 
 
 extern TaskHandle_t xHandleRotating;
@@ -23,6 +24,12 @@ typedef struct {
     DualTapeSensor_t* backTapeSensor;
     QueueHandle_t* xSharedQueue;
 } NavigationData_t;
+
+typedef struct {
+    DualTapeSensor_t* fontTapeSensor;
+    DualTapeSensor_t* backTapeSensor;
+    TaskHandle_t* masterHandle;
+} ReturnToTapeData_t;
 
 typedef struct {
     DualTapeSensor_t* wingSensor;
