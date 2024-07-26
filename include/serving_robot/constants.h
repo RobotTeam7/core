@@ -17,8 +17,8 @@
 #define SERVO_CLAW_CLOSED               30 // closed
 
 #define SERVO_DRAW_BRIDGE_PIN           19
-#define SERVO_DRAW_BRIDGE_DOWN          80 // draw bridge up
-#define SERVO_DRAW_BRIDGE_UP            180 // draw bridge down
+#define SERVO_DRAW_BRIDGE_DOWN          87
+#define SERVO_DRAW_BRIDGE_UP            180
 
 #define SERVO_PLATE_PIN                 22
 #define SERVO_PLATE_OPEN                90 // open
