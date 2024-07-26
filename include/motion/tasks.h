@@ -8,6 +8,7 @@
 
 #include <motion/constants.h>
 #include <motion/utils.h>
+#include <common/reflectance_sensor.h>
 
 
 extern TaskHandle_t xHandleRotating;
