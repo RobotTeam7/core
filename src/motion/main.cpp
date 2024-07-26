@@ -182,7 +182,7 @@ void setup() {
     delay(100);
 
     // check if task master was created
-    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
+    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
         log_status("Master task was created successfully.");
     } else {
         log_error("Master task was not created successfully!");
@@ -446,7 +446,7 @@ void begin_counter_docking() {
 
 void begin_return_to_tape() {
     // check if counter docking task was created
-    if (xTaskCreate(TaskReturnToTape, "Tape_Return", 2048, &return_data, PRIORITY_STATION_TRACKING, &xReturnToTapeHandle) == pdPASS) {
+    if (xTaskCreate(TaskReturnToTape, "Tape_Return", 2048, &return_data, PRIORITY_RETURN_TO_TAPE, &xReturnToTapeHandle) == pdPASS) {
         log_status("Tape return task was created successfully.");
     } else {
         log_error("Tape return task was not created successfully!");

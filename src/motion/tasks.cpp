@@ -324,6 +324,7 @@ void TaskReturnToTape(void* pvParameters) {
 
     // convert ms delays into ticks
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(DELAY_RETURN_TO_TAPE_POLL);
+    DualTapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
 
     log_status("Successfully initialized rotation!");
 
@@ -334,11 +335,13 @@ void TaskReturnToTape(void* pvParameters) {
 
     while (1) {
         // look for tape detection
-        read_tape_sensor(navigationData->fontTapeSensor);
-        int left_mean = navigationData->fontTapeSensor->leftValue;
-        int right_mean = navigationData->fontTapeSensor->rightValue;
+        read_tape_sensor(tapeSensor);
+        int left_mean = tapeSensor->leftValue;
+        int right_mean = tapeSensor->rightValue;
+        Serial.println("Left" + String(left_mean));
+        Serial.println("Right" + String(right_mean));
 
-        if (right_mean > THRESHOLD_SENSOR_SINGLE && left_mean > THRESHOLD_SENSOR_SINGLE)
+        if (right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE)
         {
             log_status("Found tape. Ending return to tape...");
 
@@ -350,6 +353,8 @@ void TaskReturnToTape(void* pvParameters) {
 
             vTaskDelete(NULL);
             xReturnToTapeHandle = NULL;
+            taskYIELD();
+
             break;
         }
 

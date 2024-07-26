@@ -94,7 +94,7 @@ void TaskMaster(void* pvParameters) {
     }
 
     while (true) {
-        vTaskDelay(pdMS_TO_TICKS(6000));
+        vTaskDelay(pdMS_TO_TICKS(2000));
 
         Serial.println("raising stepper motor");
         actuate_stepper_motor(stepper_motor, DOWN, 3000);
@@ -127,8 +127,6 @@ void TaskMaster(void* pvParameters) {
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
 
-
-
         log_status("Motion ready! Docking at cheese station!");
         MOTION_BUSY = true;
         send_uart_message(COUNTER_DOCK, 1);
@@ -143,7 +141,6 @@ void TaskMaster(void* pvParameters) {
         log_status("grabby!");
         claw_servo.write(SERVO_CLAW_CLOSED - 20);
         vTaskDelay(pdMS_TO_TICKS(1000));
-
 
         log_status("returning to counter!");
         send_uart_message(TAPE_RETURN);
