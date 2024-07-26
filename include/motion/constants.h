@@ -17,7 +17,7 @@
 #define MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS    1       // delay between motor PID adjustment (ms)
 #define MOTOR_ADJUSTMENT_DELAY_ROTATING_MS          1       // delay between checks for tape during rotation (ms)
 #define ROTATE_INTO_TAPE_FOLLOW_DELAY               300     // delay between rotation task end and tape following beginning (ms)
-#define ROTATE_INITIAL_DELAY                        1500    // delay between rotation task beginning and checking for tape (ms)               
+#define ROTATE_INITIAL_DELAY                        1200    // delay between rotation task beginning and checking for tape (ms)               
 #define STATION_TRACKING_POLL_DELAY_MS              20      // delay between polls for if we see station tape
 #define MOTOR_UPDATE_DELAY                          1       // delay between motor drive state updates 
 #define TAPE_TRACKING_INTITAL_DELAY                 500     // delay between when we start driving and when we start tracking tape (ms)
@@ -61,7 +61,7 @@
 // Motion Task Priorities
 #define PRIORITY_DRIVE_UPDATE       4
 #define PRIORITY_FOLLOW_TAPE        2
-#define PRIORITY_ROTATE             3
+#define PRIORITY_ROTATE             5
 #define PRIORITY_STATION_TRACKING   3
 #define PRIORITY_RETURN_TO_TAPE     5
 

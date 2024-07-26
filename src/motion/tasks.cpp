@@ -133,7 +133,7 @@ void TaskRotate(void *pvParameters) {
             int left_mean = tapeSensor->leftValue;
             int right_mean = tapeSensor->rightValue;
 
-            if ((right_mean > THRESHOLD_SENSOR_SINGLE && left_mean > THRESHOLD_SENSOR_SINGLE)) {
+            if ((right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE)) {
                 vTaskDelay(pdMS_TO_TICKS(25));
                 log_status("Found tape. Ending rotation...");
                 state.drive_state = DriveState_t::STOP;
@@ -175,6 +175,9 @@ void TaskStationTracking(void* pvParameters) {
         read_tape_sensor(tapeSensor);
         value_left = tapeSensor->leftValue;
         value_right = tapeSensor->rightValue;
+
+        // Serial.println("left sensor: " + String(value_left));
+        // Serial.println("right sensor: " + String(value_right));
        
         if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
@@ -326,8 +329,8 @@ void TaskReturnToTape(void* pvParameters) {
         read_tape_sensor(tapeSensor);
         int left_mean = tapeSensor->leftValue;
         int right_mean = tapeSensor->rightValue;
-        // Serial.println("Left" + String(left_mean));
-        // Serial.println("Right" + String(right_mean));
+        Serial.println("Left" + String(left_mean));
+        Serial.println("Right" + String(right_mean));
 
         if (right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE)
         {

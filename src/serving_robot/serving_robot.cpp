@@ -95,6 +95,19 @@ void TaskMaster(void* pvParameters) {
     }
 
     while (true) {
+        plating_servo.write(SERVO_PLATE_OPEN);
+        vTaskDelay(pdMS_TO_TICKS(4000));
+
+        Serial.println("servo bridge up");
+        for(int i = SERVO_DRAW_BRIDGE_DOWN ; i < SERVO_DRAW_BRIDGE_UP; i++) {
+            draw_bridge_servo.write(i);
+            vTaskDelay(pdMS_TO_TICKS(15));
+            Serial.println("raising!");
+        }
+        vTaskDelay(pdMS_TO_TICKS(4000));
+
+
+        
         vTaskDelay(pdMS_TO_TICKS(2000));
         Serial.println("raising stepper motor");
         actuate_stepper_motor(stepper_motor, DOWN, 3000);
@@ -109,7 +122,7 @@ void TaskMaster(void* pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(1000));
 
         log_status("Motion ready! Going to Station 1!");
-        send_uart_message(GOTO, 5);
+        send_uart_message(GOTO, 1);
         MOTION_BUSY = true;
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -132,7 +145,15 @@ void TaskMaster(void* pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(1000));
 
         log_status("returning to counter!");
-        send_uart_message(TAPE_RETURN, -1);
+        send_uart_message(TAPE_RETURN, 1);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        log_status("Motion ready! Going to Station 1!");
+        send_uart_message(GOTO, 2);
         MOTION_BUSY = true;
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -140,7 +161,7 @@ void TaskMaster(void* pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(1000));
 
         log_status("rotating!");
-        send_uart_message(DO_SPIN, 1);
+        send_uart_message(DO_SPIN, -1);
         MOTION_BUSY = true;
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -168,11 +189,11 @@ void TaskMaster(void* pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(1000));
 
         log_status("dropping cheese!");
-        claw_servo.write(SERVO_CLAW_OPEN);
-        delay(1000);
+        claw_servo.write(SERVO_CLAW_OPEN + 20);
+        delay(2000);
 
         log_status("returning to counter!");
-        send_uart_message(TAPE_RETURN, -1);
+        send_uart_message(TAPE_RETURN, 1);
         MOTION_BUSY = true;
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -180,7 +201,27 @@ void TaskMaster(void* pvParameters) {
 
         log_status("lowering stepper motor");
         actuate_stepper_motor(stepper_motor, UP, 6000);
-        vTaskDelay(pdMS_TO_TICKS(12000));
+
+        log_status("rotating!");
+        send_uart_message(DO_SPIN, -1);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        plating_servo.write(SERVO_PLATE_OPEN);
+        
+        Serial.println("servo bridge down");
+        draw_bridge_servo.write(SERVO_DRAW_BRIDGE_DOWN);
+        for(int i = SERVO_DRAW_BRIDGE_UP ; i > SERVO_DRAW_BRIDGE_DOWN; i--) {
+            draw_bridge_servo.write(i);
+            vTaskDelay(pdMS_TO_TICKS(15));
+            Serial.println("lowering!");
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(4000));
+
 
         log_status("dock at plates!");
         send_uart_message(COUNTER_DOCK, 1);
@@ -189,6 +230,52 @@ void TaskMaster(void* pvParameters) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        plating_servo.write(SERVO_PLATE_CLOSED);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        send_uart_message(TAPE_RETURN, -1);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        send_uart_message(GOTO, 3);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        log_status("rotating!");
+        send_uart_message(DO_SPIN, -1);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+
+        send_uart_message(GOTO, 2);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        send_uart_message(ABORT);
+
+
+        log_status("dock at plates!");
+        send_uart_message(COUNTER_DOCK, 1);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+
 
         Serial.println("Done!");
         while (1) {
