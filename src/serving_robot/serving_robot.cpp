@@ -88,8 +88,6 @@ void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
 
-
-
     // Wait for green light from motion board
     Serial.println("awaitng motion to be ready");
     while (!MOTION_READY) {
@@ -180,13 +178,9 @@ void TaskMaster(void* pvParameters) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
 
-        log_status("rotating!");
-        send_uart_message(DO_SPIN, 1);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        log_status("lowering stepper motor");
+        actuate_stepper_motor(stepper_motor, UP, 6000);
+        vTaskDelay(pdMS_TO_TICKS(12000));
 
         log_status("dock at plates!");
         send_uart_message(COUNTER_DOCK, 1);
@@ -195,16 +189,6 @@ void TaskMaster(void* pvParameters) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
-
-        draw_bridge_servo.write(SERVO_DRAW_BRIDGE_DOWN);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        plating_servo.write(SERVO_PLATE_CLOSED);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-
-        log_status("lowering stepper motor");
-        actuate_stepper_motor(stepper_motor, UP, 6000);
-        vTaskDelay(pdMS_TO_TICKS(12000));
-
 
         Serial.println("Done!");
         while (1) {
