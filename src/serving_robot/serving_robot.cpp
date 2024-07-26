@@ -8,7 +8,7 @@
 #include <common/servo_motor.h>
 #include <common/robot_motor.h>
 #include <common/pwm.h>
-#include <common/limit_switch.h>
+#include <motion/limit_switch.h>
 
 #include <communication/wifi_client.h>
 #include <communication/uart.h>
@@ -29,6 +29,7 @@ WiFiHandler_t wifi_handler = {
 
 Servo claw_servo;
 Servo draw_bridge_servo;
+Servo plating_servo;
 
 StepperMotor_t* stepper_motor;
 
@@ -91,46 +92,139 @@ void TaskMaster(void* pvParameters) {
     while (!MOTION_READY) {
         vTaskDelay(10 / portTICK_PERIOD_MS);
     }
+
     while (true) {
-        log_status("Motion ready! Sending move command");
-        send_uart_message(GOTO, 1);
-        MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(6000));
+
+        Serial.println("raising stepper motor");
+        actuate_stepper_motor(stepper_motor, DOWN, 3000);
+
+        Serial.println(String(draw_bridge_servo.read()));
+        for(int i = 0 ; i < SERVO_DRAW_BRIDGE_UP; i++) {
+            draw_bridge_servo.write(i);
+            vTaskDelay(pdMS_TO_TICKS(15));
+            Serial.println("raising!");
         }
+        claw_servo.write(SERVO_CLAW_OPEN + 10);
+        Serial.println("servo is raised");
         vTaskDelay(pdMS_TO_TICKS(1000));
+
+        // // Rotate with intention to drive backwards after
+        // log_status("Motion ready! Rotating!");
+        // send_uart_message(DO_SPIN, -1);
+        // MOTION_BUSY = true;
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        // vTaskDelay(pdMS_TO_TICKS(1000));
         
-        log_status("Motion ready! Sending move command");
-        send_uart_message(GOTO, 3);
-        MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        // go to cheese station
+        log_status("Motion ready! Going to Station 1!");
+        send_uart_message(GOTO, 5);
+        MOTION_BUSY = true;
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
 
-        log_status("Motion ready! Sending move command");
-        send_uart_message(GOTO, 2);
-        MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        
+
+
+        log_status("Motion ready! Docking at cheese station!");
         MOTION_BUSY = true;
         send_uart_message(COUNTER_DOCK, 1);
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
-        vTaskDelay(1000);
 
+        log_status("lowering stepper motor");
         actuate_stepper_motor(stepper_motor, UP, 3000);
-        vTaskDelay(pdMS_TO_TICKS(8000));
+        vTaskDelay(pdMS_TO_TICKS(7000));
 
-        claw_servo.write(30);
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        log_status("grabby!");
+        claw_servo.write(SERVO_CLAW_CLOSED - 20);
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
+
+        log_status("returning to counter!");
+        send_uart_message(TAPE_RETURN);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        // log_status("rotating!");
+        // send_uart_message(DO_SPIN, 1);
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        // vTaskDelay(pdMS_TO_TICKS(1000));
+
+        log_status("go to plate!");
+        send_uart_message(GOTO, 4);
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        log_status("raising stepper motor");
         actuate_stepper_motor(stepper_motor, DOWN, 3000);
-        vTaskDelay(pdMS_TO_TICKS(8000));
-        break;
+        vTaskDelay(pdMS_TO_TICKS(7000));
+
+        log_status("dock at plates!");
+        send_uart_message(COUNTER_DOCK, 1);
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        log_status("dropping cheese!");
+        claw_servo.write(SERVO_CLAW_OPEN);
+
+        Serial.println("Done!");
+        while (1) {
+            vTaskDelay(1000);
+        }
+
+        // log_status("Motion ready! Sending move command");
+        // send_uart_message(GOTO, 1);
+        // MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        
+        
+        // log_status("Motion ready! Sending move command");
+        // send_uart_message(GOTO, 3);
+        // MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        // vTaskDelay(pdMS_TO_TICKS(1000));
+
+        // log_status("Motion ready! Sending move command");
+        // send_uart_message(GOTO, 2);
+        // MOTION_BUSY = true; // should be set in send_uart, not here where we could forget
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        
+        // MOTION_BUSY = true;
+        // send_uart_message(COUNTER_DOCK, 1);
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        // vTaskDelay(1000);
+
+        // actuate_stepper_motor(stepper_motor, UP, 3000);
+        // vTaskDelay(pdMS_TO_TICKS(8000));
+
+        // claw_servo.write(30);
+        // vTaskDelay(pdMS_TO_TICKS(2000));
+
+        // actuate_stepper_motor(stepper_motor, DOWN, 3000);
+        // vTaskDelay(pdMS_TO_TICKS(8000));
+        // break;
     }
 }
 
@@ -143,6 +237,8 @@ void setup() {
     claw_servo.attach(SERVO_CLAW_PIN);
     draw_bridge_servo = Servo();
     draw_bridge_servo.attach(SERVO_DRAW_BRIDGE_PIN);
+    plating_servo = Servo();
+    plating_servo.attach(SERVO_PLATE_PIN);
 
     stepper_motor = instantiate_stepper_motor(STEPPER_CONTROL_PIN, STEPPER_DIRECTION_PIN, STEPPER_SLEEP_PIN, 0, 500);
     // actuate_stepper_motor(stepper_motor, UP, 1000);

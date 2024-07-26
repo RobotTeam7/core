@@ -15,7 +15,7 @@
 // Delays
 
 #define MOTOR_ADJUSTMENT_DELAY_TAPE_FOLLOWING_MS    1       // delay between motor PID adjustment (ms)
-#define MOTOR_ADJUSTMENT_DELAY_ROTATING_MS          1       // delay between checks for tape during rotation (ms)
+#define MOTOR_ADJUSTMENT_DELAY_ROTATING_MS          2       // delay between checks for tape during rotation (ms)
 #define ROTATE_INTO_TAPE_FOLLOW_DELAY               300     // delay between rotation task end and tape following beginning (ms)
 #define ROTATE_INITIAL_DELAY                        1000    // delay between rotation task beginning and checking for tape (ms)               
 #define STATION_TRACKING_POLL_DELAY_MS              20      // delay between polls for if we see station tape

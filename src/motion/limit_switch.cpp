@@ -1,8 +1,20 @@
-#include <common/limit_switch.h>
-
+#include <motion/limit_switch.h>
+#include <motion/tasks.h>
 
 volatile uint8_t limit_switch_count = 0;
 volatile LimitSwitch_t* limit_switches[MAX_LIMIT_SWITCHES];
+
+void IRAM_ATTR docking_isr() {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    Serial.println("ISR!");
+
+    vTaskNotifyGiveFromISR(xDockingHandle, &xHigherPriorityTaskWoken);
+
+    // Request a context switch if giving the notification unblocked a higher priority task
+    if (xHigherPriorityTaskWoken == pdTRUE) {
+        portYIELD_FROM_ISR();
+    }
+} 
 
 void IRAM_ATTR GenericISR() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -27,7 +39,7 @@ void IRAM_ATTR GenericISR() {
     }
 }
 
-LimitSwitch_t* instantiate_limit_switch(uint8_t interrupt_pin, TaskHandle_t* task_to_notify) {
+LimitSwitch_t* instantiate_limit_switch(uint8_t interrupt_pin) {
     if (limit_switch_count >= MAX_LIMIT_SWITCHES) {
         log_error("Limit switch creation aborted: reached maximum number of limit switches!");
         return NULL;
@@ -40,13 +52,10 @@ LimitSwitch_t* instantiate_limit_switch(uint8_t interrupt_pin, TaskHandle_t* tas
     }
 
     new_switch->interrupt_pin = interrupt_pin;
-    new_switch->task_to_notify = task_to_notify;
-
-    limit_switches[limit_switch_count++] = new_switch;
 
     // Attach the generic ISR
     pinMode(interrupt_pin, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(interrupt_pin), GenericISR, RISING);
+    attachInterrupt(digitalPinToInterrupt(interrupt_pin), docking_isr, RISING);
 
     log_status("Created new limit switch!");
 

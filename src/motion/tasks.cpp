@@ -139,7 +139,7 @@ void TaskRotate(void *pvParameters) {
                     count++;
                     on_tape = true;
                     Serial.println("See tape!");
-                    vTaskDelay(pdMS_TO_TICKS((int)(ROTATE_INITIAL_DELAY / 2)));
+                    vTaskDelay(pdMS_TO_TICKS((int)(ROTATE_INITIAL_DELAY / 4)));
                 }
             } else if (right_mean < THRESHOLD_SENSOR_SINGLE || left_mean < THRESHOLD_SENSOR_SINGLE) {
                 on_tape = false;

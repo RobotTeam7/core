@@ -13,16 +13,16 @@
 
 
 #define SERVO_CLAW_PIN                  5
-#define SERVO_CLAW_MAX                  0.08 // open
-#define SERVO_CLAW_MIN                  0.055 // closed
+#define SERVO_CLAW_OPEN                 90 // open
+#define SERVO_CLAW_CLOSED               30 // closed
 
 #define SERVO_DRAW_BRIDGE_PIN           19
-#define SERVO_DRAW_BRIDGE_MAX           0.09 // draw bridge up
-#define SERVO_DRAW_BRIDGE_MIN           0.03 // draw bridge down
+#define SERVO_DRAW_BRIDGE_DOWN          55 // draw bridge up
+#define SERVO_DRAW_BRIDGE_UP            160 // draw bridge down
 
 #define SERVO_PLATE_PIN                 22
-#define SERVO_PLATE_MAX                 0.08 // open
-#define SERVO_PLATE_MIN                 0.055 // closed
+#define SERVO_PLATE_OPEN                90 // open
+#define SERVO_PLATE_CLOSED              30 // closed
 
 
 

@@ -27,7 +27,7 @@ extern volatile LimitSwitch_t* limit_switches[MAX_LIMIT_SWITCHES];   // Array to
  * 
  * @returns Heap-allocated (created with `malloc()`) pointer. Remember to free!
  */
-LimitSwitch_t* instantiate_limit_switch(uint8_t interrupt_pin, TaskHandle_t* task_to_notify);
+LimitSwitch_t* instantiate_limit_switch(uint8_t interrupt_pin);
 
 
 #endif // LIMIT_SWITCH_H

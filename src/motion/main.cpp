@@ -8,7 +8,7 @@
 #include <common/robot_motor.h>
 #include <common/stepper_motor.h>
 #include <common/reflectance_sensor.h>
-#include <common/limit_switch.h>
+#include <motion/limit_switch.h>
 
 #include <communication/uart.h>
 #include <communication/decode.h>
@@ -34,6 +34,8 @@ DualTapeSensor_t* wingSensor;
 
 LimitSwitch_t* limit_switch_front_left;
 LimitSwitch_t* limit_switch_back_left;
+LimitSwitch_t* limit_switch_front_right;
+LimitSwitch_t* limit_switch_back_right;
 
 RobotMotorData_t robotMotors;
 NavigationData_t config_following;
@@ -90,13 +92,13 @@ void uart_msg_handler(void *parameter) {
 
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
-                        state.y_direction = new_packet.value;
+                        // state.y_direction = new_packet.value;
                         break;
 
                     case TAPE_RETURN:
                     {
                         state.current_action = ActionType_t::RETURN_TO_TAPE;
-                        state.direction = new_packet.value;
+                        state.direction = -1;
                         break;
                     }
                 }
@@ -196,8 +198,10 @@ void setup() {
     // LimitSwitch_t* test_switch_3 = instantiate_limit_switch(SWITCH_COUNTER_3, &switch_handle_3);
     // LimitSwitch_t* test_switch_4 = instantiate_limit_switch(SWITCH_COUNTER_4, &switch_handle_4);
 
-    // limit_switch_front_left = instantiate_limit_switch(SWITCH_COUNTER_3, &xDockingHandle); 
-    // limit_switch_back_left = instantiate_limit_switch(SWITCH_COUNTER_4, &xDockingHandle);
+    limit_switch_front_left = instantiate_limit_switch(SWITCH_COUNTER_3); 
+    limit_switch_back_left = instantiate_limit_switch(SWITCH_COUNTER_4);
+    limit_switch_front_right = instantiate_limit_switch(SWITCH_COUNTER_1); 
+    limit_switch_back_right = instantiate_limit_switch(SWITCH_COUNTER_2);
 }
 
 void loop()
