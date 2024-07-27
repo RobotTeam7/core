@@ -134,7 +134,7 @@ void TaskRotate(void *pvParameters) {
             int right_mean = tapeSensor->rightValue;
 
             if ((right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE)) {
-                vTaskDelay(pdMS_TO_TICKS(25));
+                // vTaskDelay(pdMS_TO_TICKS(25));
                 log_status("Found tape. Ending rotation...");
                 state.drive_state = DriveState_t::STOP;
                 state.drive_speed = 0;

@@ -167,6 +167,19 @@ void setup() {
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT, BACK_TAPE_SENSOR_RIGHT);
     wingSensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR, RIGHT_WING_TAPE_SENSOR);
 
+    // while (1) {
+    //     read_tape_sensor(wingSensor);
+    //     read_tape_sensor(backTapeSensor);
+    //     read_tape_sensor(frontTapeSensor);
+    //     Serial.println("Right Wing: " + String(wingSensor->leftValue));
+    //     Serial.println("Left Wing: " + String(wingSensor->rightValue));
+    //     Serial.println("Left Front: " + String(frontTapeSensor->leftValue));
+    //     Serial.println("Right Front: " + String(frontTapeSensor->rightValue));
+    //     Serial.println("Back Left: " + String(backTapeSensor->leftValue));
+    //     Serial.println("Back Right: " + String(backTapeSensor->rightValue));
+    //     delay(100);
+    // }
+
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
     config_docking = { wingSensor, &xSharedQueue };

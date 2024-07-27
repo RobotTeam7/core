@@ -21,12 +21,12 @@
 #define STATION_TRACKING_POLL_DELAY_MS              20      // delay between polls for if we see station tape
 #define MOTOR_UPDATE_DELAY                          1       // delay between motor drive state updates 
 #define TAPE_TRACKING_INTITAL_DELAY                 500     // delay between when we start driving and when we start tracking tape (ms)
-#define DELAY_BREAKING                              150     // delay between running motors in reverse and stopping for sharp robot breaking
+#define DELAY_BREAKING                              0     // delay between running motors in reverse and stopping for sharp robot breaking
 #define DELAY_RETURN_TO_TAPE_POLL                   1       // delay between polls to see if we see tape while returning to tape
 
 // Sensor Thresholds
 
-#define THRESHOLD_SENSOR_SINGLE     1500    //defines the minimum  reflectance sensor reading to determine a sensor is seeing tape
+#define THRESHOLD_SENSOR_SINGLE     1000    //defines the minimum  reflectance sensor reading to determine a sensor is seeing tape
 #define DEBOUNCE_TAPE_THRESHOLD     10      // Consecutive polls in which we need to see tape to affirm that we are on a station
  
 // Pin Definitions
