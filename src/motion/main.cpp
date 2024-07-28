@@ -279,7 +279,7 @@ void TaskMaster(void *pvParameters)
             {   
                 int station_difference = state.desired_station - state.last_station;
                 if(station_difference == 0) {
-                    Serial.println("already at desired station!");
+                    log_error("already at desired station!");
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
@@ -399,7 +399,13 @@ void TaskMaster(void *pvParameters)
 
             case ActionType_t::RETURN_TO_TAPE:
             {
-                state.y_direction = -state.y_direction; // Go in the direction we came
+                if(state.y_direction == 0) {
+                    log_error("state indicates that we are currently on the tape, cannot return to tape!");
+                    send_uart_message(COMPLETED);
+                    state.current_action == IDLE;
+
+                }
+                state.y_direction = -state.y_direction; // Go in the direction away from current counter
                 state.drive_state = TRANSLATE;                         
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
 
