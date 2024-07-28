@@ -331,11 +331,16 @@ void TaskMaster(void *pvParameters)
                             if (receivedMessage == REACHED_POSITION) {
                                 log_status("Reached position: found tape!");     
 
-                                vTaskDelete(xDockingHandle);
-                                xDockingHandle = NULL;
+                                if (xDockingHandle != NULL) {
+                                    vTaskDelete(xDockingHandle);
+                                    xDockingHandle = NULL;
+                                }
 
-                                vTaskDelete(xHandleFollowing);
-                                xHandleFollowing = NULL;
+                                if (xHandleFollowing != NULL) {
+                                    vTaskDelete(xHandleFollowing);
+                                    xHandleFollowing = NULL;
+                                }
+                                
                                 state.yaw = 0;
 
                                 send_uart_message(COMPLETED);
