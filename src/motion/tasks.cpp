@@ -370,7 +370,7 @@ void TaskFollowWall(void* pvParameters) {
     log_status("Successfully initialized TaskFollowWall");
 
     DualTapeSensor_t* wingSensor = fullSensorData->wingSensor;
-    DualTapeSensor_t* sensor = state.direction > 0 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
+    DualTapeSensor_t* sensor = state.direction == 1 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
 
     while(1) {
         // if we are within one station of our desired station
