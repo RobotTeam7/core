@@ -402,7 +402,7 @@ void TaskMaster(void *pvParameters)
                 state.y_direction = -state.y_direction; // Go in the direction we came
                 state.drive_state = TRANSLATE;                         
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
-                
+
                 begin_return_to_tape();
 
                 uint32_t ulNotificationValue;
@@ -477,11 +477,11 @@ void TaskMaster(void *pvParameters)
                         state.yaw = 0;
                         state.drive_speed = 0;
                         state.drive_state = DriveState_t::STOP;
+                        taskYIELD();    // yield so motor states are updated immediately
                         state.current_action = IDLE;
                         send_uart_message(COMPLETED);
                     }
                     vTaskDelay(10 / portTICK_PERIOD_MS);
-
                 }
                 break;
             }
