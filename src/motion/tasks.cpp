@@ -263,8 +263,8 @@ void TaskDrive(void* pvParameters) {
                 rotate_robot(robot_motors, state.drive_speed * state.helicity);
                 break;
 
-            case TRANSLATE:
-                translate_robot(robot_motors, state.drive_speed * state.y_direction);
+            case DriveState_t::TRANSLATE:
+                translate_robot(robot_motors, state.drive_speed * state.y_direction * -state.orientation);
                 break;
         }
         vTaskDelay(MOTOR_UPDATE_DELAY);

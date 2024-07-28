@@ -380,7 +380,6 @@ void TaskMaster(void *pvParameters)
                 state.drive_state = TRANSLATE;
                 
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
-                state.tape_displacement_direction = -state.y_direction; // Update memory so we know how to get back
 
                 begin_counter_docking();
 
@@ -400,17 +399,16 @@ void TaskMaster(void *pvParameters)
 
             case ActionType_t::RETURN_TO_TAPE:
             {
-                state.y_direction = state.tape_displacement_direction; // Go in the direction we came
+                state.y_direction = -state.y_direction; // Go in the direction we came
                 state.drive_state = TRANSLATE;                         
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
-                state.tape_displacement_direction = 0;                  // We will be back on the tape
-
+                
                 begin_return_to_tape();
 
                 uint32_t ulNotificationValue;
                 xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task
 
-                log_status("Arrived at station counter!");
+                log_status("Arrived back at tape!");
 
                 send_uart_message(COMPLETED);
                 if (state.current_action == ActionType_t::RETURN_TO_TAPE) {
@@ -418,7 +416,7 @@ void TaskMaster(void *pvParameters)
                     state.drive_state = STOP;
                     state.direction = FORWARD_DRIVE;
                 }
-                state.y_direction = -state.y_direction;
+                state.y_direction = 0;
 
                 break;
             }
