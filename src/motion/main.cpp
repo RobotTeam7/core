@@ -432,14 +432,14 @@ void TaskMaster(void *pvParameters)
                int station_difference = state.desired_station - state.last_station;
                // abort navigation if desired station is our last station
                 if(station_difference == 0) {
-                    log_status("already at desired station!");
+                    log_error("already at desired station!");
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
 
                 // cannot wall slam if we aren't at a wall
                 if(state.y_direction == 0) {
-                   log_status("not currently docked at a wall!");
+                    log_error("not currently docked at a wall!");
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
