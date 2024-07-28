@@ -11,7 +11,8 @@
 #define MOTOR_SPEED_DOCKING                         6000    // Base speed for when we are trying to dock
 #define MOTOR_SPEED_TRANSLATION                     13000   // Base speed for when we are trying to dock
 #define MOTOR_SPEED_BREAKING                        12000   // Break speed of the motors
-#define MOTOR_SPEED_WALL_SLAMMING                   9000    // Base motor sped whilst wall slamming
+#define MOTOR_SPEED_WALL_SLAMMING                   11000    // Base motor sped whilst wall slamming
+#define MOTOR_SPEED_WALL_SLAMMING_APPROACH          7000    // Base motor sped whilst approaching desired station and wall slamming
 
 // Delays
 
@@ -25,6 +26,7 @@
 #define DELAY_BREAKING                              0       // delay between running motors in reverse and stopping for sharp robot breaking
 #define DELAY_RETURN_TO_TAPE_POLL                   1       // delay between polls to see if we see tape while returning to tape
 #define DELAY_STATION_TRACKING_POLL                 5       // delay between polls to see if we see station tape   
+#define DELAY_WALL_SLAMMING_POLL                    5       // delay between polls to check if we are approaching tape during wall slamming
 
 // Sensor Thresholds
 
@@ -77,7 +79,7 @@
 #define EFFICIENCY_BACK_RIGHT       1
 #define EFFICIENCY_BACK_LEFT        1
 
-#define YAW_WALL_SLAMMING           1000 // the yaw (motor difference) introduced during wall slamming to ensure the robot the wall.
+#define YAW_WALL_SLAMMING           500 // the yaw (motor difference) introduced during wall slamming to ensure the robot the wall.
 
 
 #endif // MOTION_CONSTANTS_H

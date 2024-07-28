@@ -8,7 +8,7 @@
 
 typedef enum { GOTO_STATION, SPIN, IDLE, DOCK_AT_STATION, RETURN_TO_TAPE, WALL_SLAM_TO } ActionType_t;
 
-typedef enum { DRIVE, ROTATE, STOP, TRANSLATE, HUG_WALL } DriveState_t;
+typedef enum { DRIVE, ROTATE, STOP, TRANSLATE } DriveState_t;
 
 typedef struct {
     // Memory

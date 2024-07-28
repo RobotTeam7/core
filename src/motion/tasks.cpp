@@ -354,6 +354,33 @@ void TaskReturnToTape(void* pvParameters) {
     }
 }
 
-void TaskFollowWall(void* pvParameters) {
+int checkFullSensorData(FullSensorData_t* fullSensorData) {
+    return fullSensorData == NULL || checkTapeSensor(fullSensorData->wingSensor) || checkTapeSensor(fullSensorData->fontTapeSensor) || checkTapeSensor(fullSensorData->backTapeSensor);
+}
 
+void TaskFollowWall(void* pvParameters) {
+    FullSensorData_t* fullSensorData = (FullSensorData_t*)pvParameters;
+
+    if (checkFullSensorData(fullSensorData)) {
+        log_error("Error: Full Sensor Data in Follow Wall contains nulls!");
+        vTaskDelete(xFollowWallHandle);
+        xFollowWallHandle = NULL;
+        return;
+    }
+    log_status("Successfully initialized TaskFollowWall");
+
+    DualTapeSensor_t* wingSensor = fullSensorData->wingSensor;
+    DualTapeSensor_t* sensor = state.direction > 0 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
+
+    while(1) {
+        // if we are within one station of our desired station
+        if(state.desired_station - state.last_station <= 1 && state.desired_station - state.last_station >= -1) {
+            read_tape_sensor(sensor);
+            if(sensor->leftValue > THRESHOLD_SENSOR_SINGLE || sensor->rightValue > THRESHOLD_SENSOR_SINGLE) {
+                log_status("detecting approaching tape, lowering motor speed");
+                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_APPROACH;
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_POLL));
+    }
 }

@@ -57,6 +57,7 @@ void begin_station_tracking();
 void begin_docking();
 void begin_counter_docking();
 void begin_return_to_tape();
+void begin_wall_slamming();
 
 void uart_msg_handler(void *parameter) {
     log_status("Started message handler");
@@ -191,7 +192,7 @@ void setup() {
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
     config_docking = { wingSensor, &xSharedQueue };
     return_data = {frontTapeSensor, backTapeSensor, &xMasterHandle };
-    wall_data = {wingSensor, frontTapeSensor, backTapeSensor, &xSharedQueue };
+    wall_data = { wingSensor, frontTapeSensor, backTapeSensor };
 
     // // check if driving task was created
     if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
@@ -419,7 +420,7 @@ void TaskMaster(void *pvParameters)
             case ActionType_t::WALL_SLAM_TO:
             {
                int station_difference = state.desired_station - state.last_station;
-               // abort nagigation if desired station is our last station
+               // abort navigation if desired station is our last station
                 if(station_difference == 0) {
                     log_status("already at desired station!");
                     send_uart_message(COMPLETED);
@@ -454,11 +455,30 @@ void TaskMaster(void *pvParameters)
 
                 // Delay in case we are already on tape
                 vTaskDelay(pdMS_TO_TICKS(DELAY_STATION_TRACKING_INTITAL));
+
                 log_status("Station tracking!");
                 begin_station_tracking();
                 
                 log_status("Beggining wall slamming!");
                 begin_wall_slamming();
+
+                while(state.current_action == WALL_SLAM_TO) {
+                    if(state.desired_station == state.last_station) {
+                        log_status("arrived at desired station!");
+
+                        vTaskDelete(xStationTrackingHandle);
+                        vTaskDelete(xFollowWallHandle);
+                        xStationTrackingHandle = NULL;
+                        xFollowWallHandle = NULL;
+
+                        state.yaw = 0;
+                        state.drive_speed = 0;
+                        state.drive_state = DriveState_t::STOP;
+                        state.current_action = IDLE;
+                        send_uart_message(COMPLETED);
+                    }
+                }
+               
             }
         }
     }
@@ -521,8 +541,8 @@ void begin_return_to_tape() {
 void begin_wall_slamming() {
     // check if counter docking task was created
     if (xTaskCreate(TaskFollowWall, "Follow_Wall", 2048, &wall_data, PRIORITY_FOLLOW_WALL, &xFollowWallHandle) == pdPASS) {
-        log_status("Tape return task was created successfully.");
+        log_status("Wall Follow task was created successfully.");
     } else {
-        log_error("Tape return task was not created successfully!");
+        log_error("Wall Follow task was not created successfully!");
     }
 }

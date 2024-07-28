@@ -41,7 +41,6 @@ typedef struct {
     DualTapeSensor_t* wingSensor;
     DualTapeSensor_t* fontTapeSensor;
     DualTapeSensor_t* backTapeSensor;
-    QueueHandle_t* xSharedQueue;
 } FullSensorData_t;
 
 void TaskRotate(void* pvParameters);
