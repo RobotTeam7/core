@@ -16,7 +16,7 @@ void set_robot_drive(RobotMotorData_t* robot_motors, int16_t drive_value) {
     motor_set_drive(robot_motors->motorBR, (drive_value) + state.yaw);
 }
 
-void rotate_robot(RobotMotorData_t* robot_motors, uint16_t drive_value) {
+void rotate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
     motor_set_drive(robot_motors->motorFR, -drive_value);
     motor_set_drive(robot_motors->motorBR, -drive_value);
     motor_set_drive(robot_motors->motorFL, drive_value);
@@ -30,4 +30,11 @@ void translate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
     motor_set_drive(robot_motors->motorFR, -drive_value * 0.9);
     motor_set_drive(robot_motors->motorBL, -drive_value);
     motor_set_drive(robot_motors->motorBR, drive_value);
+}
+
+void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate, int16_t drive_value_translate) {
+    motor_set_drive(robot_motors->motorFR, -drive_value_rotate - drive_value_translate * 0.9);
+    motor_set_drive(robot_motors->motorBR, -drive_value_rotate + drive_value_translate);
+    motor_set_drive(robot_motors->motorFL, drive_value_rotate + drive_value_translate);
+    motor_set_drive(robot_motors->motorBL, drive_value_rotate - drive_value_translate);
 }

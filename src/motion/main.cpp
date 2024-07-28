@@ -106,10 +106,16 @@ void uart_msg_handler(void *parameter) {
                     }
                     case FOLLOW_WALL_TO:
                     {
+                        // packet contains the desired side station
                         state.current_action = ActionType_t::WALL_SLAM_TO;
                         state.desired_side_station = new_packet.value;
                         break;
                     }
+                    case DO_PIROUETTE:
+                        // packet contains the last_side_station side we will end up on
+                        state.current_action = ActionType_t::PIROUETTE;
+                        state.last_side_station = new_packet.value;
+                        break;
                 }
                 send_uart_message(ACCEPTED);
             }
@@ -254,7 +260,7 @@ void TaskMaster(void *pvParameters)
         switch (state.current_action) {
             case SPIN:
             {                
-                 // Begin rotating and wait for a message that we see the tape
+                // Begin rotating and wait for a message that we see the tape
                 begin_rotating();
                 if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
                     if (receivedMessage == ROTATION_DONE) {

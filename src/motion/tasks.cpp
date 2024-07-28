@@ -266,6 +266,10 @@ void TaskDrive(void* pvParameters) {
             case DriveState_t::TRANSLATE:
                 translate_robot(robot_motors, state.drive_speed * state.y_direction * -state.orientation);
                 break;
+
+            case DriveState_t::ROTATE_AND_TANSLATE:
+                pirouette_robot(robot_motors, MOTOR_SPEED_ROTATION, state.drive_speed);
+                break;
         }
         vTaskDelay(MOTOR_UPDATE_DELAY);
     }
