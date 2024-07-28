@@ -14,9 +14,11 @@ typedef struct {
     // Memory
     int orientation;                    // Which direction is the robot facing -> 1: right, -1: left
     uint8_t last_station;               // Which station are we at (or was at before moving)
-    
+    uint8_t last_side_station;          // When hugging a counter, which station were we last at
+
     // Control
     uint8_t desired_station;
+    uint8_t desired_side_station;
     int direction;                      // Which direction should the robot drive in -> 1: forward, -1: reverse
     int y_direction;                    // Which direction to translate -> 1: up, 0: on tape, -1: down                
     int helicity;                       // Which direction should the robot rotate -> 1: counterclockwise, -1: clockwise

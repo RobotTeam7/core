@@ -19,5 +19,11 @@ extern "C"
   void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName);
 }
 
+int get_last_station_server(int side_station, int y_direction);
+int get_last_station_chef(int side_station, int y_direction);
+int get_last_side_station_server(int last_station, int y_direction);
+int get_last_side_station_chef(int last_station, int y_direction);
+
+
 
 #endif // MOTION_UTILS_H

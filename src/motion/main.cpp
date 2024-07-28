@@ -95,6 +95,7 @@ void uart_msg_handler(void *parameter) {
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
                         state.y_direction = new_packet.value;
+                        state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
                         break;
 
                     case TAPE_RETURN:
@@ -106,7 +107,7 @@ void uart_msg_handler(void *parameter) {
                     case FOLLOW_WALL_TO:
                     {
                         state.current_action = ActionType_t::WALL_SLAM_TO;
-                        state.desired_station = new_packet.value;
+                        state.desired_side_station = new_packet.value;
                         break;
                     }
                 }
@@ -429,7 +430,7 @@ void TaskMaster(void *pvParameters)
 
             case ActionType_t::WALL_SLAM_TO:
             {
-               int station_difference = state.desired_station - state.last_station;
+               int station_difference = state.desired_side_station - state.last_side_station;
                // abort navigation if desired station is our last station
                 if(station_difference == 0) {
                     log_error("already at desired station!");
@@ -465,21 +466,18 @@ void TaskMaster(void *pvParameters)
 
                 // Delay in case we are already on tape
                 vTaskDelay(pdMS_TO_TICKS(DELAY_STATION_TRACKING_INTITAL));
-
-                log_status("Station tracking!");
-                begin_station_tracking();
                 
                 log_status("Beggining wall slamming!");
                 begin_wall_slamming();
 
                 while(state.current_action == WALL_SLAM_TO) {
-                    if(state.desired_station == state.last_station) {
+                    if(state.desired_side_station == state.last_side_station) {
                         log_status("arrived at desired station!");
-
-                        vTaskDelete(xStationTrackingHandle);
                         vTaskDelete(xFollowWallHandle);
-                        xStationTrackingHandle = NULL;
                         xFollowWallHandle = NULL;
+
+                        // update last_station based on side station
+                        state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
 
                         state.yaw = 0;
                         state.drive_speed = 0;

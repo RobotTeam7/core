@@ -372,12 +372,31 @@ void TaskFollowWall(void* pvParameters) {
     DualTapeSensor_t* wingSensor = fullSensorData->wingSensor;
     DualTapeSensor_t* sensor = state.direction == 1 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
 
+    int value_left;  // these are wing sensor values
+    int value_right;
+    bool found_tape = false;
     while(1) {
+        read_tape_sensor(wingSensor);
+        value_left = wingSensor->leftValue;
+        value_right = wingSensor->rightValue;
+
+        if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
+            found_tape = true;
+        } else if ((value_left < THRESHOLD_SENSOR_SINGLE || value_right < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
+            state.last_side_station += state.orientation * state.direction;
+            log_status("Passed station while wall following!");
+            found_tape = false;
+            vTaskDelay(pdMS_TO_TICKS(150));
+        }
+
+        // Serial.println("left sensor: " + String(value_left));
+        // Serial.println("right sensor: " + String(value_right));
+
         // if we are within one station of our desired station
-        if(state.desired_station - state.last_station <= 1 && state.desired_station - state.last_station >= -1) {
+        if(state.desired_side_station - state.last_side_station <= 1 && state.desired_side_station - state.last_side_station >= -1) {
             read_tape_sensor(sensor);
             if(sensor->leftValue > THRESHOLD_SENSOR_SINGLE || sensor->rightValue > THRESHOLD_SENSOR_SINGLE) {
-                log_status("detecting approaching tape, lowering motor speed");
+                log_status("approaching tape, lowering motor speed");
                 state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_APPROACH;
             }
         }
