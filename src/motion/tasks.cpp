@@ -352,3 +352,7 @@ void TaskReturnToTape(void* pvParameters) {
         vTaskDelay(poll_rate_ticks);
     }
 }
+
+void TaskFollowWall(void* pvParameters) {
+
+}

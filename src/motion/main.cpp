@@ -101,6 +101,12 @@ void uart_msg_handler(void *parameter) {
                         state.direction = new_packet.value;
                         break;
                     }
+                    case FOLLOW_WALL_TO:
+                    {
+                        state.current_action = ActionType_t::WALL_SLAM;
+                        state.desired_station = new_packet.value;
+                        break;
+                    }
                 }
                 send_uart_message(ACCEPTED);
             }
@@ -290,8 +296,7 @@ void TaskMaster(void *pvParameters)
                 begin_following();
 
                 // Delay in case we are already on tape
-                vTaskDelay(pdMS_TO_TICKS(TAPE_TRACKING_INTITAL_DELAY));
-
+                vTaskDelay(pdMS_TO_TICKS(DELAY_STATION_TRACKING_INTITAL));
                 log_status("Station tracking!");
                 begin_station_tracking();
                 int docking = 0;
@@ -408,6 +413,47 @@ void TaskMaster(void *pvParameters)
                 state.y_direction = -state.y_direction;
 
                 break;
+            }
+            case ActionType_t::WALL_SLAM:
+            {
+               int station_difference = state.desired_station - state.last_station;
+               // abort nagigation if desired station is our last station
+                if(station_difference == 0) {
+                    log_status("already at desired station!");
+                    send_uart_message(COMPLETED);
+                    state.current_action == IDLE;
+                }
+
+                // cannot wall slam if we aren't at a wall
+                if(state.y_direction == 0) {
+                   log_status("not currently docked at a wall!");
+                    send_uart_message(COMPLETED);
+                    state.current_action == IDLE;
+                }
+                
+                // check if station difference and direction have opposite sign
+                // if they do flip the sign direction
+                if(station_difference * state.direction * state.orientation < 0) {
+                    state.direction = -state.direction;
+                }
+
+                // if these values have the same sign, we are going right on the top wall, or left on the bottom wall
+                // thus we need the right motors to run faster
+                // else -> the opposite is true
+                if(state.orientation * state.y_direction < 0) {
+                    state.yaw = YAW_WALL_SLAMMING;
+                }else {
+                    state.yaw = -YAW_WALL_SLAMMING;
+                }
+
+                // Start Driving
+                state.drive_state = DRIVE;
+                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING;
+
+                // Delay in case we are already on tape
+                vTaskDelay(pdMS_TO_TICKS(DELAY_STATION_TRACKING_INTITAL));
+                log_status("Station tracking!");
+                begin_station_tracking();
             }
         }
     }

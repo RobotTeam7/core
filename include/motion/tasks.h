@@ -36,6 +36,13 @@ typedef struct {
     QueueHandle_t* xSharedQueue;
 } DockingData_t;
 
+typedef struct {
+    DualTapeSensor_t* wingSensor;
+    DualTapeSensor_t* fontTapeSensor;
+    DualTapeSensor_t* backTapeSensor;
+    QueueHandle_t* xSharedQueue;
+} FullSensorData_t;
+
 void TaskRotate(void* pvParameters);
 void TaskFollowTape(void* pvParameters);
 void TaskStationTracking(void* pvParameters);
@@ -43,6 +50,8 @@ void TaskDrive(void* pvParameters);
 void TaskDocking(void* pvParameters);
 void TaskCounterDocking(void* pvParameters);
 void TaskReturnToTape(void* pvParameters);
+void TaskCounterDocking(void* pvParameters);
+void TaskFollowWall(void* pvParameters);
 
 
 #endif // MOTION_TASKS_H
