@@ -476,9 +476,10 @@ void TaskMaster(void *pvParameters)
                         state.drive_state = DriveState_t::STOP;
                         state.current_action = IDLE;
                         send_uart_message(COMPLETED);
+                        break;
                     }
                 }
-               
+                break;
             }
         }
     }
