@@ -363,8 +363,8 @@ void TaskMaster(void *pvParameters)
 
             case IDLE:
             {
-                // don't move while idling
                 state.drive_state = DriveState_t::STOP;
+                state.drive_speed = 0;
                 log_status("Idling...");
 
                 while (state.current_action == IDLE) {
@@ -420,6 +420,7 @@ void TaskMaster(void *pvParameters)
 
                 break;
             }
+
             case ActionType_t::WALL_SLAM_TO:
             {
                int station_difference = state.desired_station - state.last_station;
