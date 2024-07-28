@@ -496,6 +496,32 @@ void TaskMaster(void *pvParameters)
                 }
                 break;
             }
+
+            case ActionType_t::PIROUETTE:
+            {   
+                if(state.y_direction == 0) {
+                    log_error("cannot do a pirouette when not on a wall!");
+                    send_uart_message(COMPLETED);
+                    state.current_action == IDLE;
+                }
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_state = DriveState_t::ROTATE_AND_TANSLATE;
+
+                vTaskDelay(pdMS_TO_TICKS(DELAY_ROTATION_DURATION));
+
+                state.drive_state = TRANSLATE;
+
+                vTaskDelay(pdMS_TO_TICKS(DELAY_FINISH_PIROUETTE));
+
+                state.drive_state = STOP;
+                // we are now on the opposite wall, and we have rotated 180 degrees
+                state.y_direction = -state.y_direction;
+                state.orientation = -state.orientation;
+                state.drive_speed = 0;
+                taskYIELD();
+                state.current_action = IDLE;
+                send_uart_message(COMPLETED);
+            }
         }
     }
 }

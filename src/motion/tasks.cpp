@@ -268,7 +268,8 @@ void TaskDrive(void* pvParameters) {
                 break;
 
             case DriveState_t::ROTATE_AND_TANSLATE:
-                pirouette_robot(robot_motors, MOTOR_SPEED_ROTATION, state.drive_speed);
+                // translational velocity accepts the opposite of the y-direction
+                pirouette_robot(robot_motors, MOTOR_SPEED_ROTATION * state.helicity, state.drive_speed * -state.y_direction * -state.orientation);
                 break;
         }
         vTaskDelay(MOTOR_UPDATE_DELAY);
