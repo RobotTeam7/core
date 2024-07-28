@@ -1,19 +1,30 @@
 #include <common/stepper_motor.h>
 
+#define TIMER_FREQUENCY 80000 
+
+
+StepperMotor_t* stepper_motor = NULL;
+hw_timer_t* timer = NULL;
+volatile bool stepState = false;
+
+void IRAM_ATTR actuate_stepper_ISR() {
+  stepState = !stepState; // Toggle step pin state
+
+  stepper_motor->position += stepper_motor->direction * stepState;  // Increment position on rising edge only  
+  digitalWrite(stepper_motor->stepPin, stepState);                  // HIGH if stepState == true, LOW if stepState == false
+}
 
 int checkStepperMotorData(StepperMotorCommandBuffer_t* data) {
-    return data == NULL || data->stepperMotor == NULL;
+    return data == NULL;
 }
 
 /**
- * @brief Evaluate the time, in ticks, that it will require to complete the specified stepper action
- * @param data Must be already checked to be non-null
+ * @brief Returns the sign of the argument 
+ * @returns 1 if positive, -1 if negative.
  */
-TickType_t get_stepper_action_duration(StepperMotorCommandBuffer_t* data) {
-    int delay = (int)(data->numSteps / data->stepperMotor->speed) * 1000;
-    return pdMS_TO_TICKS(delay);
+int sign(int x) {
+    return (x > 0) - (x < 0);
 }
-
 
 // This task manages the execution of a stepper motor action
 void stepperMotorTask(void *pvParameters) {
@@ -26,31 +37,35 @@ void stepperMotorTask(void *pvParameters) {
     }
 
     // Acquire the stepper motor's mutex (we do NOT want to have two stepper motor actions going at the same time!)
-    if (xSemaphoreTake(data->stepperMotor->xMutex, portMAX_DELAY) == pdTRUE) {
+    if (xSemaphoreTake(stepper_motor->xMutex, portMAX_DELAY) == pdTRUE) {
         log_status("Starting stepper motor action...");
+        stepper_motor->running = true;
 
-        digitalWrite(data->stepperMotor->sleep_pin, HIGH); // Disable sleep mode
+        digitalWrite(stepper_motor->sleep_pin, HIGH); // Disable sleep mode
         vTaskDelay(pdMS_TO_TICKS(1)); // Driver takes maximum 1ms to wake up from sleep
 
-        // Write direction
-        digitalWrite(data->stepperMotor->directionPin, data->direction == UP ? HIGH : LOW);
 
-        int num_steps = 0;
+        // Write direction
+        stepper_motor->direction = data->direction;
+        digitalWrite(stepper_motor->directionPin, data->direction == UP ? HIGH : LOW);
         
-        // Perform action
-        while (num_steps < data->numSteps) {
-            digitalWrite(data->stepperMotor->stepPin, HIGH);
-            vTaskDelay(pdMS_TO_TICKS(1));
-            digitalWrite(data->stepperMotor->stepPin, LOW);
-            vTaskDelay(pdMS_TO_TICKS(1));
-            num_steps++;
+        log_message("Enabling timer...");
+
+        timerAlarmEnable(timer); // Enable alarm
+        timerAttachInterrupt(timer, &actuate_stepper_ISR, true);    // Attach ISR
+
+        while (sign(data->new_position - stepper_motor->position) == stepper_motor->direction) { // Easy way to tell if we have reached or past the desired position
+            vTaskDelay(pdMS_TO_TICKS(5)); // TODO: Add delay constant
         }
 
-        // Mutate stepper motor position to update position after the action
-        data->stepperMotor->position += data->numSteps * data->direction;        
+        timerAlarmDisable(timer); // Disable alarm (doesnt seem to work)
+        timerDetachInterrupt(timer);    // Detach ISR
+        log_message("Disabling timer...");
 
-        digitalWrite(data->stepperMotor->sleep_pin, LOW);
-        xSemaphoreGive(data->stepperMotor->xMutex); // We need to release the lock
+        digitalWrite(stepper_motor->sleep_pin, LOW);
+
+        xSemaphoreGive(stepper_motor->xMutex); // Release the lock
+        stepper_motor->running = false;
     } else {
         log_error("Couldn't acquire mutex to perform stepper motor action!");
     }
@@ -62,22 +77,18 @@ void stepperMotorTask(void *pvParameters) {
     vTaskDelete(NULL);
 }
 
-/**
- * @brief Instantiate a stepper motor bound to `stepPin` and `dirPin`.
- * @returns a pointer to a StepperMotor_t allocated on the heap with malloc(). Returns instantiation if creation failed.
- */
-StepperMotor_t* instantiate_stepper_motor(uint8_t stepPin, uint8_t dirPin, uint8_t sleep_pin, int position, int speed) {
-    StepperMotor_t* stepperMotor = (StepperMotor_t*)malloc(sizeof(StepperMotor_t));
-    if (stepperMotor == NULL) {
+void init_stepper_motor(uint8_t stepPin, uint8_t dirPin, uint8_t sleep_pin, int position, int speed) {
+    stepper_motor = (StepperMotor_t*)malloc(sizeof(StepperMotor_t));
+    if (stepper_motor == NULL) {
         log_error("Failed to allocate memory for stepper motor!");
-        return NULL;
+        return;
     }
 
     // Create the mutex that we will use to ensure only one stepper motor command runs at a given time
-    stepperMotor->xMutex = xSemaphoreCreateMutex();
-    if (stepperMotor->xMutex == NULL) {
+    stepper_motor->xMutex = xSemaphoreCreateMutex();
+    if (stepper_motor->xMutex == NULL) {
         log_error("Stepper motor mutex couldn't be created!");
-        return NULL;
+        return;
     }
 
     pinMode(stepPin, OUTPUT);
@@ -85,18 +96,23 @@ StepperMotor_t* instantiate_stepper_motor(uint8_t stepPin, uint8_t dirPin, uint8
     pinMode(sleep_pin, OUTPUT);
     digitalWrite(sleep_pin, LOW);
 
-    stepperMotor->stepPin = stepPin;
-    stepperMotor->directionPin = dirPin;
-    stepperMotor->sleep_pin = sleep_pin;
-    stepperMotor->position = position;
-    stepperMotor->speed = speed;
+    uint16_t timer_divider = (int)(TIMER_FREQUENCY / 1000);
+    uint64_t alarm_time_us = (int)(1000000 / speed / 2);        // Half period in us of signal
 
-    log_status("Instantiated stepper motor!");
-    
-    return stepperMotor;
+    timer = timerBegin(STEPPER_TIMER, timer_divider, true);     // Setup stepper timer
+    timerAlarmWrite(timer, alarm_time_us, true);                // Set alarm to trigger ISR every `alarm_time_us` periods
+
+    stepper_motor->stepPin = stepPin;
+    stepper_motor->directionPin = dirPin;
+    stepper_motor->sleep_pin = sleep_pin;
+    stepper_motor->position = position;
+    stepper_motor->speed = speed;
+    stepper_motor->direction = UP;
+
+    log_status("Successfully configured stepper motor!");
 }
 
-void actuate_stepper_motor(StepperMotor_t* stepperMotor, int direction, int numSteps) {
+void actuate_stepper_motor(int direction, int new_position) {
     log_status("Preparing stepper motor action...");
 
     // Allocate memory on the heap for StepperMotorCommandData_t
@@ -105,11 +121,16 @@ void actuate_stepper_motor(StepperMotor_t* stepperMotor, int direction, int numS
         log_error("Failed to allocate memory for stepper motor task data.");
         return;
     }
+
+    if (stepper_motor == NULL) {
+        log_error("Stepper motor has not been configured!");
+        free(data);
+        return;
+    }
     
     // Populate the data structure
-    data->numSteps = numSteps;
+    data->new_position = new_position;
     data->direction = direction;
-    data->stepperMotor = stepperMotor;
     
     // Start a task to execute the stepper motor action
     if (xTaskCreate(stepperMotorTask, "StepperTask", 1024, data, PRIORITY_STEPPER_TASK, NULL) == pdPASS) {
@@ -118,4 +139,13 @@ void actuate_stepper_motor(StepperMotor_t* stepperMotor, int direction, int numS
         log_error("Stepper task was not created successfully!");
         free(data);
     }
+}
+
+bool is_running(StepperMotor_t* stepper_motor) {
+    if (stepper_motor == NULL) {
+        log_error("Stepper motor has not been configured!");
+        return false;
+    }
+
+    return stepper_motor->running;
 }
