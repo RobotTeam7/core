@@ -22,8 +22,9 @@
 #define DELAY_STATION_TRACKING_INTITAL              20      // delay between polls for if we see station tape
 #define MOTOR_UPDATE_DELAY                          1       // delay between motor drive state updates 
 #define TAPE_TRACKING_INTITAL_DELAY                 500     // delay between when we start driving and when we start tracking tape (ms)
-#define DELAY_BREAKING                              0     // delay between running motors in reverse and stopping for sharp robot breaking
+#define DELAY_BREAKING                              0       // delay between running motors in reverse and stopping for sharp robot breaking
 #define DELAY_RETURN_TO_TAPE_POLL                   1       // delay between polls to see if we see tape while returning to tape
+#define DELAY_STATION_TRACKING_POLL                 5       // delay between polls to see if we see station tape   
 
 // Sensor Thresholds
 
@@ -65,6 +66,7 @@
 #define PRIORITY_ROTATE             5
 #define PRIORITY_STATION_TRACKING   3
 #define PRIORITY_RETURN_TO_TAPE     5
+#define PRIORITY_FOLLOW_WALL        2
 
 // Motion PID
 #define kp                          1.1

@@ -18,6 +18,7 @@ extern TaskHandle_t xStationTrackingHandle;
 extern TaskHandle_t xDockingHandle;
 extern TaskHandle_t xCounterDockingHandle;
 extern TaskHandle_t xReturnToTapeHandle;
+extern TaskHandle_t xFollowWallHandle;
 
 typedef struct {
     DualTapeSensor_t* fontTapeSensor;

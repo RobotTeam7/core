@@ -20,6 +20,7 @@ TaskHandle_t xStationTrackingHandle = NULL;
 TaskHandle_t xDockingHandle = NULL;
 TaskHandle_t xCounterDockingHandle = NULL;
 TaskHandle_t xReturnToTapeHandle = NULL;
+TaskHandle_t xFollowWallHandle = NULL;
 
 // Ensure that a RobotMotorData_t* does not contain null values
 int checkRobotMotors(RobotMotorData_t* robotMotors) {
@@ -163,7 +164,7 @@ void TaskStationTracking(void* pvParameters) {
         return;
     }
 
-    TickType_t delay = pdMS_TO_TICKS(STATION_TRACKING_POLL_DELAY_MS);
+    TickType_t delay = pdMS_TO_TICKS(DELAY_STATION_TRACKING_POLL);
 
     int value_left;
     int value_right;
@@ -212,7 +213,7 @@ void TaskDocking(void* pvParameters) {
     }
 
     DualTapeSensor_t* sensor = dockingData->wingSensor;
-    TickType_t delay = pdMS_TO_TICKS(STATION_TRACKING_POLL_DELAY_MS);
+    TickType_t delay = pdMS_TO_TICKS(DELAY_STATION_TRACKING_POLL);
 
     int value_left;
     int value_right;

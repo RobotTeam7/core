@@ -41,6 +41,7 @@ RobotMotorData_t robotMotors;
 NavigationData_t config_following;
 DockingData_t config_docking;
 ReturnToTapeData_t return_data;
+FullSensorData_t wall_data;
 
 StepperMotor_t* stepper_motor;
 
@@ -103,7 +104,7 @@ void uart_msg_handler(void *parameter) {
                     }
                     case FOLLOW_WALL_TO:
                     {
-                        state.current_action = ActionType_t::WALL_SLAM;
+                        state.current_action = ActionType_t::WALL_SLAM_TO;
                         state.desired_station = new_packet.value;
                         break;
                     }
@@ -190,6 +191,7 @@ void setup() {
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
     config_docking = { wingSensor, &xSharedQueue };
     return_data = {frontTapeSensor, backTapeSensor, &xMasterHandle };
+    wall_data = {wingSensor, frontTapeSensor, backTapeSensor, &xSharedQueue };
 
     // // check if driving task was created
     if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
@@ -414,7 +416,7 @@ void TaskMaster(void *pvParameters)
 
                 break;
             }
-            case ActionType_t::WALL_SLAM:
+            case ActionType_t::WALL_SLAM_TO:
             {
                int station_difference = state.desired_station - state.last_station;
                // abort nagigation if desired station is our last station
@@ -454,6 +456,9 @@ void TaskMaster(void *pvParameters)
                 vTaskDelay(pdMS_TO_TICKS(DELAY_STATION_TRACKING_INTITAL));
                 log_status("Station tracking!");
                 begin_station_tracking();
+                
+                log_status("Beggining wall slamming!");
+                begin_wall_slamming();
             }
         }
     }
@@ -507,6 +512,15 @@ void begin_counter_docking() {
 void begin_return_to_tape() {
     // check if counter docking task was created
     if (xTaskCreate(TaskReturnToTape, "Tape_Return", 2048, &return_data, PRIORITY_RETURN_TO_TAPE, &xReturnToTapeHandle) == pdPASS) {
+        log_status("Tape return task was created successfully.");
+    } else {
+        log_error("Tape return task was not created successfully!");
+    }
+}
+
+void begin_wall_slamming() {
+    // check if counter docking task was created
+    if (xTaskCreate(TaskFollowWall, "Follow_Wall", 2048, &wall_data, PRIORITY_FOLLOW_WALL, &xFollowWallHandle) == pdPASS) {
         log_status("Tape return task was created successfully.");
     } else {
         log_error("Tape return task was not created successfully!");
