@@ -73,17 +73,20 @@ static void uart_receive_event_task(void *pvParameters) {
                     if (start_byte != START_BYTE) {
                         log_error("Start byte is invalid!");
                         send_nack();
+                        break;
                     }
 
                     if (stop_byte != STOP_BYTE) {
                         log_error("Stop byte is invalid!");
                         send_nack();
+                        break;
                     }
 
                     uint8_t data[] = { command_byte, value_byte };
                     if (esp_crc32_le(0, data, sizeof(data)) != crc_value) {
                         log_error("CRC is invalid!");
                         send_nack();
+                        break;
                     }
 
                     switch (command_byte) {
@@ -115,7 +118,7 @@ static void uart_receive_event_task(void *pvParameters) {
                             
                             if (retries < MAX_RETRIES) {
                                 // Wait for a moment, hopefully for the noise to subside
-                                vTaskDelay(pdMS_TO_TICKS(50));
+                                vTaskDelay(pdMS_TO_TICKS(500));
 
                                 // Try to resend the most recent transmission
                                 send_uart_message(last_sent_packet->command, last_sent_packet->value, false);
@@ -187,7 +190,11 @@ static void uart_receive_event_task(void *pvParameters) {
 }
 
 static void send_nack() {
-    vTaskDelay(pdMS_TO_TICKS(50));
+    if (xTaskGetCurrentTaskHandle() == NULL) { // If we're not in a task, use Arduino delay
+        delay(500);
+    } else {
+        vTaskDelay(pdMS_TO_TICKS(500));        // Otherwise, just block the task as normal
+    }
     send_uart_message(CommandMessage_t::NACK, 0, false);
 }
 
@@ -209,6 +216,10 @@ void send_uart_message(CommandMessage_t command, uint8_t value, bool memorize) {
 
     uint8_t data[] = {command, value};                          // Organized data into a buffer
     uint32_t crc_value = esp_crc32_le(0, data, sizeof(data));   // The CRC checksum of the data
+    
+    // if (retries < 2 && command != CommandMessage_t::NACK) { // Uncomment this for debug!
+    //     crc_value += 10;
+    // }
     
     // Compose message which will be send over UART
     uint8_t message_buffer[sizeof(START_BYTE) + sizeof(data) + sizeof(crc_value) + sizeof(STOP_BYTE)];
