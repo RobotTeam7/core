@@ -49,10 +49,10 @@ void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate,
     float motorBR_speed_translation = vy - vx;
 
     // Combine rotation and translation
-    motor_set_drive(robot_motors->motorFR, motorFR_speed_translation);
-    motor_set_drive(robot_motors->motorBR, motorBR_speed_translation);
-    motor_set_drive(robot_motors->motorFL, motorFL_speed_translation);
-    motor_set_drive(robot_motors->motorBL, motorBL_speed_translation);
+    motor_set_drive(robot_motors->motorFR, motorFR_speed_translation - drive_value_rotate);
+    motor_set_drive(robot_motors->motorBR, motorBR_speed_translation + drive_value_rotate);
+    motor_set_drive(robot_motors->motorFL, motorFL_speed_translation + drive_value_rotate);
+    motor_set_drive(robot_motors->motorBL, motorBL_speed_translation - drive_value_rotate);
 
     // motor_set_drive(robot_motors->motorFR, -drive_value_rotate + motorFR_speed_translation);
     // motor_set_drive(robot_motors->motorBR, -drive_value_rotate + motorBR_speed_translation);

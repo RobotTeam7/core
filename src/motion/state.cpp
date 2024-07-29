@@ -12,6 +12,6 @@ State_t state = {
     .helicity = -1,
     .yaw = 0,
     .drive_speed = 11000,
-    .drive_state = ROTATE,
+    .drive_state = ROTATE_AND_TRANSLATE,
     .current_action = IDLE,
 };
