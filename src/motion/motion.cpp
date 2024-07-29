@@ -32,15 +32,32 @@ void translate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
     motor_set_drive(robot_motors->motorBR, drive_value);
 }
 
+#include <math.h>  // For sin and cos functions
+
 void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate, int16_t drive_value_translate, int degrees) {
-    float translation_x = drive_value_translate * cos(degrees);
-    float translation_y = drive_value_translate * sin(degrees);
+    // Convert theta from degrees to radians
+    float theta = degrees * (M_PI / 180.0);
+
+    // Calculate the x and y components of the desired movement vector
+    float vx = drive_value_translate * cos(theta);
+    float vy = drive_value_translate * sin(theta);
+
+    // Calculate the motor speeds needed to achieve the desired movement vector
+    float motorFL_speed_translation = vy - vx;
+    float motorFR_speed_translation = vy + vx;
+    float motorBL_speed_translation = vy + vx;
+    float motorBR_speed_translation = vy - vx;
 
     // Combine rotation and translation
-    motor_set_drive(robot_motors->motorFR, -drive_value_rotate - translation_y);
-    motor_set_drive(robot_motors->motorBR, -drive_value_rotate + translation_x);
-    motor_set_drive(robot_motors->motorFL, drive_value_rotate + translation_y);
-    motor_set_drive(robot_motors->motorBL, drive_value_rotate - translation_x);
+    motor_set_drive(robot_motors->motorFR, motorFR_speed_translation);
+    motor_set_drive(robot_motors->motorBR, motorBR_speed_translation);
+    motor_set_drive(robot_motors->motorFL, motorFL_speed_translation);
+    motor_set_drive(robot_motors->motorBL, motorBL_speed_translation);
+
+    // motor_set_drive(robot_motors->motorFR, -drive_value_rotate + motorFR_speed_translation);
+    // motor_set_drive(robot_motors->motorBR, -drive_value_rotate + motorBR_speed_translation);
+    // motor_set_drive(robot_motors->motorFL, drive_value_rotate + motorFL_speed_translation);
+    // motor_set_drive(robot_motors->motorBL, drive_value_rotate + motorBL_speed_translation);
 
     // motor_set_drive(robot_motors->motorFR, -drive_value_rotate - drive_value_translate);
     // motor_set_drive(robot_motors->motorBR, -drive_value_rotate + drive_value_translate);
