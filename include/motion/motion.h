@@ -34,7 +34,7 @@ void rotate_robot(RobotMotorData_t* robot_motors, int16_t drive_value);
  */
 void translate_robot(RobotMotorData_t* robot_motors, int16_t drive_value);
 
-void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate, int16_t drive_value_translate);
+void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate, int16_t drive_value_translate, int degrees);
 
 
 

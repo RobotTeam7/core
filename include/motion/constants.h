@@ -70,7 +70,7 @@
 #define PRIORITY_ROTATE             5
 #define PRIORITY_STATION_TRACKING   3
 #define PRIORITY_RETURN_TO_TAPE     5
-#define PRIORITY_FOLLOW_WALL        2
+#define PRIORITY_FOLLOW_WALL        5
 
 // Motion PID
 #define kp                          1.1

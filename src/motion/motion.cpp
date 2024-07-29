@@ -27,14 +27,23 @@ void rotate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
 // positive drive value translates robot toward it's right side
 void translate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
     motor_set_drive(robot_motors->motorFL, drive_value);
-    motor_set_drive(robot_motors->motorFR, -drive_value * 0.9);
+    motor_set_drive(robot_motors->motorFR, -drive_value);
     motor_set_drive(robot_motors->motorBL, -drive_value);
     motor_set_drive(robot_motors->motorBR, drive_value);
 }
 
-void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate, int16_t drive_value_translate) {
-    motor_set_drive(robot_motors->motorFR, -drive_value_rotate - drive_value_translate * 0.9);
-    motor_set_drive(robot_motors->motorBR, -drive_value_rotate + drive_value_translate);
-    motor_set_drive(robot_motors->motorFL, drive_value_rotate + drive_value_translate);
-    motor_set_drive(robot_motors->motorBL, drive_value_rotate - drive_value_translate);
+void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate, int16_t drive_value_translate, int degrees) {
+    float translation_x = drive_value_translate * cos(degrees);
+    float translation_y = drive_value_translate * sin(degrees);
+
+    // Combine rotation and translation
+    motor_set_drive(robot_motors->motorFR, -drive_value_rotate - translation_y);
+    motor_set_drive(robot_motors->motorBR, -drive_value_rotate + translation_x);
+    motor_set_drive(robot_motors->motorFL, drive_value_rotate + translation_y);
+    motor_set_drive(robot_motors->motorBL, drive_value_rotate - translation_x);
+
+    // motor_set_drive(robot_motors->motorFR, -drive_value_rotate - drive_value_translate);
+    // motor_set_drive(robot_motors->motorBR, -drive_value_rotate + drive_value_translate);
+    // motor_set_drive(robot_motors->motorFL, drive_value_rotate + drive_value_translate);
+    // motor_set_drive(robot_motors->motorBL, drive_value_rotate - drive_value_translate);
 }

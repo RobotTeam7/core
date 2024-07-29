@@ -21,6 +21,8 @@
 
 #include <common/stepper_motor.h>
 
+#define CONSTANT_DECELERATION 30
+
 
 
 RobotMotor_t* motor_front_left;
@@ -112,7 +114,7 @@ void uart_msg_handler(void *parameter) {
                         break;
                     }
                     case DO_PIROUETTE:
-                        // packet contains the last_side_station side we will end up on
+                        // packet contains the last_side_station on the side we will end up on
                         state.current_action = ActionType_t::PIROUETTE;
                         state.last_side_station = new_packet.value;
                         break;
@@ -436,16 +438,22 @@ void TaskMaster(void *pvParameters)
 
             case ActionType_t::WALL_SLAM_TO:
             {
-               int station_difference = state.desired_side_station - state.last_side_station;
-               // abort navigation if desired station is our last station
-                if(station_difference == 0) {
+                if (state.desired_side_station == 0) {
+                    log_error("invalid, recieved 0 as desired side station");
+                    send_uart_message(COMPLETED);
+                    state.current_action = IDLE;
+                }
+                int station_difference = state.desired_side_station - state.last_side_station;
+
+                // abort navigation if desired station is our last station
+                if (station_difference == 0) {
                     log_error("already at desired station!");
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
 
                 // cannot wall slam if we aren't at a wall
-                if(state.y_direction == 0) {
+                if (state.y_direction == 0) {
                     log_error("not currently docked at a wall!");
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
@@ -453,14 +461,14 @@ void TaskMaster(void *pvParameters)
                 
                 // check if station difference and direction have opposite sign
                 // if they do flip the sign direction
-                if(station_difference * state.direction * state.orientation < 0) {
+                if (station_difference * state.direction * state.orientation < 0) {
                     state.direction = -state.direction;
                 }
 
                 // if these values have the same sign, we are going right on the top wall, or left on the bottom wall
                 // thus we need the right motors to run faster
                 // else -> the opposite is true
-                if(state.orientation * state.y_direction < 0) {
+                if (state.orientation * state.y_direction * state.direction < 0) {
                     state.yaw = YAW_WALL_SLAMMING;
                 }else {
                     state.yaw = -YAW_WALL_SLAMMING;
@@ -473,20 +481,26 @@ void TaskMaster(void *pvParameters)
                 // Delay in case we are already on tape
                 vTaskDelay(pdMS_TO_TICKS(DELAY_STATION_TRACKING_INTITAL));
                 
-                log_status("Beggining wall slamming!");
+                log_status("Beginning wall slamming!");
                 begin_wall_slamming();
 
-                while(state.current_action == WALL_SLAM_TO) {
-                    if(state.desired_side_station == state.last_side_station) {
+                while (state.current_action == WALL_SLAM_TO) {
+                    Serial.println("Wall Slmming: " + String(state.desired_side_station) + " " + String(state.last_side_station));
+                    if (state.desired_side_station == state.last_side_station) {
                         log_status("arrived at desired station!");
                         vTaskDelete(xFollowWallHandle);
                         xFollowWallHandle = NULL;
+                       
+                       log_status("approaching tape, lowering motor speed");
+                        // while (state.drive_speed > 0) {
+                        //     state.drive_speed -= CONSTANT_DECELERATION;
+                        //     vTaskDelay(pdMS_TO_TICKS(1));
+                        // }
 
                         // update last_station based on side station
                         state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-
-                        state.yaw = 0;
                         state.drive_speed = 0;
+                        state.yaw = 0;
                         state.drive_state = DriveState_t::STOP;
                         taskYIELD();    // yield so motor states are updated immediately
                         state.current_action = IDLE;
@@ -505,7 +519,7 @@ void TaskMaster(void *pvParameters)
                     state.current_action == IDLE;
                 }
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
-                state.drive_state = DriveState_t::ROTATE_AND_TANSLATE;
+                state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
 
                 vTaskDelay(pdMS_TO_TICKS(DELAY_ROTATION_DURATION));
 

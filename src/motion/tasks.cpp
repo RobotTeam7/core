@@ -13,6 +13,8 @@
 #include <motion/motion.h>
 
 
+
+
 TaskHandle_t xHandleRotating = NULL;
 TaskHandle_t xDriveHandle = NULL;
 TaskHandle_t xHandleFollowing = NULL;
@@ -264,12 +266,12 @@ void TaskDrive(void* pvParameters) {
                 break;
 
             case DriveState_t::TRANSLATE:
-                translate_robot(robot_motors, state.drive_speed * state.y_direction * -state.orientation);
+                translate_robot(robot_motors, state.drive_speed * state.y_direction * state.orientation);
                 break;
 
-            case DriveState_t::ROTATE_AND_TANSLATE:
+            case DriveState_t::ROTATE_AND_TRANSLATE:
                 // translational velocity accepts the opposite of the y-direction
-                pirouette_robot(robot_motors, MOTOR_SPEED_ROTATION * state.helicity, state.drive_speed * -state.y_direction * -state.orientation);
+                pirouette_robot(robot_motors, 6000 * state.helicity, state.drive_speed * state.y_direction * state.orientation);
                 break;
         }
         vTaskDelay(MOTOR_UPDATE_DELAY);
@@ -335,8 +337,8 @@ void TaskReturnToTape(void* pvParameters) {
         read_tape_sensor(tapeSensor);
         int left_mean = tapeSensor->leftValue;
         int right_mean = tapeSensor->rightValue;
-        Serial.println("Left" + String(left_mean));
-        Serial.println("Right" + String(right_mean));
+        // Serial.println("Left" + String(left_mean));
+        // Serial.println("Right" + String(right_mean));
 
         if (right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE)
         {
@@ -380,10 +382,13 @@ void TaskFollowWall(void* pvParameters) {
     int value_left;  // these are wing sensor values
     int value_right;
     bool found_tape = false;
-    while(1) {
-        read_tape_sensor(wingSensor);
-        value_left = wingSensor->leftValue;
-        value_right = wingSensor->rightValue;
+    while (1) {
+        read_tape_sensor(sensor);
+        value_left = sensor->leftValue;
+        value_right = sensor->rightValue;
+
+        Serial.println("left sensor: " + String(value_left));
+        Serial.println("right sensor: " + String(value_right));
 
         if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
@@ -391,20 +396,9 @@ void TaskFollowWall(void* pvParameters) {
             state.last_side_station += state.orientation * state.direction;
             log_status("Passed station while wall following!");
             found_tape = false;
-            vTaskDelay(pdMS_TO_TICKS(150));
+            // vTaskDelay(pdMS_TO_TICKS(150));
         }
 
-        // Serial.println("left sensor: " + String(value_left));
-        // Serial.println("right sensor: " + String(value_right));
-
-        // if we are within one station of our desired station
-        if(state.desired_side_station - state.last_side_station <= 1 && state.desired_side_station - state.last_side_station >= -1) {
-            read_tape_sensor(sensor);
-            if(sensor->leftValue > THRESHOLD_SENSOR_SINGLE || sensor->rightValue > THRESHOLD_SENSOR_SINGLE) {
-                log_status("approaching tape, lowering motor speed");
-                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_APPROACH;
-            }
-        }
         vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_POLL));
     }
 }
