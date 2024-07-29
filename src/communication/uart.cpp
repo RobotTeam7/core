@@ -255,6 +255,4 @@ void initialize_uart(QueueHandle_t* packet_queue) {
     delay(500);
 
     log_status("UART initialized!");
-
-    send_uart_message(CommandMessage_t::GOTO, 5, true);
 }
