@@ -66,6 +66,7 @@ void uart_msg_handler(void *parameter) {
     
     while (1) {
         Packet_t new_packet;
+
         if (xQueueReceive(uart_msg_queue, &new_packet, portMAX_DELAY)) {
             Serial.println("Received packet...");
             Serial.println(new_packet.command);
@@ -82,28 +83,39 @@ void uart_msg_handler(void *parameter) {
                     // If we should abort, end our current task.
                     case ABORT:
                         state.current_action = IDLE;
+                        send_uart_message(ACCEPTED, 0, false);
+                        Serial.println("Accepting command: " + String(new_packet.command) + " : " + String(new_packet.value));
+
                         break;
 
                     case GOTO:
                         state.desired_station = new_packet.value;
                         state.current_action = GOTO_STATION;
+                        send_uart_message(ACCEPTED, 0, false);
+
                         break;
 
                     case DO_SPIN:
                         state.current_action = ActionType_t::SPIN;
                         state.direction = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+
                         break;
 
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
                         state.y_direction = new_packet.value;
                         state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        send_uart_message(ACCEPTED, 0, false);
+
                         break;
 
                     case TAPE_RETURN:
                     {
                         state.current_action = ActionType_t::RETURN_TO_TAPE;
                         state.direction = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+
                         break;
                     }
                     case FOLLOW_WALL_TO:
@@ -111,18 +123,24 @@ void uart_msg_handler(void *parameter) {
                         // packet contains the desired side station
                         state.current_action = ActionType_t::WALL_SLAM_TO;
                         state.desired_side_station = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+
                         break;
                     }
                     case DO_PIROUETTE:
                         // packet contains the last_side_station on the side we will end up on
                         state.current_action = ActionType_t::PIROUETTE;
                         state.last_side_station = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+
                         break;
+
+                    case 0x40 ... 0x4f:
+                        log_status("Received acknowledgement!");
                 }
-                send_uart_message(ACCEPTED);
             }
         }
-        vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield    
+        vTaskDelay(pdMS_TO_TICKS(10)); // Small delay to yield    
     }
 }
 
@@ -170,10 +188,9 @@ TaskHandle_t switch_handle_4 = NULL;
 void setup() {
     Serial.begin(115200);
 
-    initialize_uart();
-    begin_uart_read(&uart_msg_queue);
+    initialize_uart(&uart_msg_queue);
 
-    xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
+    xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 7, NULL);
 
     motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
     motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);

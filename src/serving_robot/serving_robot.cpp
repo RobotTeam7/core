@@ -49,6 +49,7 @@ void uart_msg_handler(void *parameter) {
             switch (new_packet.command) {
                 case READY:
                     MOTION_READY = true;
+                    send_uart_message(CommandMessage_t::ACK, 0, false);
                     break;
                 
                 case ACCEPTED:
@@ -61,6 +62,7 @@ void uart_msg_handler(void *parameter) {
 
                 case COMPLETED:
                     MOTION_BUSY = false;
+                    send_uart_message(CommandMessage_t::ACK, 0, false);
                     break;
             }
         }
@@ -94,7 +96,7 @@ void TaskMaster(void* pvParameters) {
     }
 
     while (true) {
-
+        vTaskDelay(pdMS_TO_TICKS(1000)); // This delay seems necessary for UART
         log_status("going to station 1!");
         send_uart_message(GOTO, 2);
         MOTION_BUSY = true;
@@ -103,9 +105,6 @@ void TaskMaster(void* pvParameters) {
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
         
-
-
-
         log_status("docking upwards!");
         send_uart_message(COUNTER_DOCK, 1);
         MOTION_BUSY = true;
@@ -195,8 +194,7 @@ void setup() {
 
     // connect_to_wifi_as_client(&wifi_handler);
 
-    initialize_uart();
-    begin_uart_read(&uart_msg_queue);
+    initialize_uart(&uart_msg_queue);
 
     xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
     // xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);

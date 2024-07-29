@@ -90,7 +90,6 @@ static void uart_receive_event_task(void *pvParameters) {
                     }
 
                     switch (command_byte) {
-
                         case 0x40 ... 0x4f: // Indicates we received an ACK message
                         {
                             // Clear the memory, letting us send another packet
@@ -229,6 +228,8 @@ void send_uart_message(CommandMessage_t command, uint8_t value, bool memorize) {
     message_buffer[sizeof(START_BYTE) +sizeof(data) + sizeof(crc_value)] = STOP_BYTE;
     
     uart_write_bytes(UART_PORT, (const char*)message_buffer, sizeof(message_buffer));
+
+    log_status("Sent message!");
 }
 
 void initialize_uart(QueueHandle_t* packet_queue) {
@@ -250,7 +251,7 @@ void initialize_uart(QueueHandle_t* packet_queue) {
     ESP_ERROR_CHECK(uart_driver_install(UART_PORT, uart_buffer_size * 2, uart_buffer_size * 2, 10, &uart_queue, 0));
     
     // Create receive task
-    xTaskCreate(uart_receive_event_task, "uart_receive_event_task", 4096, packet_queue, 5, NULL);
+    xTaskCreate(uart_receive_event_task, "uart_receive_event_task", 4096, packet_queue, 6, NULL);
     
     delay(500);
 
