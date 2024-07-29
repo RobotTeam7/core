@@ -24,9 +24,8 @@ typedef struct {
     int8_t value;
 } Packet_t;
 
-void initialize_uart();
-void begin_uart_read(QueueHandle_t* uart_msg_queue);
-void send_uart_message(CommandMessage_t message, uint8_t value = 0);
-
+void initialize_uart(QueueHandle_t* packet_queue);
+void send_uart_message(CommandMessage_t command, uint8_t value = 0, bool memorize = true);
+static void send_nack();
 
 #endif // ROBOT_UART_H
