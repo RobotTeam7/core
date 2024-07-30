@@ -10,10 +10,10 @@ void stop_all_motors(RobotMotorData_t* robot_motors) {
 }
 
 void set_robot_drive(RobotMotorData_t* robot_motors, int16_t drive_value) {
-    motor_set_drive(robot_motors->motorFL, (drive_value) - state.yaw);
-    motor_set_drive(robot_motors->motorBL, (drive_value) - state.yaw);
-    motor_set_drive(robot_motors->motorFR, (drive_value) + state.yaw);
-    motor_set_drive(robot_motors->motorBR, (drive_value) + state.yaw);
+    motor_set_drive(robot_motors->motorFL, drive_value - state.yaw);
+    motor_set_drive(robot_motors->motorBL, drive_value - state.yaw);
+    motor_set_drive(robot_motors->motorFR, drive_value + state.yaw);
+    motor_set_drive(robot_motors->motorBR, drive_value + state.yaw);
 }
 
 void rotate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
@@ -26,10 +26,10 @@ void rotate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
 
 // positive drive value translates robot toward it's right side
 void translate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
-    motor_set_drive(robot_motors->motorFL, drive_value * 1.5);
-    motor_set_drive(robot_motors->motorFR, -drive_value );
-    motor_set_drive(robot_motors->motorBL, -drive_value);
-    motor_set_drive(robot_motors->motorBR, drive_value * 1.5);
+    motor_set_drive(robot_motors->motorFL, -drive_value);
+    motor_set_drive(robot_motors->motorFR, drive_value );
+    motor_set_drive(robot_motors->motorBL, drive_value);
+    motor_set_drive(robot_motors->motorBR, -drive_value);
 }
 
 void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate, int16_t drive_value_translate, int degrees) {

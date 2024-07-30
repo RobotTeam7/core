@@ -251,7 +251,7 @@ void initialize_uart(QueueHandle_t* packet_queue) {
     ESP_ERROR_CHECK(uart_driver_install(UART_PORT, uart_buffer_size * 2, uart_buffer_size * 2, 10, &uart_queue, 0));
     
     // Create receive task
-    xTaskCreate(uart_receive_event_task, "uart_receive_event_task", 4096, packet_queue, 6, NULL);
+    xTaskCreate(uart_receive_event_task, "uart_receive_event_task", 4096, packet_queue, 4, NULL);
     
     delay(500);
 

@@ -266,12 +266,13 @@ void TaskDrive(void* pvParameters) {
                 break;
 
             case DriveState_t::TRANSLATE:
-                translate_robot(robot_motors, state.drive_speed * state.y_direction * state.orientation);
+                translate_robot(robot_motors, state.drive_speed * -state.y_direction * state.orientation);
                 break;
 
             case DriveState_t::ROTATE_AND_TRANSLATE:
                 // translational velocity accepts the opposite of the y-direction
                 pirouette_robot(robot_motors, MOTOR_SPEED_PIROUETTE_ROTATION * state.helicity, state.drive_speed * -state.y_direction * state.orientation, state.pirouette_angle);
+                // pirouette_robot(robot_motors, 0 * state.helicity, state.drive_speed * -state.y_direction * state.orientation, state.pirouette_angle);
                 break;
         }
         vTaskDelay(MOTOR_UPDATE_DELAY);
@@ -291,12 +292,12 @@ void TaskCounterDocking(void* pvParameters) {
     uint32_t ulNotificationValue;
     while (1) {
         // Wait to be notified that limit switch hit the counter
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
+        vTaskDelay(pdMS_TO_TICKS(950));
         log_status("Hit counter!");
+
         // Stop moving
         state.drive_speed = 0;
         state.drive_state = STOP;
-        taskYIELD(); // Yield so that the change in drive state can immediately be processed
 
         // Notify master that we reached the counter
         xTaskNotifyGive(*xMasterHandle);
@@ -374,7 +375,6 @@ void TaskFollowWall(void* pvParameters) {
         xFollowWallHandle = NULL;
         return;
     }
-    log_status("Successfully initialized TaskFollowWall");
 
     DualTapeSensor_t* wingSensor = fullSensorData->wingSensor;
     DualTapeSensor_t* sensor = state.direction == 1 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
@@ -382,10 +382,16 @@ void TaskFollowWall(void* pvParameters) {
     int value_left;  // these are wing sensor values
     int value_right;
     bool found_tape = false;
+
+    log_status("Successfully initialized TaskFollowWall");
+
     while (1) {
+        //
         read_tape_sensor(sensor);
         value_left = sensor->leftValue;
         value_right = sensor->rightValue;
+        // value_left = 99;
+        // value_right = 99;
 
         Serial.println("left sensor: " + String(value_left));
         Serial.println("right sensor: " + String(value_right));
@@ -401,4 +407,5 @@ void TaskFollowWall(void* pvParameters) {
 
         vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_POLL));
     }
+    Serial.println("Exited loop!");
 }

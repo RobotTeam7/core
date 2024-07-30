@@ -13,7 +13,7 @@
 #define MOTOR_SPEED_BREAKING                        12000   // Break speed of the motors
 #define MOTOR_SPEED_WALL_SLAMMING                   11000    // Base motor sped whilst wall slamming
 #define MOTOR_SPEED_WALL_SLAMMING_APPROACH          7000    // Base motor sped whilst approaching desired station and wall slamming
-#define MOTOR_SPEED_PIROUETTE_ROTATION              9000    // Motor speed for the rotation vector component of a pirouette
+#define MOTOR_SPEED_PIROUETTE_ROTATION              13500    // Motor speed for the rotation moment vector component of a pirouette
 
 // Delays
 
@@ -29,7 +29,7 @@
 #define DELAY_STATION_TRACKING_POLL                 5       // delay between polls to see if we see station tape   
 #define DELAY_WALL_SLAMMING_POLL                    5       // delay between polls to check if we are approaching tape during wall slamming
 #define DELAY_ROTATION_DURATION                     3000    // delay used to time when to stop rotating during a pirouette
-#define DELAY_FINISH_PIROUETTE                      1000    // delay used to time when to stop translating after rotating during a pirouette
+#define DELAY_FINISH_PIROUETTE                      1500    // delay used to time when to stop translating after rotating during a pirouette
 
 // Sensor Thresholds
 

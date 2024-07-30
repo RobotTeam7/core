@@ -96,20 +96,19 @@ void TaskMaster(void* pvParameters) {
     }
 
     while (true) {
+        // delay for uart to work
         vTaskDelay(pdMS_TO_TICKS(500));
-        // log_status("pirouette!");
 
+        vTaskDelay(pdMS_TO_TICKS(3000));
 
-        // vTaskDelay(pdMS_TO_TICKS(1000)); // This delay seems necessary for UART
-        // log_status("going to station 1!");
+        
         // send_uart_message(GOTO, 2);
         // MOTION_BUSY = true;
         // while (MOTION_BUSY) {
         //     vTaskDelay(10 / portTICK_PERIOD_MS);
         // }
         // vTaskDelay(pdMS_TO_TICKS(1000));
-        
-        // // log_status("docking upwards!");
+
         // send_uart_message(COUNTER_DOCK, 1);
         // MOTION_BUSY = true;
         // while (MOTION_BUSY) {
@@ -117,24 +116,28 @@ void TaskMaster(void* pvParameters) {
         // }
         // vTaskDelay(pdMS_TO_TICKS(1000));
 
-        // // log_status("wall slam to 3!");
-        // send_uart_message(FOLLOW_WALL_TO, 3);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
+        send_uart_message(FOLLOW_WALL_TO, 2);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        // // log_status("wall slam to 2!");
-        // send_uart_message(FOLLOW_WALL_TO, 2);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
+        send_uart_message(DO_PIROUETTE, 3);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
+        send_uart_message(FOLLOW_WALL_TO, 2);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        send_uart_message(DO_PIROUETTE, 1);
+        send_uart_message(DO_PIROUETTE, 3);
         MOTION_BUSY = true;
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -181,9 +184,9 @@ void TaskMaster(void* pvParameters) {
         // vTaskDelay(pdMS_TO_TICKS(1000));
 
         Serial.println("Done!");
-        // while (1) {
-        //     vTaskDelay(1000);
-        // }
+        while (1) {
+            vTaskDelay(1000);
+        }
     }
 }
 

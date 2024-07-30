@@ -24,7 +24,7 @@ typedef struct {
     int y_direction;                    // Which direction to translate -> 1: up, 0: on tape, -1: down                
     int helicity;                       // Which direction should the robot rotate -> 1: counterclockwise, -1: clockwise
     int yaw;                            // pid-updated drive state
-    uint16_t drive_speed;               // base speed in which motors should be engaged
+    int16_t drive_speed;               // base speed in which motors should be engaged
     DriveState_t drive_state;
     ActionType_t current_action;
 } State_t;

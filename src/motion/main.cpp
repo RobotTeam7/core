@@ -105,7 +105,9 @@ void uart_msg_handler(void *parameter) {
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
                         state.y_direction = new_packet.value;
-                        state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+
                         send_uart_message(ACCEPTED, 0, false);
 
                         break;
@@ -483,13 +485,15 @@ void TaskMaster(void *pvParameters)
                 // thus we need the right motors to run faster
                 // else -> the opposite is true
                 // bool same_sign = (state.orientation >= 0) == (state.y_direction >= 0) && (state.orientation >= 0) == (state.direction >= 0);
-                bool same_sign = ((state.orientation >= 0) == (state.y_direction >= 0)) && ((state.orientation >= 0) == (state.direction >= 0));
+                // bool same_sign = ((state.orientation >= 0) == (state.y_direction >= 0)) && ((state.orientation >= 0) == (state.direction >= 0));
                 
-                if (same_sign) {
-                    state.yaw = YAW_WALL_SLAMMING;
-                } else {
-                    state.yaw = -YAW_WALL_SLAMMING;
-                }
+                // if (same_sign) {
+                //     state.yaw = YAW_WALL_SLAMMING;
+                // } else {
+                //     state.yaw = -YAW_WALL_SLAMMING;
+                // }
+                state.yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;
+                Serial.println("YAW: " + String(YAW_WALL_SLAMMING) + " Orientation: " + String(state.orientation) + " Y-Direction: " + String(state.y_direction) + " Direction: " + String(state.direction));
 
                 // Start Driving
                 state.drive_state = DRIVE;
@@ -502,7 +506,7 @@ void TaskMaster(void *pvParameters)
                 begin_wall_slamming();
 
                 while (state.current_action == WALL_SLAM_TO) {
-                    Serial.println("Wall Slmming: " + String(state.desired_side_station) + " " + String(state.last_side_station));
+                    Serial.println("Wall Slamming: " + String(state.desired_side_station) + " " + String(state.last_side_station));
                     if (state.desired_side_station == state.last_side_station) {
                         log_status("arrived at desired station!");
                         vTaskDelete(xFollowWallHandle);
@@ -515,7 +519,8 @@ void TaskMaster(void *pvParameters)
                         // }
 
                         // update last_station based on side station
-                        state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
                         state.drive_speed = 0;
                         state.yaw = 0;
                         state.drive_state = DriveState_t::STOP;
@@ -541,7 +546,8 @@ void TaskMaster(void *pvParameters)
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
 
-                for(int angle = 0; angle <= 180; angle++) {
+                // angle to 217 for robot 2 pirouette in islation
+                for(int angle = 0; angle <= 165; angle++) {
                     // these lines may be necessary, will test tomorrow
                     // if(state.orientation < 0) { 
                     //     state.pirouette_angle = 180 + angle * state.helicity;
@@ -549,22 +555,19 @@ void TaskMaster(void *pvParameters)
                     //     state.pirouette_angle = angle * state.helicity;
                     // }
                     state.pirouette_angle = angle * state.helicity;
-
-                    
-                    taskYIELD();
                     vTaskDelay(pdMS_TO_TICKS(4));
                 }
 
-
+                // we are now on the opposite wall, and we have rotated 180 degrees
+                state.orientation = -state.orientation;
                 state.drive_state = TRANSLATE;
-                taskYIELD();
                 vTaskDelay(pdMS_TO_TICKS(DELAY_FINISH_PIROUETTE));
 
 
 
-                // we are now on the opposite wall, and we have rotated 180 degrees
-                state.orientation = -state.orientation;
+
                 // state.y_direction = -state.y_direction;
+
                 state.drive_state = STOP;
                 state.drive_speed = 0;
                 state.pirouette_angle = 0;
@@ -632,7 +635,7 @@ void begin_return_to_tape() {
 
 void begin_wall_slamming() {
     // check if counter docking task was created
-    if (xTaskCreate(TaskFollowWall, "Follow_Wall", 2048, &wall_data, PRIORITY_FOLLOW_WALL, &xFollowWallHandle) == pdPASS) {
+    if (xTaskCreate(TaskFollowWall, "Follow_Wall", 4096, &wall_data, PRIORITY_FOLLOW_WALL, &xFollowWallHandle) == pdPASS) {
         log_status("Wall Follow task was created successfully.");
     } else {
         log_error("Wall Follow task was not created successfully!");
