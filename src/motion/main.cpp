@@ -485,9 +485,11 @@ void TaskMaster(void *pvParameters)
                 // if these values have the same sign, we are going right on the top wall, or left on the bottom wall
                 // thus we need the right motors to run faster
                 // else -> the opposite is true
-                if (state.orientation * state.y_direction * state.direction < 0) {
+                bool same_sign = (state.orientation >= 0) == (state.y_direction >= 0) && (state.orientation >= 0) == (state.direction >= 0);
+                
+                if (same_sign) {
                     state.yaw = YAW_WALL_SLAMMING;
-                }else {
+                } else {
                     state.yaw = -YAW_WALL_SLAMMING;
                 }
 
@@ -535,20 +537,39 @@ void TaskMaster(void *pvParameters)
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
+                log_status("doing pirouette!!");
+                // move away from current counter
+                state.y_direction = -state.y_direction;
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
 
-                vTaskDelay(pdMS_TO_TICKS(DELAY_ROTATION_DURATION));
+                for(int angle = 0; angle <= 180; angle++) {
+                    // these lines may be necessary, will test tomorrow
+                    // if(state.orientation < 0) { 
+                    //     state.pirouette_angle = 180 + angle * state.helicity;
+                    // } else {
+                    //     state.pirouette_angle = angle * state.helicity;
+                    // }
+                    state.pirouette_angle = angle * state.helicity;
+
+                    
+                    taskYIELD();
+                    vTaskDelay(pdMS_TO_TICKS(4));
+                }
+
 
                 state.drive_state = TRANSLATE;
-
+                taskYIELD();
                 vTaskDelay(pdMS_TO_TICKS(DELAY_FINISH_PIROUETTE));
 
-                state.drive_state = STOP;
+
+
                 // we are now on the opposite wall, and we have rotated 180 degrees
-                state.y_direction = -state.y_direction;
                 state.orientation = -state.orientation;
+                // state.y_direction = -state.y_direction;
+                state.drive_state = STOP;
                 state.drive_speed = 0;
+                state.pirouette_angle = 0;
                 taskYIELD();
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);

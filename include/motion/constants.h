@@ -13,6 +13,7 @@
 #define MOTOR_SPEED_BREAKING                        12000   // Break speed of the motors
 #define MOTOR_SPEED_WALL_SLAMMING                   11000    // Base motor sped whilst wall slamming
 #define MOTOR_SPEED_WALL_SLAMMING_APPROACH          7000    // Base motor sped whilst approaching desired station and wall slamming
+#define MOTOR_SPEED_PIROUETTE_ROTATION              9000    // Motor speed for the rotation vector component of a pirouette
 
 // Delays
 
