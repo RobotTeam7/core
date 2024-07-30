@@ -35,3 +35,7 @@ void check_heap() {
     Serial.print("Free heap: ");
     Serial.println(ESP.getFreeHeap());
 }
+
+int sign(int x) {
+    return (x > 0) - (x < 0);
+}

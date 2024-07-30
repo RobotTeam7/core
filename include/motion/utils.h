@@ -13,7 +13,6 @@
 void checkResetCause();
 void monitorStackUsage(TaskHandle_t* xHandleRotating, TaskHandle_t* xReflectanceHandle, TaskHandle_t* xHandleFollowing, TaskHandle_t* xMasterHandle, TaskHandle_t* xStationTrackingHandle);
 
-
 extern "C"
 {
   void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName);
@@ -24,6 +23,11 @@ int get_last_station_chef(int side_station, int y_direction);
 int get_last_side_station_server(int last_station, int y_direction);
 int get_last_side_station_chef(int last_station, int y_direction);
 
+/**
+ * @brief Returns the sign of the argument 
+ * @returns 1 if positive, -1 if negative.
+ */
+int sign(int x);
 
 
 #endif // MOTION_UTILS_H

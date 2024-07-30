@@ -13,6 +13,6 @@ State_t state = {
     .helicity = 1,
     .yaw = 0,
     .drive_speed = 13000,
-    .drive_state = TRANSLATE,
+    .drive_state = STOP,
     .current_action = IDLE,
 };

@@ -230,11 +230,11 @@ void setup() {
     delay(100);
 
     // check if task master was created
-    // if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
-    //     log_status("Master task was created successfully.");
-    // } else {
-    //     log_error("Master task was not created successfully!");
-    // }
+    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
+        log_status("Master task was created successfully.");
+    } else {
+        log_error("Master task was not created successfully!");
+    }
 
     // xTaskCreate(TaskSwitch1, "switxh1", 2048, NULL, 1, &switch_handle_1);
     // xTaskCreate(TaskSwitch2, "swithc2", 2048, NULL, 1, &switch_handle_2);
@@ -476,16 +476,14 @@ void TaskMaster(void *pvParameters)
                     state.current_action == IDLE;
                 }
                 
-                // check if station difference and direction have opposite sign
-                // if they do flip the sign direction
-                if (station_difference * state.direction * state.orientation < 0) {
-                    state.direction = -state.direction;
-                }
+                // determine direction to go in by looking at sign of station difference and orientation
+                state.direction = sign(station_difference * state.orientation);
 
                 // if these values have the same sign, we are going right on the top wall, or left on the bottom wall
                 // thus we need the right motors to run faster
                 // else -> the opposite is true
-                bool same_sign = (state.orientation >= 0) == (state.y_direction >= 0) && (state.orientation >= 0) == (state.direction >= 0);
+                // bool same_sign = (state.orientation >= 0) == (state.y_direction >= 0) && (state.orientation >= 0) == (state.direction >= 0);
+                bool same_sign = ((state.orientation >= 0) == (state.y_direction >= 0)) && ((state.orientation >= 0) == (state.direction >= 0));
                 
                 if (same_sign) {
                     state.yaw = YAW_WALL_SLAMMING;
