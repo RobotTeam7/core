@@ -105,8 +105,8 @@ void uart_msg_handler(void *parameter) {
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
                         state.y_direction = new_packet.value;
-                        // state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
 
                         send_uart_message(ACCEPTED, 0, false);
 
@@ -521,8 +521,8 @@ void TaskMaster(void *pvParameters)
                         // }
 
                         // update last_station based on side station
-                        // state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
                         state.drive_speed = 0;
                         state.yaw = 0;
                         state.drive_state = DriveState_t::STOP;
