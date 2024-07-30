@@ -306,7 +306,7 @@ void TaskMaster(void *pvParameters)
             case GOTO_STATION:
             {   
                 int station_difference = state.desired_station - state.last_station;
-                if(station_difference == 0) {
+                if (station_difference == 0) {
                     log_error("already at desired station!");
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
@@ -314,7 +314,7 @@ void TaskMaster(void *pvParameters)
                 
                 // check if station difference and direction have opposite sign
                 // if they do flip the sign direction
-                if(station_difference * state.direction * state.orientation < 0) {
+                if (station_difference * state.direction * state.orientation < 0) {
                     state.direction = -state.direction;
                 }
 
@@ -332,7 +332,7 @@ void TaskMaster(void *pvParameters)
                 begin_station_tracking();
                 int docking = 0;
 
-                while (state.current_action == GOTO_STATION) {
+                while (1) {
                     if ((state.last_station == state.desired_station) && !docking) {
                         log_status("breaking!");
                         state.direction = -state.direction;
@@ -341,8 +341,10 @@ void TaskMaster(void *pvParameters)
                         
                         log_status("Beginning docking...!");
                         
-                        vTaskDelete(xStationTrackingHandle);
-                        xStationTrackingHandle = NULL;
+                        if (xStationTrackingHandle != NULL) {
+                            vTaskDelete(xStationTrackingHandle);
+                            xStationTrackingHandle = NULL;
+                        }
 
                         // delay before backing up
                         state.drive_state = STOP;
@@ -359,16 +361,16 @@ void TaskMaster(void *pvParameters)
                             if (receivedMessage == REACHED_POSITION) {
                                 log_status("Reached position: found tape!");     
 
-                                if (xDockingHandle != NULL) {
-                                    vTaskDelete(xDockingHandle);
-                                    xDockingHandle = NULL;
-                                }
+                                // if (xDockingHandle != NULL) {
+                                //     vTaskDelete(xDockingHandle);
+                                //     xDockingHandle = NULL;
+                                // }
 
                                 if (xHandleFollowing != NULL) {
                                     vTaskDelete(xHandleFollowing);
                                     xHandleFollowing = NULL;
                                 }
-                                
+
                                 state.yaw = 0;
 
                                 send_uart_message(COMPLETED);
@@ -562,9 +564,6 @@ void TaskMaster(void *pvParameters)
                 state.orientation = -state.orientation;
                 state.drive_state = TRANSLATE;
                 vTaskDelay(pdMS_TO_TICKS(DELAY_FINISH_PIROUETTE));
-
-
-
 
                 // state.y_direction = -state.y_direction;
 

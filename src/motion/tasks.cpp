@@ -13,8 +13,6 @@
 #include <motion/motion.h>
 
 
-
-
 TaskHandle_t xHandleRotating = NULL;
 TaskHandle_t xDriveHandle = NULL;
 TaskHandle_t xHandleFollowing = NULL;
@@ -236,6 +234,10 @@ void TaskDocking(void* pvParameters) {
             xQueueSend(*dockingData->xSharedQueue, &message, portMAX_DELAY);
             log_status("Finished docking!");
             state.drive_state = STOP;
+
+            vTaskDelete(NULL);
+            xDockingHandle = NULL;
+            taskYIELD();
         } 
 
         vTaskDelay(delay);
@@ -386,15 +388,13 @@ void TaskFollowWall(void* pvParameters) {
     log_status("Successfully initialized TaskFollowWall");
 
     while (1) {
-        //
         read_tape_sensor(sensor);
+
         value_left = sensor->leftValue;
         value_right = sensor->rightValue;
-        // value_left = 99;
-        // value_right = 99;
 
-        Serial.println("left sensor: " + String(value_left));
-        Serial.println("right sensor: " + String(value_right));
+        // Serial.println("left sensor: " + String(value_left));
+        // Serial.println("right sensor: " + String(value_right));
 
         if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
