@@ -152,13 +152,13 @@ void TaskRotate(void *pvParameters) {
     }
 }
 
-int checkDualTapeSensor(TapeSensor_t* tapeSensor) {
+int checkTapeSensor(TapeSensor_t* tapeSensor) {
     return tapeSensor == NULL;
 }
 
 void TaskStationTracking(void* pvParameters) {
     TapeSensor_t* tapeSensor = (TapeSensor_t*)pvParameters;
-    if (checkDualTapeSensor(tapeSensor)) {
+    if (checkTapeSensor(tapeSensor)) {
         log_error("Nulls in dual tape sensor!");
         return;
     }
