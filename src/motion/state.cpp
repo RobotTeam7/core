@@ -3,7 +3,7 @@
 State_t state = {
     .orientation = 1,
     .last_station = 1,
-    .last_side_station = 0,
+    .last_side_station = 1,
     .pirouette_angle = 0,
     
     .desired_station = 0,

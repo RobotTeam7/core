@@ -105,8 +105,8 @@ void uart_msg_handler(void *parameter) {
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
                         state.y_direction = new_packet.value;
-                        state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        // state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        // state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
 
                         send_uart_message(ACCEPTED, 0, false);
 
@@ -483,20 +483,9 @@ void TaskMaster(void *pvParameters)
                 // determine direction to go in by looking at sign of station difference and orientation
                 state.direction = sign(station_difference * state.orientation);
 
-                // if these values have the same sign, we are going right on the top wall, or left on the bottom wall
-                // thus we need the right motors to run faster
-                // else -> the opposite is true
-                // bool same_sign = (state.orientation >= 0) == (state.y_direction >= 0) && (state.orientation >= 0) == (state.direction >= 0);
-                // bool same_sign = ((state.orientation >= 0) == (state.y_direction >= 0)) && ((state.orientation >= 0) == (state.direction >= 0));
-                
-                // if (same_sign) {
-                //     state.yaw = YAW_WALL_SLAMMING;
-                // } else {
-                //     state.yaw = -YAW_WALL_SLAMMING;
-                // }
                 state.yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;
                 Serial.println("YAW: " + String(YAW_WALL_SLAMMING) + " Orientation: " + String(state.orientation) + " Y-Direction: " + String(state.y_direction) + " Direction: " + String(state.direction));
-
+                // Serial.println("Desired Side Station: " + String(state.desired_side_station) + " Last Side Station: " + String())
                 // Start Driving
                 state.drive_state = DRIVE;
                 state.drive_speed = MOTOR_SPEED_WALL_SLAMMING;
@@ -521,8 +510,8 @@ void TaskMaster(void *pvParameters)
                         // }
 
                         // update last_station based on side station
-                        state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        // state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        // state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
                         state.drive_speed = 0;
                         state.yaw = 0;
                         state.drive_state = DriveState_t::STOP;
@@ -543,29 +532,28 @@ void TaskMaster(void *pvParameters)
                     state.current_action == IDLE;
                 }
                 log_status("doing pirouette!!");
+
+
                 // move away from current counter
                 state.y_direction = -state.y_direction;
+
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                vTaskDelay(pdMS_TO_TICKS(500));
+
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
 
                 // angle to 217 for robot 2 pirouette in islation
-                for(int angle = 0; angle <= 165; angle++) {
-                    // these lines may be necessary, will test tomorrow
-                    // if(state.orientation < 0) { 
-                    //     state.pirouette_angle = 180 + angle * state.helicity;
-                    // } else {
-                    //     state.pirouette_angle = angle * state.helicity;
-                    // }
-                    state.pirouette_angle = angle * state.helicity;
+                for (double angle = 0.0; angle <= 140.0; angle += 0.8) {
+                    state.pirouette_angle = (int)(angle * state.helicity);
                     vTaskDelay(pdMS_TO_TICKS(4));
                 }
 
                 // we are now on the opposite wall, and we have rotated 180 degrees
                 state.orientation = -state.orientation;
                 state.drive_state = TRANSLATE;
-                vTaskDelay(pdMS_TO_TICKS(DELAY_FINISH_PIROUETTE));
-
-                // state.y_direction = -state.y_direction;
+                vTaskDelay(pdMS_TO_TICKS(1000));
 
                 state.drive_state = STOP;
                 state.drive_speed = 0;
