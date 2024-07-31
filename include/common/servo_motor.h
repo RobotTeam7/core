@@ -11,6 +11,9 @@
 #include <common/constants.h>
 #include <common/utils.h>
 
+#define SERVO_MOTOR_CONTROL_FREQUENCY 50
+
+
 /**
  * @brief This struct encapsulates the data for a servo motor 
  * 

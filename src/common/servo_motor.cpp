@@ -14,7 +14,7 @@ ServoMotor_t* instantiate_servo_motor(uint8_t boundControlPin, float max_duty_cy
     servoMotor->max_duty_cycle = max_duty_cycle;
     servoMotor->min_duty_cycle = min_duty_cycle;
 
-    bind_pwm(servoMotor->boundControlPin, 50);
+    bind_pwm(servoMotor->boundControlPin, SERVO_MOTOR_CONTROL_FREQUENCY, MOTOR_TIMER);
     set_pwm(servoMotor->boundControlPin, servoMotor->position);    
 
     log_status("Created servo motor!");
