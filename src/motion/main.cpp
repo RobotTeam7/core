@@ -519,8 +519,8 @@ void TaskMaster(void *pvParameters)
                        log_status("approaching tape, lowering motor speed");
                         
                         state.direction = -state.direction;
-                        vTaskDelay(pdMS_TO_TICKS(25));
-                        state.drive_speed = 3000;
+                        vTaskDelay(pdMS_TO_TICKS(50));
+                        state.drive_speed = 6000;
                         state.direction = -state.direction;
 
                         // update last_station based on side station
@@ -566,10 +566,9 @@ void TaskMaster(void *pvParameters)
                 state.y_direction = -state.y_direction;
 
                 state.drive_state = TRANSLATE;
-                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_speed = MOTOR_SPEED_PIROUETTE_TRANSLATION;
                 vTaskDelay(pdMS_TO_TICKS(DELAY_START_PIROUETTE));
 
-                state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
 
                 // angle to 217 for robot 2 pirouette in islation

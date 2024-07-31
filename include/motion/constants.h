@@ -9,11 +9,13 @@
 #define MOTOR_SPEED_FOLLOWING                       9000    // Base motor speed whilst tape following
 #define MOTOR_SPEED_ROTATION                        9000    // Base motor speed whilst rotating
 #define MOTOR_SPEED_DOCKING                         6000    // Base speed for when we are trying to dock
-#define MOTOR_SPEED_TRANSLATION                     13000   // Base speed for when we are trying to dock
+#define MOTOR_SPEED_TRANSLATION                     15000   // Base speed for when we are trying to dock
 #define MOTOR_SPEED_BREAKING                        12000   // Break speed of the motors
-#define MOTOR_SPEED_WALL_SLAMMING                   11000    // Base motor sped whilst wall slamming
+#define MOTOR_SPEED_WALL_SLAMMING                   20000    // Base motor sped whilst wall slamming
 #define MOTOR_SPEED_WALL_SLAMMING_APPROACH          7000    // Base motor sped whilst approaching desired station and wall slamming
 #define MOTOR_SPEED_PIROUETTE_ROTATION              13500    // Motor speed for the rotation moment vector component of a pirouette
+#define MOTOR_SPEED_PIROUETTE_TRANSLATION           13000   // Base speed for when we are trying to dock
+
 
 // Delays
 
@@ -31,7 +33,7 @@
 #define DELAY_ROTATION_DURATION                     3000    // delay used to time when to stop rotating during a pirouette
 #define DELAY_START_PIROUETTE                       500
 #define DELAY_FINISH_PIROUETTE                      1200    // delay used to time when to stop translating after rotating during a pirouette
-#define DELAY_TRANSLATE_TO_WALL                     1300
+#define DELAY_TRANSLATE_TO_WALL                     1100
 #define DELAY_TRANSLATE_SIDE_SWAP                   1900
 
 // Sensor Thresholds
