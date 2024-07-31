@@ -11,7 +11,7 @@
 typedef struct {
     uint8_t pin;
     uint16_t value;
-} DualTapeSensor_t;
+} TapeSensor_t;
 
 /**
  * @brief Instantiate a new analog tape sensor.
@@ -21,12 +21,12 @@ typedef struct {
  * 
  * @returns Heap-allocated (created with `malloc()`) pointer. Remember to free!
  */
-DualTapeSensor_t* instantiate_tape_sensor(uint8_t pin);
+TapeSensor_t* instantiate_tape_sensor(uint8_t pin);
 
 /**
  * @brief Perform a read of `tapeSensor`, updating its internal data.
  */
-void read_tape_sensor(DualTapeSensor_t* tapeSensor);
+void read_tape_sensor(TapeSensor_t* tapeSensor);
 
 
 #endif // REFLECTANCE_SENSOR_H

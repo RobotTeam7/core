@@ -30,9 +30,9 @@ RobotMotor_t* motor_front_right;
 RobotMotor_t* motor_back_left;
 RobotMotor_t* motor_back_right;
 
-DualTapeSensor_t* frontTapeSensor;
-DualTapeSensor_t* backTapeSensor;
-DualTapeSensor_t* wingSensor;
+TapeSensor_t* frontTapeSensor;
+TapeSensor_t* backTapeSensor;
+TapeSensor_t* wingSensor;
 
 LimitSwitch_t* limit_switch_front_left;
 LimitSwitch_t* limit_switch_back_left;
@@ -616,7 +616,7 @@ void TaskMaster(void *pvParameters)
                 state.y_direction = -state.y_direction;
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);
-                
+
                 break;
             }
         }

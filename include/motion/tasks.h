@@ -21,14 +21,14 @@ extern TaskHandle_t xReturnToTapeHandle;
 extern TaskHandle_t xFollowWallHandle;
 
 typedef struct {
-    DualTapeSensor_t* fontTapeSensor;
-    DualTapeSensor_t* backTapeSensor;
+    TapeSensor_t* fontTapeSensor;
+    TapeSensor_t* backTapeSensor;
     QueueHandle_t* xSharedQueue;
 } NavigationData_t;
 
 typedef struct {
-    DualTapeSensor_t* fontTapeSensor;
-    DualTapeSensor_t* backTapeSensor;
+    TapeSensor_t* fontTapeSensor;
+    TapeSensor_t* backTapeSensor;
     TaskHandle_t* masterHandle;
 } ReturnToTapeData_t;
 
@@ -37,8 +37,8 @@ typedef struct {
 } DockingData_t;
 
 typedef struct {
-    DualTapeSensor_t* fontTapeSensor;
-    DualTapeSensor_t* backTapeSensor;
+    TapeSensor_t* fontTapeSensor;
+    TapeSensor_t* backTapeSensor;
 } FullSensorData_t;
 
 void TaskRotate(void* pvParameters);

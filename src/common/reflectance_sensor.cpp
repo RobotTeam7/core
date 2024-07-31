@@ -2,8 +2,8 @@
 #include <motion/constants.h>
 
 
-DualTapeSensor_t* instantiate_tape_sensor(uint8_t pin) {
-    DualTapeSensor_t* tapeSensor = (DualTapeSensor_t*)malloc(sizeof(DualTapeSensor_t));
+TapeSensor_t* instantiate_tape_sensor(uint8_t pin) {
+    TapeSensor_t* tapeSensor = (TapeSensor_t*)malloc(sizeof(TapeSensor_t));
     if (NULL == tapeSensor) {
         log_error("Couldn't allocate memory for tape sensor!");
         return NULL;
@@ -20,6 +20,6 @@ DualTapeSensor_t* instantiate_tape_sensor(uint8_t pin) {
     return tapeSensor;
 }
 
-void read_tape_sensor(DualTapeSensor_t* tapeSensor) {
+void read_tape_sensor(TapeSensor_t* tapeSensor) {
     tapeSensor->value = analogRead(tapeSensor->pin);
 }

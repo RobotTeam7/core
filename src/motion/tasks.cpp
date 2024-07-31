@@ -33,7 +33,7 @@ int checkRobotMotors(RobotMotorData_t* robotMotors) {
 
 
 // Ensure that a DualTapeSensor_t* does not include null values
-int checkTapeSensor(DualTapeSensor_t* tapeSensor) {
+int checkTapeSensor(TapeSensor_t* tapeSensor) {
     return tapeSensor == NULL;
 }
 
@@ -69,7 +69,7 @@ void TaskFollowTape(void *pvParameters) {
     state.drive_speed = MOTOR_SPEED_FOLLOWING;
 
     int lastError = 0;
-    DualTapeSensor_t* sensor;
+    TapeSensor_t* sensor;
     if (state.direction == 1) {
         sensor = navigationData->fontTapeSensor;
     } else {
@@ -111,7 +111,7 @@ void TaskRotate(void *pvParameters) {
     TickType_t inital_delay_ticks = pdMS_TO_TICKS(ROTATE_INITIAL_DELAY);
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_ROTATING_MS);
 
-    DualTapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
+    TapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
     
     int count = 0;
     bool on_tape = false;
@@ -152,12 +152,12 @@ void TaskRotate(void *pvParameters) {
     }
 }
 
-int checkDualTapeSensor(DualTapeSensor_t* tapeSensor) {
+int checkDualTapeSensor(TapeSensor_t* tapeSensor) {
     return tapeSensor == NULL;
 }
 
 void TaskStationTracking(void* pvParameters) {
-    DualTapeSensor_t* tapeSensor = (DualTapeSensor_t*)pvParameters;
+    TapeSensor_t* tapeSensor = (TapeSensor_t*)pvParameters;
     if (checkDualTapeSensor(tapeSensor)) {
         log_error("Nulls in dual tape sensor!");
         return;
@@ -210,7 +210,7 @@ void TaskDocking(void* pvParameters) {
         return;
     }
 
-    DualTapeSensor_t* sensor;
+    TapeSensor_t* sensor;
     TickType_t delay = pdMS_TO_TICKS(DELAY_STATION_TRACKING_POLL);
 
     int value_left;
@@ -323,7 +323,7 @@ void TaskReturnToTape(void* pvParameters) {
 
     // convert ms delays into ticks
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(DELAY_RETURN_TO_TAPE_POLL);
-    DualTapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
+    TapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
 
     log_status("Successfully initialized tape return!");
 
@@ -374,7 +374,7 @@ void TaskFollowWall(void* pvParameters) {
         return;
     }
 
-    DualTapeSensor_t* sensor = state.direction == 1 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
+    TapeSensor_t* sensor = state.direction == 1 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
 
     int value;  // these are wing sensor values
     bool found_tape = false;
