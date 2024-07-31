@@ -87,13 +87,33 @@ void TaskMaster(void* pvParameters) {
 
     // Wait for green light from motion board
     Serial.println("awaitng motion to be ready");
-    while (!MOTION_READY) {
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-    }
+    // while (!MOTION_READY) {
+    //     vTaskDelay(10 / portTICK_PERIOD_MS);
+    // }
 
     while (true) {
         // delay for uart to work
         vTaskDelay(pdMS_TO_TICKS(500));
+
+        vTaskDelay(pdMS_TO_TICKS(3000));
+
+        log_status("servos going to 1");
+        for(float percentage = 0; percentage < 1; percentage += 0.01){
+            // set_servo_position_percentage(claw_servo, percentage);
+            set_servo_position_percentage(draw_bridge_servo, percentage);
+            // set_servo_position_percentage(plating_servo, percentage);
+            vTaskDelay(10);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(3000));
+
+        log_status("servos going to 0");
+        for(float percentage = 1; percentage > 0; percentage -= 0.01){
+            // set_servo_position_percentage(claw_servo, percentage);
+            set_servo_position_percentage(draw_bridge_servo, percentage);
+            // set_servo_position_percentage(plating_servo, percentage);
+            vTaskDelay(10);
+        }
 
         vTaskDelay(pdMS_TO_TICKS(3000));
 
@@ -112,20 +132,20 @@ void TaskMaster(void* pvParameters) {
         // }
         // vTaskDelay(pdMS_TO_TICKS(1000));
 
-        send_uart_message(FOLLOW_WALL_TO, 2);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        // send_uart_message(FOLLOW_WALL_TO, 2);
+        // MOTION_BUSY = true;
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        // vTaskDelay(pdMS_TO_TICKS(1000));
 
 
-        send_uart_message(DO_PIROUETTE, -2);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        // send_uart_message(DO_PIROUETTE, -2);
+        // MOTION_BUSY = true;
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        // vTaskDelay(pdMS_TO_TICKS(1000));
 
         // send_uart_message(FOLLOW_WALL_TO, 3);
         // MOTION_BUSY = true;
@@ -201,9 +221,9 @@ void TaskMaster(void* pvParameters) {
         // vTaskDelay(pdMS_TO_TICKS(1000));
 
         Serial.println("Done!");
-        while (1) {
-            vTaskDelay(1000);
-        }
+        // while (1) {
+        //     vTaskDelay(1000);
+        // }
     }
 }
 
@@ -214,9 +234,9 @@ void setup() {
 
     Serial.println("servos initialized!");
 
-    claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, 0.08, 0.055);
-    draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, 0.09, 0.03);
-    plating_servo = instantiate_servo_motor(SERVO_PLATE_PIN, 0.08, 0.055);
+    // claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, 0.045, 0.045);
+    draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_UP, SERVO_DRAW_BRIDGE_DOWN);
+    // plating_servo = instantiate_servo_motor(SERVO_PLATE_PIN, 0.08, 0.055);
 
     // actuate_stepper_motor(stepper_motor, UP, 1000);
     // delay(2000);

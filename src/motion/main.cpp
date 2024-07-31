@@ -193,14 +193,16 @@ TaskHandle_t switch_handle_4 = NULL;
 void setup() {
     Serial.begin(115200);
 
+    init_pwm();
+
     initialize_uart(&uart_msg_queue);
 
     xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 7, NULL);
 
-    motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
-    motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
-    motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE);
-    motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE);
+    motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE, ledc_timer_t::LEDC_TIMER_0);
+    motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE, ledc_timer_t::LEDC_TIMER_0);
+    motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE, ledc_timer_t::LEDC_TIMER_1);
+    motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE, ledc_timer_t::LEDC_TIMER_1);
 
     frontTapeSensor = instantiate_tape_sensor(FRONT_TAPE_SENSOR_LEFT, FRONT_TAPE_SENSOR_RIGHT);
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT, BACK_TAPE_SENSOR_RIGHT);
@@ -234,12 +236,17 @@ void setup() {
 
     delay(100);
 
-    // check if task master was created
-    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
-        log_status("Master task was created successfully.");
-    } else {
-        log_error("Master task was not created successfully!");
+    while(1) {
+        delay(3000);
+        state.direction = -state.direction;
     }
+
+    // check if task master was created
+    // if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
+    //     log_status("Master task was created successfully.");
+    // } else {
+    //     log_error("Master task was not created successfully!");
+    // }
 
     // xTaskCreate(TaskSwitch1, "switxh1", 2048, NULL, 1, &switch_handle_1);
     // xTaskCreate(TaskSwitch2, "swithc2", 2048, NULL, 1, &switch_handle_2);

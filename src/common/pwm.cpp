@@ -24,6 +24,17 @@ void init_pwm() {
     };
 
     ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
+
+    ledc_timer_config_t ledc_timer_1 = {
+        .speed_mode       = LEDC_LOW_SPEED_MODE,
+        .duty_resolution  = TIMER_RESOLUTION,
+        .timer_num        = LEDC_TIMER_1,
+        .freq_hz          = LEDC_PWM_FREQUENCY,
+        .clk_cfg          = LEDC_AUTO_CLK
+    };
+    
+    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer_1));
+
 }
 
 int allocate_channel(uint8_t pin, int channel) {
