@@ -14,8 +14,6 @@
 #include <communication/uart.h>
 #include <communication/decode.h>
 
-#include <ESP32Servo.h>
-
 
 QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
 QueueHandle_t inboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
@@ -27,11 +25,9 @@ WiFiHandler_t wifi_handler = {
     .outbound_wifi_queue = &outboundWiFiQueue
 };
 
-Servo claw_servo;
-Servo draw_bridge_servo;
-Servo plating_servo;
-
-StepperMotor_t* stepper_motor;
+ServoMotor_t* claw_servo;
+ServoMotor_t* draw_bridge_servo;
+ServoMotor_t* plating_servo;
 
 bool MOTION_READY = false;
 bool MOTION_BUSY = false;
@@ -214,16 +210,14 @@ void TaskMaster(void* pvParameters) {
 void setup() {
     Serial.begin(115200); // Initialize serial monitor
 
+    init_pwm();
+
     Serial.println("servos initialized!");
 
-    claw_servo = Servo();
-    claw_servo.attach(SERVO_CLAW_PIN);
-    draw_bridge_servo = Servo();
-    draw_bridge_servo.attach(SERVO_DRAW_BRIDGE_PIN);
-    plating_servo = Servo();
-    plating_servo.attach(SERVO_PLATE_PIN);
+    claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, 0.08, 0.055);
+    draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, 0.09, 0.03);
+    plating_servo = instantiate_servo_motor(SERVO_PLATE_PIN, 0.08, 0.055);
 
-    stepper_motor = instantiate_stepper_motor(STEPPER_CONTROL_PIN, STEPPER_DIRECTION_PIN, STEPPER_SLEEP_PIN, 0, 500);
     // actuate_stepper_motor(stepper_motor, UP, 1000);
     // delay(2000);
     // claw_servo.write(90);

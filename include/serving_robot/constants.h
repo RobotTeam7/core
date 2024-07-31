@@ -3,7 +3,6 @@
 
 // Pin Definitions
 #define STEPPER_SLEEP_PIN               15
-#define STEPPER_DIRECTION_PIN           13
 #define STEPPER_CONTROL_PIN             4
 #define RACK_FORWARD_PIN                7
 #define RACK_REVERSE_PIN                8
@@ -12,7 +11,7 @@
 #define CLAW_ACTUATE_PIN_2                33
 
 
-#define SERVO_CLAW_PIN                  5
+#define SERVO_CLAW_PIN                  13
 #define SERVO_CLAW_OPEN                 90 // open
 #define SERVO_CLAW_CLOSED               30 // closed
 

@@ -294,7 +294,7 @@ void TaskCounterDocking(void* pvParameters) {
     uint32_t ulNotificationValue;
     while (1) {
         // Wait to be notified that limit switch hit the counter
-        vTaskDelay(pdMS_TO_TICKS(950));
+        vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_TO_WALL));
         log_status("Hit counter!");
 
         // Stop moving

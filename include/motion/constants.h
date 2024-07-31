@@ -31,6 +31,8 @@
 #define DELAY_ROTATION_DURATION                     3000    // delay used to time when to stop rotating during a pirouette
 #define DELAY_START_PIROUETTE                       500
 #define DELAY_FINISH_PIROUETTE                      1200    // delay used to time when to stop translating after rotating during a pirouette
+#define DELAY_TRANSLATE_TO_WALL                     950
+#define DELAY_TRANSLATE_SIDE_SWAP                   1900
 
 // Sensor Thresholds
 

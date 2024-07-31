@@ -45,8 +45,6 @@ DockingData_t config_docking;
 ReturnToTapeData_t return_data;
 FullSensorData_t wall_data;
 
-StepperMotor_t* stepper_motor;
-
 QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
 QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
 
@@ -135,11 +133,15 @@ void uart_msg_handler(void *parameter) {
                         state.last_side_station = new_packet.value;
                         Serial.println("Value: " + String(state.last_side_station));
                         send_uart_message(ACCEPTED, 0, false);
-
                         break;
-
+                    case SWITCH_COUNTER:
+                        state.current_action = ActionType_t::SIDE_SWAP;
+                        state.last_side_station = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+                        break;
                     case 0x40 ... 0x4f:
                         log_status("Received acknowledgement!");
+                        break;
                 }
             }
         }
@@ -543,7 +545,7 @@ void TaskMaster(void *pvParameters)
                     state.last_side_station = -state.last_side_station;
 
                     final_angle *= 1.1;
-                    final_delay = int(final_delay * 1.2);
+                    final_delay = int(final_delay * 1.25);
                 }
 
 
@@ -581,6 +583,27 @@ void TaskMaster(void *pvParameters)
                 taskYIELD();
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);
+            }
+
+            case ActionType_t::SIDE_SWAP:
+            {
+                if(state.y_direction == 0) {
+                    log_error("cannot side swap when y direction is 0");
+                    send_uart_message(COMPLETED);
+                    state.current_action = IDLE;
+                }
+
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_state = TRANSLATE;
+                vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_SIDE_SWAP));
+
+                log_status("side swap completed!");
+                state.drive_speed = 0;
+                state.drive_state = STOP;
+                state.y_direction = -state.y_direction;
+                state.current_action = IDLE;
+                send_uart_message(COMPLETED);
+                break;
             }
         }
     }

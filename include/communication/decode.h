@@ -12,7 +12,7 @@ typedef enum { ROTATION_DONE, LOST_TAPE, REACHED_POSITION } StatusMessage_t;
 /**
  * @brief Enum discretizing the different kinds of messages being passed between boards
  */
-typedef enum { READY = 0x00, GOTO = 0x01, DO_SPIN = 0x02, ABORT = 0x03, TAPE_RETURN = 0x04, COUNTER_DOCK = 0x05, COMPLETED = 0x06, FOLLOW_WALL_TO = 0x07, DO_PIROUETTE = 0x08, OCCUPIED = 0x40, ACCEPTED = 0x41, ACK = 0x42, NACK = 0x50 } CommandMessage_t;   
+typedef enum { READY = 0x00, GOTO = 0x01, DO_SPIN = 0x02, ABORT = 0x03, TAPE_RETURN = 0x04, COUNTER_DOCK = 0x05, COMPLETED = 0x06, FOLLOW_WALL_TO = 0x07, DO_PIROUETTE = 0x08, SWITCH_COUNTER = 0x09, OCCUPIED = 0x40, ACCEPTED = 0x41, ACK = 0x42, NACK = 0x50 } CommandMessage_t;   
 
 // /**
 //  * @brief Decode a byte into a CommandMessage_t

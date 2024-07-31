@@ -18,5 +18,11 @@ void check_heap(); // Check how much heap space is available
  */
 int get_buffer_average(CircularBuffer<int, REFLECTANCE_SENSOR_BUFFER_SIZE> &sensorBuffer);
 
+/**
+ * @brief Returns the sign of the argument 
+ * @returns 1 if positive, -1 if negative.
+ */
+int sign(int x);
+
 
 #endif
