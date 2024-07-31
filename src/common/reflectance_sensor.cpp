@@ -25,11 +25,7 @@ DualTapeSensor_t* instantiate_tape_sensor(uint8_t leftPin, uint8_t rightPin) {
 
 void read_tape_sensor(DualTapeSensor_t* tapeSensor) {
     tapeSensor->leftValue = analogRead(tapeSensor->leftPin);
-    // Serial.println("Left " + String(tapeSensor->leftValue));
-
     tapeSensor->rightValue = analogRead(tapeSensor->rightPin);
-    // Serial.println("Right " + String(tapeSensor->rightValue));
-
 }
 
 int is_tape_left_or_right(DualTapeSensor_t* tapeSensor) {
