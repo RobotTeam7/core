@@ -34,7 +34,6 @@ void init_pwm() {
     };
     
     ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer_1));
-
 }
 
 int allocate_channel(uint8_t pin, int channel) {

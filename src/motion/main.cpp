@@ -8,7 +8,7 @@
 #include <common/robot_motor.h>
 #include <common/stepper_motor.h>
 #include <common/reflectance_sensor.h>
-#include <motion/limit_switch.h>
+#include <common/limit_switch.h>
 
 #include <communication/uart.h>
 #include <communication/decode.h>
@@ -157,6 +157,18 @@ void TaskSwitch1(void* pvParameters) {
     }
 }
 
+void IRAM_ATTR docking_isr() {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    Serial.println("ISR!");
+
+    vTaskNotifyGiveFromISR(xDockingHandle, &xHigherPriorityTaskWoken);
+
+    // Request a context switch if giving the notification unblocked a higher priority task
+    if (xHigherPriorityTaskWoken == pdTRUE) {
+        portYIELD_FROM_ISR();
+    }
+} 
+
 TaskHandle_t switch_handle_1 = NULL;
 
 void TaskSwitch2(void* pvParameters) {
@@ -258,10 +270,10 @@ void setup() {
     // LimitSwitch_t* test_switch_3 = instantiate_limit_switch(SWITCH_COUNTER_3, &switch_handle_3);
     // LimitSwitch_t* test_switch_4 = instantiate_limit_switch(SWITCH_COUNTER_4, &switch_handle_4);
 
-    limit_switch_front_left = instantiate_limit_switch(SWITCH_COUNTER_3); 
-    limit_switch_back_left = instantiate_limit_switch(SWITCH_COUNTER_4);
-    limit_switch_front_right = instantiate_limit_switch(SWITCH_COUNTER_1); 
-    limit_switch_back_right = instantiate_limit_switch(SWITCH_COUNTER_2);
+    limit_switch_front_left = instantiate_limit_switch(SWITCH_COUNTER_3, docking_isr); 
+    limit_switch_back_left = instantiate_limit_switch(SWITCH_COUNTER_4, docking_isr);
+    limit_switch_front_right = instantiate_limit_switch(SWITCH_COUNTER_1, docking_isr); 
+    limit_switch_back_right = instantiate_limit_switch(SWITCH_COUNTER_2, docking_isr);
 }
 
 void loop()

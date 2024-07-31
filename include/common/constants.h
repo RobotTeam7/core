@@ -23,6 +23,7 @@
 #define LEDC_PWM_FREQUENCY  (uint32_t)50           // 50 Hz PWM pulse train
 #define MOTOR_TIMER_0       (ledc_timer_t)0
 #define MOTOR_TIMER_1       (ledc_timer_t)1
+#define STEPPER_TIMER       (ledc_timer_t)2
 
 // Stepper Motor Constants
 #define MAX_STEPPER_FREQENCY    100000

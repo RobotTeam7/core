@@ -8,7 +8,7 @@
 #include <common/servo_motor.h>
 #include <common/robot_motor.h>
 #include <common/pwm.h>
-#include <motion/limit_switch.h>
+#include <common/limit_switch.h>
 
 #include <communication/wifi_client.h>
 #include <communication/uart.h>
