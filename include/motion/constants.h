@@ -29,6 +29,7 @@
 #define DELAY_STATION_TRACKING_POLL                 5       // delay between polls to see if we see station tape   
 #define DELAY_WALL_SLAMMING_POLL                    5       // delay between polls to check if we are approaching tape during wall slamming
 #define DELAY_ROTATION_DURATION                     3000    // delay used to time when to stop rotating during a pirouette
+#define DELAY_START_PIROUETTE                       500
 #define DELAY_FINISH_PIROUETTE                      1000    // delay used to time when to stop translating after rotating during a pirouette
 
 // Sensor Thresholds

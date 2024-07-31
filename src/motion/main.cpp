@@ -531,15 +531,15 @@ void TaskMaster(void *pvParameters)
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
+                
                 log_status("doing pirouette!!");
-
 
                 // move away from current counter
                 state.y_direction = -state.y_direction;
 
                 state.drive_state = TRANSLATE;
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
-                vTaskDelay(pdMS_TO_TICKS(500));
+                vTaskDelay(pdMS_TO_TICKS(DELAY_START_PIROUETTE));
 
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
@@ -550,10 +550,19 @@ void TaskMaster(void *pvParameters)
                     vTaskDelay(pdMS_TO_TICKS(4));
                 }
 
+                
+
+                // if desired side station is negative we want to return to the counter we just came from
+                if(state.desired_side_station < 0) {
+                    state.y_direction = -state.y_direction;
+                    // fix the negativeness of the side station
+                    state.desired_side_station = -state.desired_side_station;
+                }
+
                 // we are now on the opposite wall, and we have rotated 180 degrees
                 state.orientation = -state.orientation;
                 state.drive_state = TRANSLATE;
-                vTaskDelay(pdMS_TO_TICKS(1000));
+                vTaskDelay(pdMS_TO_TICKS(DELAY_FINISH_PIROUETTE));
 
                 state.drive_state = STOP;
                 state.drive_speed = 0;

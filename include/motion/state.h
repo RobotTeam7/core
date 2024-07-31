@@ -19,7 +19,7 @@ typedef struct {
 
     // Control
     uint8_t desired_station;
-    uint8_t desired_side_station;
+    int8_t desired_side_station;        // this value isn't a uint because sometimes we will send pirouette commands to return to the same side
     int direction;                      // Which direction should the robot drive in -> 1: forward, -1: reverse
     int y_direction;                    // Which direction to translate -> 1: up, 0: on tape, -1: down                
     int helicity;                       // Which direction should the robot rotate -> 1: counterclockwise, -1: clockwise
