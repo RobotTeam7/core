@@ -335,11 +335,11 @@ void TaskReturnToTape(void* pvParameters) {
     while (1) {
         // look for tape detection
         read_tape_sensor(tapeSensor);
-        int left_mean = tapeSensor->value;
+        int value = tapeSensor->value;
         // Serial.println("Left" + String(left_mean));
         // Serial.println("Right" + String(right_mean));
 
-        if (left_mean > THRESHOLD_SENSOR_SINGLE)
+        if (value > THRESHOLD_SENSOR_SINGLE)
         {
             log_status("Found tape. Ending return to tape...");
 
@@ -376,8 +376,7 @@ void TaskFollowWall(void* pvParameters) {
 
     DualTapeSensor_t* sensor = state.direction == 1 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
 
-    int value_left;  // these are wing sensor values
-    int value_right;
+    int value;  // these are wing sensor values
     bool found_tape = false;
 
     log_status("Successfully initialized TaskFollowWall");
@@ -385,14 +384,13 @@ void TaskFollowWall(void* pvParameters) {
     while (1) {
         read_tape_sensor(sensor);
 
-        value_left = sensor->value;
+        value = sensor->value;
 
-        // Serial.println("left sensor: " + String(value_left));
-        // Serial.println("right sensor: " + String(value_right));
+        // Serial.println("sensor: " + String(value));
 
-        if (value_left > THRESHOLD_SENSOR_SINGLE) {
+        if (value > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
-        } else if ((value_left < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
+        } else if ((value < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
             state.last_side_station += state.orientation * state.direction;
             log_status("Passed station while wall following!");
             found_tape = false;
