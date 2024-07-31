@@ -103,8 +103,8 @@ void uart_msg_handler(void *parameter) {
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
                         state.y_direction = new_packet.value;
-                        // state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
 
                         send_uart_message(ACCEPTED, 0, false);
 
@@ -216,28 +216,24 @@ void setup() {
     motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE, MOTOR_TIMER_1);
     motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE, MOTOR_TIMER_1);
 
-    frontTapeSensor = instantiate_tape_sensor(FRONT_TAPE_SENSOR_LEFT, FRONT_TAPE_SENSOR_RIGHT);
-    backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT, BACK_TAPE_SENSOR_RIGHT);
-    wingSensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR, RIGHT_WING_TAPE_SENSOR);
+    frontTapeSensor = instantiate_tape_sensor(FRONT_TAPE_SENSOR_RIGHT);
+    backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT);
 
     // while (1) {
-    //     read_tape_sensor(wingSensor);
     //     read_tape_sensor(backTapeSensor);
     //     read_tape_sensor(frontTapeSensor);
-    //     Serial.println("Right Wing: " + String(wingSensor->leftValue));
-    //     Serial.println("Left Wing: " + String(wingSensor->rightValue));
-    //     Serial.println("Left Front: " + String(frontTapeSensor->leftValue));
-    //     Serial.println("Right Front: " + String(frontTapeSensor->rightValue));
-    //     Serial.println("Back Left: " + String(backTapeSensor->leftValue));
-    //     Serial.println("Back Right: " + String(backTapeSensor->rightValue));
+    //     // Serial.println("Right Wing: " + String(wingSensor->leftValue));
+    //     // Serial.println("Left Wing: " + String(wingSensor->rightValue));
+    //     Serial.println("Front: " + String(frontTapeSensor->value));
+    //     Serial.println("Left: " + String(backTapeSensor->value));
     //     delay(100);
     // }
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
-    config_docking = { wingSensor, &xSharedQueue };
+    config_docking = { &xSharedQueue };
     return_data = {frontTapeSensor, backTapeSensor, &xMasterHandle };
-    wall_data = { wingSensor, frontTapeSensor, backTapeSensor };
+    wall_data = { frontTapeSensor, backTapeSensor };
 
     // // check if driving task was created
     if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
@@ -248,17 +244,12 @@ void setup() {
 
     delay(100);
 
-    while(1) {
-        delay(3000);
-        state.direction = -state.direction;
-    }
-
     // check if task master was created
-    // if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
-    //     log_status("Master task was created successfully.");
-    // } else {
-    //     log_error("Master task was not created successfully!");
-    // }
+    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
+        log_status("Master task was created successfully.");
+    } else {
+        log_error("Master task was not created successfully!");
+    }
 
     // xTaskCreate(TaskSwitch1, "switxh1", 2048, NULL, 1, &switch_handle_1);
     // xTaskCreate(TaskSwitch2, "swithc2", 2048, NULL, 1, &switch_handle_2);
@@ -526,14 +517,15 @@ void TaskMaster(void *pvParameters)
                         xFollowWallHandle = NULL;
                        
                        log_status("approaching tape, lowering motor speed");
-                        // while (state.drive_speed > 0) {
-                        //     state.drive_speed -= CONSTANT_DECELERATION;
-                        //     vTaskDelay(pdMS_TO_TICKS(1));
-                        // }
+                        
+                        state.direction = -state.direction;
+                        vTaskDelay(pdMS_TO_TICKS(25));
+                        state.drive_speed = 3000;
+                        state.direction = -state.direction;
 
                         // update last_station based on side station
-                        // state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
                         state.drive_speed = 0;
                         state.yaw = 0;
                         state.drive_state = DriveState_t::STOP;
@@ -602,6 +594,8 @@ void TaskMaster(void *pvParameters)
                 taskYIELD();
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);
+
+                break;
             }
 
             case ActionType_t::SIDE_SWAP:
@@ -622,6 +616,7 @@ void TaskMaster(void *pvParameters)
                 state.y_direction = -state.y_direction;
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);
+                
                 break;
             }
         }

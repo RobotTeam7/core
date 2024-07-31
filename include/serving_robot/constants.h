@@ -17,7 +17,7 @@
 
 #define SERVO_DRAW_BRIDGE_PIN           22
 #define SERVO_DRAW_BRIDGE_DOWN          0.06
-#define SERVO_DRAW_BRIDGE_UP            0.11
+#define SERVO_DRAW_BRIDGE_UP            0.10
 
 #define SERVO_PLATE_PIN                 19
 #define SERVO_PLATE_OPEN                0.055
@@ -26,6 +26,9 @@
 #define SWITCH_RACK_CLAWSIDE            10
 #define SWITCH_RACK_PLATESIDE           9
 
+typedef enum {
+    DRAW_BRIDGE_UP = 0,
 
+} ServoPositionsPercentage_t;
 
 #endif // SERVING_ROBOT_CONSTANTS_H

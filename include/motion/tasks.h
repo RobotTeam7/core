@@ -33,12 +33,10 @@ typedef struct {
 } ReturnToTapeData_t;
 
 typedef struct {
-    DualTapeSensor_t* wingSensor;
     QueueHandle_t* xSharedQueue;
 } DockingData_t;
 
 typedef struct {
-    DualTapeSensor_t* wingSensor;
     DualTapeSensor_t* fontTapeSensor;
     DualTapeSensor_t* backTapeSensor;
 } FullSensorData_t;

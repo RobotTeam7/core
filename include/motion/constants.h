@@ -31,7 +31,7 @@
 #define DELAY_ROTATION_DURATION                     3000    // delay used to time when to stop rotating during a pirouette
 #define DELAY_START_PIROUETTE                       500
 #define DELAY_FINISH_PIROUETTE                      1200    // delay used to time when to stop translating after rotating during a pirouette
-#define DELAY_TRANSLATE_TO_WALL                     950
+#define DELAY_TRANSLATE_TO_WALL                     1300
 #define DELAY_TRANSLATE_SIDE_SWAP                   1900
 
 // Sensor Thresholds
@@ -49,10 +49,10 @@
 #define MOTOR_FRONT_RIGHT_FORWARD   10
 #define MOTOR_FRONT_RIGHT_REVERSE   9
 
-#define FRONT_TAPE_SENSOR_LEFT      38
-#define FRONT_TAPE_SENSOR_RIGHT     37
-#define BACK_TAPE_SENSOR_LEFT       34
-#define BACK_TAPE_SENSOR_RIGHT      35
+// #define FRONT_TAPE_SENSOR_LEFT      38
+#define FRONT_TAPE_SENSOR_RIGHT     34
+#define BACK_TAPE_SENSOR_LEFT       37
+// #define BACK_TAPE_SENSOR_RIGHT      35
 
 #define LEFT_WING_TAPE_SENSOR       32 
 #define RIGHT_WING_TAPE_SENSOR      33 

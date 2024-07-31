@@ -9,10 +9,8 @@
  * @brief This struct encapsulates the data contained by an analog tape sensor.
  */
 typedef struct {
-    uint8_t leftPin;
-    uint8_t rightPin;
-    uint16_t leftValue;
-    uint16_t rightValue;
+    uint8_t pin;
+    uint16_t value;
 } DualTapeSensor_t;
 
 /**
@@ -23,26 +21,12 @@ typedef struct {
  * 
  * @returns Heap-allocated (created with `malloc()`) pointer. Remember to free!
  */
-DualTapeSensor_t* instantiate_tape_sensor(uint8_t leftSensorPin, uint8_t rightSensorPin);
+DualTapeSensor_t* instantiate_tape_sensor(uint8_t pin);
 
 /**
  * @brief Perform a read of `tapeSensor`, updating its internal data.
  */
 void read_tape_sensor(DualTapeSensor_t* tapeSensor);
-
-/**
- * @brief Determine whether this tape sensor is detecting tape more on the left or right.
- * 
- * @return 1 if detecting tape on the left, -1 if on the right, and 0 if inconclusive.
- */
-int is_tape_left_or_right(DualTapeSensor_t* tapeSensor);
-
-/**
- * @brief Determine whether this tape sensor can see tape with both sensors, with neither sensor, or inconclusive.
- * 
- * @return 1 if detecting both sensors can see tape, -1 if neither can see tape, and 0 if inconclusive.
- */
-int is_tape_visible(DualTapeSensor_t* tapeSensor);
 
 
 #endif // REFLECTANCE_SENSOR_H
