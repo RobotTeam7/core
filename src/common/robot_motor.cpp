@@ -11,7 +11,6 @@ RobotMotor_t* instantiate_robot_motor(uint8_t forwardPin, uint8_t reversePin, le
     bind_pwm(forwardPin, LEDC_PWM_FREQUENCY, timer, LEDC_TIMER_16_BIT);
     bind_pwm(reversePin, LEDC_PWM_FREQUENCY, timer, LEDC_TIMER_16_BIT);
 
-    
     robotMotor->boundForwardPin = forwardPin;
     robotMotor->boundReversePin = reversePin;
     robotMotor->currentState = FORWARD_DRIVE;
