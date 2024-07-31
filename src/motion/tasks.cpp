@@ -31,7 +31,6 @@ int checkRobotMotors(RobotMotorData_t* robotMotors) {
     } 
 }
 
-
 // Ensure that a DualTapeSensor_t* does not include null values
 int checkTapeSensor(TapeSensor_t* tapeSensor) {
     return tapeSensor == NULL;
@@ -152,9 +151,7 @@ void TaskRotate(void *pvParameters) {
     }
 }
 
-int checkTapeSensor(TapeSensor_t* tapeSensor) {
-    return tapeSensor == NULL;
-}
+
 
 void TaskStationTracking(void* pvParameters) {
     TapeSensor_t* tapeSensor = (TapeSensor_t*)pvParameters;

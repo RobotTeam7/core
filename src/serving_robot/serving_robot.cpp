@@ -116,16 +116,16 @@ void TaskMaster(void* pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(1000));
 
         log_status("vertical servo down");
-        set_servo_position_percentage(vertical_servo, 1.0);
+        set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_DOWN);
         vTaskDelay(pdMS_TO_TICKS(500));
 
         // close servo
         log_status("claw servo closed");
-        set_servo_position_percentage(claw_servo, 0.2);
+        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_CLOSED_FULL);
         vTaskDelay(pdMS_TO_TICKS(500));
     
         log_status("vertical servo up");
-        set_servo_position_percentage(vertical_servo, 0.0);
+        set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
         vTaskDelay(pdMS_TO_TICKS(500));
 
         log_status("wall slam to 4");
@@ -165,16 +165,16 @@ void TaskMaster(void* pvParameters) {
 
         
         log_status("vertical servo down");
-        set_servo_position_percentage(vertical_servo, 1.0);
+        set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_DOWN);
         vTaskDelay(pdMS_TO_TICKS(500));
 
         // close servo
         log_status("claw servo closed");
-        set_servo_position_percentage(claw_servo, 0.2);
+        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_CLOSED_FULL);
         vTaskDelay(pdMS_TO_TICKS(500));
     
         log_status("vertical servo up");
-        set_servo_position_percentage(vertical_servo, 0.0);
+        set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
         vTaskDelay(pdMS_TO_TICKS(500));
 
 
@@ -196,31 +196,8 @@ void TaskMaster(void* pvParameters) {
 
 
         log_status("claw servo open");
-        set_servo_position_percentage(claw_servo, 1.0);
+        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
         vTaskDelay(pdMS_TO_TICKS(500));
-
-
-
-
-        // log_status("servos going to 1");
-        // for(float percentage = 0; percentage < 1; percentage += 0.01){
-        //     // set_servo_position_percentage(claw_servo, percentage);
-        //     // set_servo_position_percentage(draw_bridge_servo, percentage);
-        //     // set_servo_position_percentage(plating_servo, percentage);
-        //     // set_servo_position_percentage(vertical_servo, percentage);
-        //     vTaskDelay(10);
-        // }
-
-        // vTaskDelay(pdMS_TO_TICKS(3000));
-
-        // log_status("servos going to 0");
-        // for(float percentage = 1; percentage > 0; percentage -= 0.01){
-        //     // set_servo_position_percentage(claw_servo, percentage);
-        //     // set_servo_position_percentage(draw_bridge_servo, percentage);
-        //     // set_servo_position_percentage(plating_servo, percentage);
-        //     // set_servo_position_percentage(vertical_servo, percentage);
-        //     vTaskDelay(10);
-        // }
 
         Serial.println("Done!");
         while (1) {
@@ -239,7 +216,7 @@ void setup() {
     claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, SERVO_CLAW_OPEN, SERVO_CLAW_CLOSED);
     draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_UP, SERVO_DRAW_BRIDGE_DOWN);
     plating_servo = instantiate_servo_motor(SERVO_PLATE_PIN, SERVO_PLATE_OPEN, SERVO_PLATE_CLOSED);
-    vertical_servo = instantiate_servo_motor(SERVO_VERTICAL_PIN, 0.1, SERVO_VERTICAL_UP);
+    vertical_servo = instantiate_servo_motor(SERVO_VERTICAL_PIN, SERVO_VERTICAL_DOWN, SERVO_VERTICAL_UP);
     
     delay(1000);
     

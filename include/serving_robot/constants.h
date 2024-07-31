@@ -4,6 +4,7 @@
 // Pin Definitions
 #define SERVO_VERTICAL_PIN              4
 #define SERVO_VERTICAL_UP               0.028
+#define SERVO_VERTICAL_DOWN             0.1
 
 #define RACK_FORWARD_PIN                7
 #define RACK_REVERSE_PIN                8
@@ -27,7 +28,10 @@
 #define SWITCH_RACK_PLATESIDE           9
 
 typedef enum {
-    DRAW_BRIDGE_UP = 0,
+    VERTICAL_DOWN = 100,
+    CLAW_CLOSED_FULL = 20,
+    VERTICAL_UP = 0,
+    CLAW_OPEN = 100,
 
 } ServoPositionsPercentage_t;
 
