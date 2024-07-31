@@ -8,11 +8,11 @@ State_t state = {
     
     .desired_station = 0,
     .desired_side_station = 0,
-    .direction = -1,
-    .y_direction = 1,
+    .direction = 1,
+    .y_direction = 0,
     .helicity = 1,
     .yaw = 0,
-    .drive_speed = 12000,
-    .drive_state = DRIVE,
+    .drive_speed = 0,
+    .drive_state = STOP,
     .current_action = IDLE,
 };

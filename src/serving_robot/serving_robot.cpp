@@ -28,6 +28,7 @@ WiFiHandler_t wifi_handler = {
 ServoMotor_t* claw_servo;
 ServoMotor_t* draw_bridge_servo;
 ServoMotor_t* plating_servo;
+ServoMotor_t* vertical_servo;
 
 bool MOTION_READY = false;
 bool MOTION_BUSY = false;
@@ -97,11 +98,21 @@ void TaskMaster(void* pvParameters) {
 
         vTaskDelay(pdMS_TO_TICKS(3000));
 
+
+        log_status("pirouette");
+        send_uart_message(DO_PIROUETTE, 2);
+        MOTION_BUSY = true;
+        while (MOTION_BUSY) {
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
         log_status("servos going to 1");
         for(float percentage = 0; percentage < 1; percentage += 0.01){
             // set_servo_position_percentage(claw_servo, percentage);
-            set_servo_position_percentage(draw_bridge_servo, percentage);
+            // set_servo_position_percentage(draw_bridge_servo, percentage);
             // set_servo_position_percentage(plating_servo, percentage);
+            // set_servo_position_percentage(vertical_servo, percentage);
             vTaskDelay(10);
         }
 
@@ -110,115 +121,16 @@ void TaskMaster(void* pvParameters) {
         log_status("servos going to 0");
         for(float percentage = 1; percentage > 0; percentage -= 0.01){
             // set_servo_position_percentage(claw_servo, percentage);
-            set_servo_position_percentage(draw_bridge_servo, percentage);
+            // set_servo_position_percentage(draw_bridge_servo, percentage);
             // set_servo_position_percentage(plating_servo, percentage);
+            // set_servo_position_percentage(vertical_servo, percentage);
             vTaskDelay(10);
         }
 
         vTaskDelay(pdMS_TO_TICKS(3000));
 
-        
-        // send_uart_message(GOTO, 2);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-        // send_uart_message(COUNTER_DOCK, 1);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-        // send_uart_message(FOLLOW_WALL_TO, 2);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
 
 
-        // send_uart_message(DO_PIROUETTE, -2);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-        // send_uart_message(FOLLOW_WALL_TO, 3);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-        // send_uart_message(DO_PIROUETTE, 2);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-        // send_uart_message(FOLLOW_WALL_TO, 3);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-
-
-
-
-
-
-        // send_uart_message(DO_PIROUETTE, 3);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-        
-
-        // log_status("wall slam to 4!");
-        // send_uart_message(FOLLOW_WALL_TO, 4);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-
-
-
-
-        // log_status("back to tape!");
-        // send_uart_message(TAPE_RETURN, -1);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-        // log_status("go to 4!");
-        // send_uart_message(GOTO, 4);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
-
-
-
-        // log_status("pirouette");
-        // send_uart_message(DO_PIROUETTE, 2);
-        // MOTION_BUSY = true;
-        // while (MOTION_BUSY) {
-        //     vTaskDelay(10 / portTICK_PERIOD_MS);
-        // }
-        // vTaskDelay(pdMS_TO_TICKS(1000));
 
         Serial.println("Done!");
         // while (1) {
@@ -234,9 +146,11 @@ void setup() {
 
     Serial.println("servos initialized!");
 
-    // claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, 0.045, 0.045);
+    // claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, SERVO_CLAW_OPEN, SERVO_CLAW_CLOSED);
     draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_UP, SERVO_DRAW_BRIDGE_DOWN);
-    // plating_servo = instantiate_servo_motor(SERVO_PLATE_PIN, 0.08, 0.055);
+    // plating_servo = instantiate_servo_motor(SERVO_PLATE_PIN, SERVO_PLATE_OPEN, SERVO_PLATE_CLOSED);
+    // vertical_servo = instantiate_servo_motor(SERVO_VERTICAL_PIN, 0.1, SERVO_VERTICAL_UP);
+    
 
     // actuate_stepper_motor(stepper_motor, UP, 1000);
     // delay(2000);
