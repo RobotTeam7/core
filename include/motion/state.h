@@ -13,12 +13,12 @@ typedef enum { DRIVE, ROTATE, STOP, TRANSLATE, ROTATE_AND_TRANSLATE } DriveState
 typedef struct {
     // Memory
     int orientation;                    // Which direction is the robot facing -> 1: right, -1: left
-    uint8_t last_station;               // Which station are we at (or was at before moving)
-    uint8_t last_side_station;          // When hugging a counter, which station were we last at
-    uint16_t pirouette_angle;
+    int8_t last_station;               // Which station are we at (or was at before moving)
+    int8_t last_side_station;          // When hugging a counter, which station were we last at
+    int16_t pirouette_angle;
 
     // Control
-    uint8_t desired_station;
+    int8_t desired_station;
     int8_t desired_side_station;        // this value isn't a uint because sometimes we will send pirouette commands to return to the same side
     int direction;                      // Which direction should the robot drive in -> 1: forward, -1: reverse
     int y_direction;                    // Which direction to translate -> 1: up, 0: on tape, -1: down                

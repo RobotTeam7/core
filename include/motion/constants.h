@@ -30,7 +30,7 @@
 #define DELAY_WALL_SLAMMING_POLL                    5       // delay between polls to check if we are approaching tape during wall slamming
 #define DELAY_ROTATION_DURATION                     3000    // delay used to time when to stop rotating during a pirouette
 #define DELAY_START_PIROUETTE                       500
-#define DELAY_FINISH_PIROUETTE                      1000    // delay used to time when to stop translating after rotating during a pirouette
+#define DELAY_FINISH_PIROUETTE                      1200    // delay used to time when to stop translating after rotating during a pirouette
 
 // Sensor Thresholds
 
@@ -83,7 +83,7 @@
 #define EFFICIENCY_BACK_RIGHT       1
 #define EFFICIENCY_BACK_LEFT        1
 
-#define YAW_WALL_SLAMMING           500 // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
+#define YAW_WALL_SLAMMING           750 // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
 
 
 #endif // MOTION_CONSTANTS_H

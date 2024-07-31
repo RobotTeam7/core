@@ -133,6 +133,7 @@ void uart_msg_handler(void *parameter) {
                         // packet contains the last_side_station on the side we will end up on
                         state.current_action = ActionType_t::PIROUETTE;
                         state.last_side_station = new_packet.value;
+                        Serial.println("Value: " + String(state.last_side_station));
                         send_uart_message(ACCEPTED, 0, false);
 
                         break;
@@ -531,7 +532,21 @@ void TaskMaster(void *pvParameters)
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
+
+                float final_angle = 140.0;
+                int final_delay = DELAY_FINISH_PIROUETTE;
+                bool counter_return = state.last_side_station < 0;
                 
+                // if desired side station is negative we want to return to the counter we just came from
+                if (counter_return) {
+                    // fix the negativeness of the side station
+                    state.last_side_station = -state.last_side_station;
+
+                    final_angle *= 1.1;
+                    final_delay = int(final_delay * 1.2);
+                }
+
+
                 log_status("doing pirouette!!");
 
                 // move away from current counter
@@ -545,24 +560,20 @@ void TaskMaster(void *pvParameters)
                 state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
 
                 // angle to 217 for robot 2 pirouette in islation
-                for (double angle = 0.0; angle <= 140.0; angle += 0.8) {
+                for (double angle = 0.0; angle <= final_angle; angle += 0.8) {
                     state.pirouette_angle = (int)(angle * state.helicity);
                     vTaskDelay(pdMS_TO_TICKS(4));
                 }
-
                 
-
-                // if desired side station is negative we want to return to the counter we just came from
-                if(state.desired_side_station < 0) {
+                if (counter_return) {
                     state.y_direction = -state.y_direction;
-                    // fix the negativeness of the side station
-                    state.desired_side_station = -state.desired_side_station;
                 }
 
                 // we are now on the opposite wall, and we have rotated 180 degrees
                 state.orientation = -state.orientation;
                 state.drive_state = TRANSLATE;
-                vTaskDelay(pdMS_TO_TICKS(DELAY_FINISH_PIROUETTE));
+                vTaskDelay(pdMS_TO_TICKS(final_delay));
+
 
                 state.drive_state = STOP;
                 state.drive_speed = 0;

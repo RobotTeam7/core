@@ -124,33 +124,37 @@ void TaskMaster(void* pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(1000));
 
 
-        send_uart_message(DO_PIROUETTE, 2);
+        send_uart_message(DO_PIROUETTE, -2);
         MOTION_BUSY = true;
         while (MOTION_BUSY) {
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
 
-        send_uart_message(FOLLOW_WALL_TO, 3);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        // send_uart_message(FOLLOW_WALL_TO, 3);
+        // MOTION_BUSY = true;
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        // vTaskDelay(pdMS_TO_TICKS(1000));
 
-        send_uart_message(DO_PIROUETTE, 2);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        // send_uart_message(DO_PIROUETTE, 2);
+        // MOTION_BUSY = true;
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        // vTaskDelay(pdMS_TO_TICKS(1000));
 
-        send_uart_message(FOLLOW_WALL_TO, 3);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        // send_uart_message(FOLLOW_WALL_TO, 3);
+        // MOTION_BUSY = true;
+        // while (MOTION_BUSY) {
+        //     vTaskDelay(10 / portTICK_PERIOD_MS);
+        // }
+        // vTaskDelay(pdMS_TO_TICKS(1000));
+
+
+
+
 
 
 
