@@ -20,6 +20,7 @@ TaskHandle_t xStationTrackingHandle = NULL;
 TaskHandle_t xDockingHandle = NULL;
 TaskHandle_t xCounterDockingHandle = NULL;
 TaskHandle_t xReturnToTapeHandle = NULL;
+TaskHandle_t xFollowWallHandle = NULL;
 
 // Ensure that a RobotMotorData_t* does not contain null values
 int checkRobotMotors(RobotMotorData_t* robotMotors) {
@@ -133,8 +134,8 @@ void TaskRotate(void *pvParameters) {
             int left_mean = tapeSensor->leftValue;
             int right_mean = tapeSensor->rightValue;
 
-            if ((right_mean > THRESHOLD_SENSOR_SINGLE && left_mean > THRESHOLD_SENSOR_SINGLE)) {
-                vTaskDelay(pdMS_TO_TICKS(25));
+            if ((right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE)) {
+                // vTaskDelay(pdMS_TO_TICKS(25));
                 log_status("Found tape. Ending rotation...");
                 state.drive_state = DriveState_t::STOP;
                 state.drive_speed = 0;
@@ -163,7 +164,7 @@ void TaskStationTracking(void* pvParameters) {
         return;
     }
 
-    TickType_t delay = pdMS_TO_TICKS(STATION_TRACKING_POLL_DELAY_MS);
+    TickType_t delay = pdMS_TO_TICKS(DELAY_STATION_TRACKING_POLL);
 
     int value_left;
     int value_right;
@@ -175,6 +176,9 @@ void TaskStationTracking(void* pvParameters) {
         read_tape_sensor(tapeSensor);
         value_left = tapeSensor->leftValue;
         value_right = tapeSensor->rightValue;
+
+        // Serial.println("left sensor: " + String(value_left));
+        // Serial.println("right sensor: " + String(value_right));
        
         if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
@@ -209,7 +213,7 @@ void TaskDocking(void* pvParameters) {
     }
 
     DualTapeSensor_t* sensor = dockingData->wingSensor;
-    TickType_t delay = pdMS_TO_TICKS(STATION_TRACKING_POLL_DELAY_MS);
+    TickType_t delay = pdMS_TO_TICKS(DELAY_STATION_TRACKING_POLL);
 
     int value_left;
     int value_right;
@@ -230,6 +234,10 @@ void TaskDocking(void* pvParameters) {
             xQueueSend(*dockingData->xSharedQueue, &message, portMAX_DELAY);
             log_status("Finished docking!");
             state.drive_state = STOP;
+
+            vTaskDelete(NULL);
+            xDockingHandle = NULL;
+            taskYIELD();
         } 
 
         vTaskDelay(delay);
@@ -259,8 +267,14 @@ void TaskDrive(void* pvParameters) {
                 rotate_robot(robot_motors, state.drive_speed * state.helicity);
                 break;
 
-            case TRANSLATE:
-                translate_robot(robot_motors, state.drive_speed * state.y_direction);
+            case DriveState_t::TRANSLATE:
+                translate_robot(robot_motors, state.drive_speed * -state.y_direction * state.orientation);
+                break;
+
+            case DriveState_t::ROTATE_AND_TRANSLATE:
+                // translational velocity accepts the opposite of the y-direction
+                pirouette_robot(robot_motors, MOTOR_SPEED_PIROUETTE_ROTATION * state.helicity, state.drive_speed * -state.y_direction * state.orientation, state.pirouette_angle);
+                // pirouette_robot(robot_motors, 0 * state.helicity, state.drive_speed * -state.y_direction * state.orientation, state.pirouette_angle);
                 break;
         }
         vTaskDelay(MOTOR_UPDATE_DELAY);
@@ -280,12 +294,12 @@ void TaskCounterDocking(void* pvParameters) {
     uint32_t ulNotificationValue;
     while (1) {
         // Wait to be notified that limit switch hit the counter
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
+        vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_TO_WALL));
         log_status("Hit counter!");
+
         // Stop moving
         state.drive_speed = 0;
         state.drive_state = STOP;
-        taskYIELD(); // Yield so that the change in drive state can immediately be processed
 
         // Notify master that we reached the counter
         xTaskNotifyGive(*xMasterHandle);
@@ -312,8 +326,9 @@ void TaskReturnToTape(void* pvParameters) {
 
     // convert ms delays into ticks
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(DELAY_RETURN_TO_TAPE_POLL);
+    DualTapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
 
-    log_status("Successfully initialized rotation!");
+    log_status("Successfully initialized tape return!");
 
     state.drive_state = DriveState_t::TRANSLATE;
     state.drive_speed = MOTOR_SPEED_TRANSLATION;
@@ -322,11 +337,13 @@ void TaskReturnToTape(void* pvParameters) {
 
     while (1) {
         // look for tape detection
-        read_tape_sensor(navigationData->fontTapeSensor);
-        int left_mean = navigationData->fontTapeSensor->leftValue;
-        int right_mean = navigationData->fontTapeSensor->rightValue;
+        read_tape_sensor(tapeSensor);
+        int left_mean = tapeSensor->leftValue;
+        int right_mean = tapeSensor->rightValue;
+        // Serial.println("Left" + String(left_mean));
+        // Serial.println("Right" + String(right_mean));
 
-        if (right_mean > THRESHOLD_SENSOR_SINGLE && left_mean > THRESHOLD_SENSOR_SINGLE)
+        if (right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE)
         {
             log_status("Found tape. Ending return to tape...");
 
@@ -338,9 +355,57 @@ void TaskReturnToTape(void* pvParameters) {
 
             vTaskDelete(NULL);
             xReturnToTapeHandle = NULL;
+            taskYIELD();
+
             break;
         }
 
         vTaskDelay(poll_rate_ticks);
     }
+}
+
+int checkFullSensorData(FullSensorData_t* fullSensorData) {
+    return fullSensorData == NULL || checkTapeSensor(fullSensorData->wingSensor) || checkTapeSensor(fullSensorData->fontTapeSensor) || checkTapeSensor(fullSensorData->backTapeSensor);
+}
+
+void TaskFollowWall(void* pvParameters) {
+    FullSensorData_t* fullSensorData = (FullSensorData_t*)pvParameters;
+
+    if (checkFullSensorData(fullSensorData)) {
+        log_error("Error: Full Sensor Data in Follow Wall contains nulls!");
+        vTaskDelete(xFollowWallHandle);
+        xFollowWallHandle = NULL;
+        return;
+    }
+
+    DualTapeSensor_t* wingSensor = fullSensorData->wingSensor;
+    DualTapeSensor_t* sensor = state.direction == 1 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
+
+    int value_left;  // these are wing sensor values
+    int value_right;
+    bool found_tape = false;
+
+    log_status("Successfully initialized TaskFollowWall");
+
+    while (1) {
+        read_tape_sensor(sensor);
+
+        value_left = sensor->leftValue;
+        value_right = sensor->rightValue;
+
+        // Serial.println("left sensor: " + String(value_left));
+        // Serial.println("right sensor: " + String(value_right));
+
+        if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
+            found_tape = true;
+        } else if ((value_left < THRESHOLD_SENSOR_SINGLE || value_right < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
+            state.last_side_station += state.orientation * state.direction;
+            log_status("Passed station while wall following!");
+            found_tape = false;
+            // vTaskDelay(pdMS_TO_TICKS(150));
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_POLL));
+    }
+    Serial.println("Exited loop!");
 }

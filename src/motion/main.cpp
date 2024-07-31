@@ -21,6 +21,8 @@
 
 #include <common/stepper_motor.h>
 
+#define CONSTANT_DECELERATION 30
+
 
 
 RobotMotor_t* motor_front_left;
@@ -41,8 +43,7 @@ RobotMotorData_t robotMotors;
 NavigationData_t config_following;
 DockingData_t config_docking;
 ReturnToTapeData_t return_data;
-
-StepperMotor_t* stepper_motor;
+FullSensorData_t wall_data;
 
 QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
 QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
@@ -56,12 +57,14 @@ void begin_station_tracking();
 void begin_docking();
 void begin_counter_docking();
 void begin_return_to_tape();
+void begin_wall_slamming();
 
 void uart_msg_handler(void *parameter) {
     log_status("Started message handler");
     
     while (1) {
         Packet_t new_packet;
+
         if (xQueueReceive(uart_msg_queue, &new_packet, portMAX_DELAY)) {
             Serial.println("Received packet...");
             Serial.println(new_packet.command);
@@ -78,34 +81,71 @@ void uart_msg_handler(void *parameter) {
                     // If we should abort, end our current task.
                     case ABORT:
                         state.current_action = IDLE;
+                        send_uart_message(ACCEPTED, 0, false);
+                        Serial.println("Accepting command: " + String(new_packet.command) + " : " + String(new_packet.value));
+
                         break;
 
                     case GOTO:
                         state.desired_station = new_packet.value;
                         state.current_action = GOTO_STATION;
+                        send_uart_message(ACCEPTED, 0, false);
+
                         break;
 
                     case DO_SPIN:
                         state.current_action = ActionType_t::SPIN;
                         state.direction = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+
                         break;
 
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
-                        // state.y_direction = new_packet.value;
+                        state.y_direction = new_packet.value;
+                        // state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+
+                        send_uart_message(ACCEPTED, 0, false);
+
                         break;
 
                     case TAPE_RETURN:
                     {
                         state.current_action = ActionType_t::RETURN_TO_TAPE;
-                        state.direction = -1;
+                        state.direction = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+
                         break;
                     }
+                    case FOLLOW_WALL_TO:
+                    {
+                        // packet contains the desired side station
+                        state.current_action = ActionType_t::WALL_SLAM_TO;
+                        state.desired_side_station = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+
+                        break;
+                    }
+                    case DO_PIROUETTE:
+                        // packet contains the last_side_station on the side we will end up on
+                        state.current_action = ActionType_t::PIROUETTE;
+                        state.last_side_station = new_packet.value;
+                        Serial.println("Value: " + String(state.last_side_station));
+                        send_uart_message(ACCEPTED, 0, false);
+                        break;
+                    case SWITCH_COUNTER:
+                        state.current_action = ActionType_t::SIDE_SWAP;
+                        state.last_side_station = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+                        break;
+                    case 0x40 ... 0x4f:
+                        log_status("Received acknowledgement!");
+                        break;
                 }
-                send_uart_message(ACCEPTED);
             }
         }
-        vTaskDelay(10 / portTICK_PERIOD_MS); // Small delay to yield    
+        vTaskDelay(pdMS_TO_TICKS(10)); // Small delay to yield    
     }
 }
 
@@ -165,24 +205,39 @@ TaskHandle_t switch_handle_4 = NULL;
 void setup() {
     Serial.begin(115200);
 
-    initialize_uart();
-    begin_uart_read(&uart_msg_queue);
+    init_pwm();
 
-    xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 1, NULL);
+    initialize_uart(&uart_msg_queue);
 
-    motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE);
-    motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE);
-    motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE);
-    motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE);
+    xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 7, NULL);
+
+    motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE, MOTOR_TIMER_0);
+    motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE, MOTOR_TIMER_0);
+    motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE, MOTOR_TIMER_1);
+    motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE, MOTOR_TIMER_1);
 
     frontTapeSensor = instantiate_tape_sensor(FRONT_TAPE_SENSOR_LEFT, FRONT_TAPE_SENSOR_RIGHT);
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT, BACK_TAPE_SENSOR_RIGHT);
     wingSensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR, RIGHT_WING_TAPE_SENSOR);
 
+    // while (1) {
+    //     read_tape_sensor(wingSensor);
+    //     read_tape_sensor(backTapeSensor);
+    //     read_tape_sensor(frontTapeSensor);
+    //     Serial.println("Right Wing: " + String(wingSensor->leftValue));
+    //     Serial.println("Left Wing: " + String(wingSensor->rightValue));
+    //     Serial.println("Left Front: " + String(frontTapeSensor->leftValue));
+    //     Serial.println("Right Front: " + String(frontTapeSensor->rightValue));
+    //     Serial.println("Back Left: " + String(backTapeSensor->leftValue));
+    //     Serial.println("Back Right: " + String(backTapeSensor->rightValue));
+    //     delay(100);
+    // }
+
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
     config_docking = { wingSensor, &xSharedQueue };
     return_data = {frontTapeSensor, backTapeSensor, &xMasterHandle };
+    wall_data = { wingSensor, frontTapeSensor, backTapeSensor };
 
     // // check if driving task was created
     if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
@@ -193,12 +248,17 @@ void setup() {
 
     delay(100);
 
-    // check if task master was created
-    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 3, &xMasterHandle) == pdPASS) {
-        log_status("Master task was created successfully.");
-    } else {
-        log_error("Master task was not created successfully!");
+    while(1) {
+        delay(3000);
+        state.direction = -state.direction;
     }
+
+    // check if task master was created
+    // if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
+    //     log_status("Master task was created successfully.");
+    // } else {
+    //     log_error("Master task was not created successfully!");
+    // }
 
     // xTaskCreate(TaskSwitch1, "switxh1", 2048, NULL, 1, &switch_handle_1);
     // xTaskCreate(TaskSwitch2, "swithc2", 2048, NULL, 1, &switch_handle_2);
@@ -243,7 +303,7 @@ void TaskMaster(void *pvParameters)
         switch (state.current_action) {
             case SPIN:
             {                
-                 // Begin rotating and wait for a message that we see the tape
+                // Begin rotating and wait for a message that we see the tape
                 begin_rotating();
                 if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
                     if (receivedMessage == ROTATION_DONE) {
@@ -268,15 +328,15 @@ void TaskMaster(void *pvParameters)
             case GOTO_STATION:
             {   
                 int station_difference = state.desired_station - state.last_station;
-                if(station_difference == 0) {
-                    Serial.println("already at desired station!");
+                if (station_difference == 0) {
+                    log_error("already at desired station!");
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
                 
                 // check if station difference and direction have opposite sign
                 // if they do flip the sign direction
-                if(station_difference * state.direction * state.orientation < 0) {
+                if (station_difference * state.direction * state.orientation < 0) {
                     state.direction = -state.direction;
                 }
 
@@ -289,13 +349,12 @@ void TaskMaster(void *pvParameters)
                 begin_following();
 
                 // Delay in case we are already on tape
-                vTaskDelay(pdMS_TO_TICKS(TAPE_TRACKING_INTITAL_DELAY));
-
+                vTaskDelay(pdMS_TO_TICKS(DELAY_STATION_TRACKING_INTITAL));
                 log_status("Station tracking!");
                 begin_station_tracking();
                 int docking = 0;
 
-                while (state.current_action == GOTO_STATION) {
+                while (1) {
                     if ((state.last_station == state.desired_station) && !docking) {
                         log_status("breaking!");
                         state.direction = -state.direction;
@@ -304,8 +363,10 @@ void TaskMaster(void *pvParameters)
                         
                         log_status("Beginning docking...!");
                         
-                        vTaskDelete(xStationTrackingHandle);
-                        xStationTrackingHandle = NULL;
+                        if (xStationTrackingHandle != NULL) {
+                            vTaskDelete(xStationTrackingHandle);
+                            xStationTrackingHandle = NULL;
+                        }
 
                         // delay before backing up
                         state.drive_state = STOP;
@@ -322,16 +383,16 @@ void TaskMaster(void *pvParameters)
                             if (receivedMessage == REACHED_POSITION) {
                                 log_status("Reached position: found tape!");     
 
-                                if (xDockingHandle != NULL) {
-                                    vTaskDelete(xDockingHandle);
-                                    xDockingHandle = NULL;
-                                }
+                                // if (xDockingHandle != NULL) {
+                                //     vTaskDelete(xDockingHandle);
+                                //     xDockingHandle = NULL;
+                                // }
 
                                 if (xHandleFollowing != NULL) {
                                     vTaskDelete(xHandleFollowing);
                                     xHandleFollowing = NULL;
                                 }
-                                
+
                                 state.yaw = 0;
 
                                 send_uart_message(COMPLETED);
@@ -354,8 +415,8 @@ void TaskMaster(void *pvParameters)
 
             case IDLE:
             {
-                // don't move while idling
                 state.drive_state = DriveState_t::STOP;
+                state.drive_speed = 0;
                 log_status("Idling...");
 
                 while (state.current_action == IDLE) {
@@ -371,7 +432,6 @@ void TaskMaster(void *pvParameters)
                 state.drive_state = TRANSLATE;
                 
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
-                state.tape_displacement_direction = -state.y_direction; // Update memory so we know how to get back
 
                 begin_counter_docking();
 
@@ -391,17 +451,22 @@ void TaskMaster(void *pvParameters)
 
             case ActionType_t::RETURN_TO_TAPE:
             {
-                state.y_direction = state.tape_displacement_direction; // Go in the direction we came
+                if(state.y_direction == 0) {
+                    log_error("state indicates that we are currently on the tape, cannot return to tape!");
+                    send_uart_message(COMPLETED);
+                    state.current_action == IDLE;
+
+                }
+                state.y_direction = -state.y_direction; // Go in the direction away from current counter
                 state.drive_state = TRANSLATE;                         
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
-                state.tape_displacement_direction = 0;                  // We will be back on the tape
 
                 begin_return_to_tape();
 
                 uint32_t ulNotificationValue;
                 xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task
 
-                log_status("Arrived at station counter!");
+                log_status("Arrived back at tape!");
 
                 send_uart_message(COMPLETED);
                 if (state.current_action == ActionType_t::RETURN_TO_TAPE) {
@@ -409,7 +474,154 @@ void TaskMaster(void *pvParameters)
                     state.drive_state = STOP;
                     state.direction = FORWARD_DRIVE;
                 }
+                state.y_direction = 0;
 
+                break;
+            }
+
+            case ActionType_t::WALL_SLAM_TO:
+            {
+                if (state.desired_side_station == 0) {
+                    log_error("invalid, recieved 0 as desired side station");
+                    send_uart_message(COMPLETED);
+                    state.current_action = IDLE;
+                }
+                int station_difference = state.desired_side_station - state.last_side_station;
+
+                // abort navigation if desired station is our last station
+                if (station_difference == 0) {
+                    log_error("already at desired station!");
+                    send_uart_message(COMPLETED);
+                    state.current_action == IDLE;
+                }
+
+                // cannot wall slam if we aren't at a wall
+                if (state.y_direction == 0) {
+                    log_error("not currently docked at a wall!");
+                    send_uart_message(COMPLETED);
+                    state.current_action == IDLE;
+                }
+                
+                // determine direction to go in by looking at sign of station difference and orientation
+                state.direction = sign(station_difference * state.orientation);
+
+                state.yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;
+                Serial.println("YAW: " + String(YAW_WALL_SLAMMING) + " Orientation: " + String(state.orientation) + " Y-Direction: " + String(state.y_direction) + " Direction: " + String(state.direction));
+                // Serial.println("Desired Side Station: " + String(state.desired_side_station) + " Last Side Station: " + String())
+                // Start Driving
+                state.drive_state = DRIVE;
+                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING;
+
+                // Delay in case we are already on tape
+                vTaskDelay(pdMS_TO_TICKS(DELAY_STATION_TRACKING_INTITAL));
+                
+                log_status("Beginning wall slamming!");
+                begin_wall_slamming();
+
+                while (state.current_action == WALL_SLAM_TO) {
+                    Serial.println("Wall Slamming: " + String(state.desired_side_station) + " " + String(state.last_side_station));
+                    if (state.desired_side_station == state.last_side_station) {
+                        log_status("arrived at desired station!");
+                        vTaskDelete(xFollowWallHandle);
+                        xFollowWallHandle = NULL;
+                       
+                       log_status("approaching tape, lowering motor speed");
+                        // while (state.drive_speed > 0) {
+                        //     state.drive_speed -= CONSTANT_DECELERATION;
+                        //     vTaskDelay(pdMS_TO_TICKS(1));
+                        // }
+
+                        // update last_station based on side station
+                        // state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        state.drive_speed = 0;
+                        state.yaw = 0;
+                        state.drive_state = DriveState_t::STOP;
+                        taskYIELD();    // yield so motor states are updated immediately
+                        state.current_action = IDLE;
+                        send_uart_message(COMPLETED);
+                    }
+                    vTaskDelay(10 / portTICK_PERIOD_MS);
+                }
+                break;
+            }
+
+            case ActionType_t::PIROUETTE:
+            {   
+                if(state.y_direction == 0) {
+                    log_error("cannot do a pirouette when not on a wall!");
+                    send_uart_message(COMPLETED);
+                    state.current_action == IDLE;
+                }
+
+                float final_angle = 140.0;
+                int final_delay = DELAY_FINISH_PIROUETTE;
+                bool counter_return = state.last_side_station < 0;
+                
+                // if desired side station is negative we want to return to the counter we just came from
+                if (counter_return) {
+                    // fix the negativeness of the side station
+                    state.last_side_station = -state.last_side_station;
+
+                    final_angle *= 1.1;
+                    final_delay = int(final_delay * 1.25);
+                }
+
+
+                log_status("doing pirouette!!");
+
+                // move away from current counter
+                state.y_direction = -state.y_direction;
+
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                vTaskDelay(pdMS_TO_TICKS(DELAY_START_PIROUETTE));
+
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
+
+                // angle to 217 for robot 2 pirouette in islation
+                for (double angle = 0.0; angle <= final_angle; angle += 0.8) {
+                    state.pirouette_angle = (int)(angle * state.helicity);
+                    vTaskDelay(pdMS_TO_TICKS(4));
+                }
+                
+                if (counter_return) {
+                    state.y_direction = -state.y_direction;
+                }
+
+                // we are now on the opposite wall, and we have rotated 180 degrees
+                state.orientation = -state.orientation;
+                state.drive_state = TRANSLATE;
+                vTaskDelay(pdMS_TO_TICKS(final_delay));
+
+
+                state.drive_state = STOP;
+                state.drive_speed = 0;
+                state.pirouette_angle = 0;
+                taskYIELD();
+                state.current_action = IDLE;
+                send_uart_message(COMPLETED);
+            }
+
+            case ActionType_t::SIDE_SWAP:
+            {
+                if(state.y_direction == 0) {
+                    log_error("cannot side swap when y direction is 0");
+                    send_uart_message(COMPLETED);
+                    state.current_action = IDLE;
+                }
+
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_state = TRANSLATE;
+                vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_SIDE_SWAP));
+
+                log_status("side swap completed!");
+                state.drive_speed = 0;
+                state.drive_state = STOP;
+                state.y_direction = -state.y_direction;
+                state.current_action = IDLE;
+                send_uart_message(COMPLETED);
                 break;
             }
         }
@@ -463,9 +675,18 @@ void begin_counter_docking() {
 
 void begin_return_to_tape() {
     // check if counter docking task was created
-    if (xTaskCreate(TaskReturnToTape, "Tape_Return", 2048, &return_data, PRIORITY_STATION_TRACKING, &xReturnToTapeHandle) == pdPASS) {
+    if (xTaskCreate(TaskReturnToTape, "Tape_Return", 2048, &return_data, PRIORITY_RETURN_TO_TAPE, &xReturnToTapeHandle) == pdPASS) {
         log_status("Tape return task was created successfully.");
     } else {
         log_error("Tape return task was not created successfully!");
+    }
+}
+
+void begin_wall_slamming() {
+    // check if counter docking task was created
+    if (xTaskCreate(TaskFollowWall, "Follow_Wall", 4096, &wall_data, PRIORITY_FOLLOW_WALL, &xFollowWallHandle) == pdPASS) {
+        log_status("Wall Follow task was created successfully.");
+    } else {
+        log_error("Wall Follow task was not created successfully!");
     }
 }

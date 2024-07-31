@@ -28,17 +28,17 @@ int retries = 0;
  * 
  * LAYOUT:
  *  [0]:     START BYTE
- *  [1]:     COMMAND BYTE
+ *  [1]:     COMMAND BYTE   (0x00-0x3f)
  *  [2]:     VALUE BYTE
  *  [3-7]:   CRC CHECKSUM
  *  [8]:     STOP BYTE
  * 
- * ACK TYPES:
+ * ACK TYPES                (0x40-0x4f):
  *  OCCUPIED  = 0x05,
  *  ACCEPTED  = 0x06
  *  ACK       = 0x0b
  * 
- * NACK TYPES:
+ * NACK TYPES               (0x50-0x5f):
  *  NACK      = 0x0a
  * 
  * All bytes are expected to be uin8_t.
@@ -90,8 +90,7 @@ static void uart_receive_event_task(void *pvParameters) {
                     }
 
                     switch (command_byte) {
-
-                        case 0x07 ... 0x09: // Indicates we received an ACK message
+                        case 0x40 ... 0x4f: // Indicates we received an ACK message
                         {
                             // Clear the memory, letting us send another packet
                             log_status("Received acknowledgmenet!");
@@ -102,7 +101,7 @@ static void uart_receive_event_task(void *pvParameters) {
                             retries = 0;
                         }   // INTENTIONALLY FALL THROUGH
 
-                        case 0x00 ... 0x06: // Indicates that there is a command that should go on the command queue
+                        case 0x00 ... 0x3f: // Indicates that there is a command that should go on the command queue
                         {
                             log_status("Putting new packet onto queue!");
                             Packet_t* new_packet = (Packet_t*)malloc(sizeof(Packet_t));
@@ -112,7 +111,7 @@ static void uart_receive_event_task(void *pvParameters) {
                             break;
                         }
 
-                        case 0x0a: // Indicates we received a NACK
+                        case 0x50 ... 0x5f: // Indicates we received a NACK
                         {
                             log_status("Received NACK!");
                             
@@ -229,6 +228,8 @@ void send_uart_message(CommandMessage_t command, uint8_t value, bool memorize) {
     message_buffer[sizeof(START_BYTE) +sizeof(data) + sizeof(crc_value)] = STOP_BYTE;
     
     uart_write_bytes(UART_PORT, (const char*)message_buffer, sizeof(message_buffer));
+
+    log_status("Sent message!");
 }
 
 void initialize_uart(QueueHandle_t* packet_queue) {
@@ -250,7 +251,7 @@ void initialize_uart(QueueHandle_t* packet_queue) {
     ESP_ERROR_CHECK(uart_driver_install(UART_PORT, uart_buffer_size * 2, uart_buffer_size * 2, 10, &uart_queue, 0));
     
     // Create receive task
-    xTaskCreate(uart_receive_event_task, "uart_receive_event_task", 4096, packet_queue, 5, NULL);
+    xTaskCreate(uart_receive_event_task, "uart_receive_event_task", 4096, packet_queue, 4, NULL);
     
     delay(500);
 

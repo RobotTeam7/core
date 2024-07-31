@@ -21,7 +21,7 @@
 
 typedef struct {
     CommandMessage_t command;
-    uint8_t value;
+    int8_t value;
 } Packet_t;
 
 void initialize_uart(QueueHandle_t* packet_queue);

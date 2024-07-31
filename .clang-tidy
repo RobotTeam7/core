@@ -1,0 +1,16 @@
+---
+Checks: '-*,                      
+  clang-analyzer-*,
+  clang-diagnostic-*,
+  bugprone-*,
+  readability-*,
+  modernize-use-auto,
+  modernize-deprecated-headers,
+  modernize-use-bool-literals,
+  modernize-use-using,
+  modernize-avoid-bind,
+  performance-*'
+CheckOptions: [{ key: misc-non-private-member-variables-in-classes, value: IgnoreClassesWithAllMemberVariablesBeingPublic }]
+WarningsAsErrors: '*'
+HeaderFilterRegex: ''
+FormatStyle: none

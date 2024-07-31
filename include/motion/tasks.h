@@ -18,6 +18,7 @@ extern TaskHandle_t xStationTrackingHandle;
 extern TaskHandle_t xDockingHandle;
 extern TaskHandle_t xCounterDockingHandle;
 extern TaskHandle_t xReturnToTapeHandle;
+extern TaskHandle_t xFollowWallHandle;
 
 typedef struct {
     DualTapeSensor_t* fontTapeSensor;
@@ -36,6 +37,12 @@ typedef struct {
     QueueHandle_t* xSharedQueue;
 } DockingData_t;
 
+typedef struct {
+    DualTapeSensor_t* wingSensor;
+    DualTapeSensor_t* fontTapeSensor;
+    DualTapeSensor_t* backTapeSensor;
+} FullSensorData_t;
+
 void TaskRotate(void* pvParameters);
 void TaskFollowTape(void* pvParameters);
 void TaskStationTracking(void* pvParameters);
@@ -43,6 +50,8 @@ void TaskDrive(void* pvParameters);
 void TaskDocking(void* pvParameters);
 void TaskCounterDocking(void* pvParameters);
 void TaskReturnToTape(void* pvParameters);
+void TaskCounterDocking(void* pvParameters);
+void TaskFollowWall(void* pvParameters);
 
 
 #endif // MOTION_TASKS_H

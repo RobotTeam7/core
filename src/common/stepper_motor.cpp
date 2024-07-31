@@ -18,14 +18,6 @@ int checkStepperMotorData(StepperMotorCommandBuffer_t* data) {
     return data == NULL;
 }
 
-/**
- * @brief Returns the sign of the argument 
- * @returns 1 if positive, -1 if negative.
- */
-int sign(int x) {
-    return (x > 0) - (x < 0);
-}
-
 // This task manages the execution of a stepper motor action
 void stepperMotorTask(void *pvParameters) {
     // Cast and check points
