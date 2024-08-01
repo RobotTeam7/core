@@ -15,7 +15,7 @@
 #include <communication/decode.h>
 
 #define SERVO_ACTUATION_DELAY 500
-#define UART_INTERMESSAGE_DELAY 50
+#define UART_INTERMESSAGE_DELAY 0
 
 
 QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
@@ -104,7 +104,7 @@ static inline void wait_for_motion() {
     while (MOTION_BUSY) {
         vTaskDelay(pdMS_TO_TICKS(10));
     }
-    vTaskDelay(pdMS_TO_TICKS(UART_INTERMESSAGE_DELAY));
+    // vTaskDelay(pdMS_TO_TICKS(UART_INTERMESSAGE_DELAY));
 }
 
 static inline void send_command(CommandMessage_t command, int8_t value) {
