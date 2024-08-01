@@ -59,8 +59,7 @@ static void uart_receive_event_task(void *pvParameters) {
                 {
                     // Read data from the UART
                     length = uart_read_bytes(UART_PORT, data_buffer, event.size, portMAX_DELAY);
-                    Serial.println("Read " + String(length) + " bytes from buffer!");
-                    
+
                     // Decompose UART message into constituent parts as described by COMMUNICATION PROTOCOL
                     uint8_t start_byte = data_buffer[0];
                     uint8_t command_byte = data_buffer[1];
