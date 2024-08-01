@@ -3,6 +3,7 @@
 #include "freertos/task.h"
 
 #include <serving_robot/constants.h>
+#include <serving_robot/rack_and_pinion.h>
 
 #include <common/resource_manager.h>
 #include <common/servo_motor.h>
@@ -14,13 +15,9 @@
 #include <communication/uart.h>
 #include <communication/decode.h>
 
-<<<<<<< HEAD
-#include <serving_robot/rack_and_pinion.h>
-=======
+
 #define SERVO_ACTUATION_DELAY 500
 #define UART_INTERMESSAGE_DELAY 50
->>>>>>> main
-
 
 QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
 QueueHandle_t inboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
