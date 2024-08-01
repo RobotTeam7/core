@@ -31,9 +31,8 @@ int checkRobotMotors(RobotMotorData_t* robotMotors) {
     } 
 }
 
-
 // Ensure that a DualTapeSensor_t* does not include null values
-int checkTapeSensor(DualTapeSensor_t* tapeSensor) {
+int checkTapeSensor(TapeSensor_t* tapeSensor) {
     return tapeSensor == NULL;
 }
 
@@ -44,7 +43,7 @@ int checkNavigationData(NavigationData_t* navigationData) {
 
 // Ensure that a NavigationData_t* does not contain null values
 int checkTapeReturn(ReturnToTapeData_t* navigationData) {
-    return navigationData == NULL || checkTapeSensor(navigationData->backTapeSensor) || checkTapeSensor(navigationData->fontTapeSensor) == 1 || navigationData->masterHandle == NULL;
+    return navigationData == NULL  || checkTapeSensor(navigationData->middleTapeSensor) == 1 || navigationData->masterHandle == NULL;
 }
 
 int checkState(State_t* state) {
@@ -69,7 +68,7 @@ void TaskFollowTape(void *pvParameters) {
     state.drive_speed = MOTOR_SPEED_FOLLOWING;
 
     int lastError = 0;
-    DualTapeSensor_t* sensor;
+    TapeSensor_t* sensor;
     if (state.direction == 1) {
         sensor = navigationData->fontTapeSensor;
     } else {
@@ -79,15 +78,15 @@ void TaskFollowTape(void *pvParameters) {
     log_status("Successfully initialized tape follow task!");
 
     while (1) {
-        read_tape_sensor(sensor);
-        int left_mean = sensor->leftValue;
-        int right_mean = sensor->rightValue;
+        // read_tape_sensor(sensor);
+        // int left_mean = sensor->value;
+        // int right_mean = sensor->rightValue;
 
-        int error = left_mean - right_mean;
+        // int error = left_mean - right_mean;
 
-        int pid_adjustment_value = pid_follow_tape(error, lastError);
-        state.yaw = pid_adjustment_value;
-        lastError = error;
+        // int pid_adjustment_value = pid_follow_tape(error, lastError);
+        // state.yaw = pid_adjustment_value;
+        // lastError = error;
 
         vTaskDelay(delay_ticks);
     }
@@ -111,7 +110,7 @@ void TaskRotate(void *pvParameters) {
     TickType_t inital_delay_ticks = pdMS_TO_TICKS(ROTATE_INITIAL_DELAY);
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(MOTOR_ADJUSTMENT_DELAY_ROTATING_MS);
 
-    DualTapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
+    TapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
     
     int count = 0;
     bool on_tape = false;
@@ -131,10 +130,9 @@ void TaskRotate(void *pvParameters) {
         while (count < 2)
         {
             read_tape_sensor(tapeSensor);
-            int left_mean = tapeSensor->leftValue;
-            int right_mean = tapeSensor->rightValue;
+            int left_mean = tapeSensor->value;
 
-            if ((right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE)) {
+            if ((left_mean > THRESHOLD_SENSOR_SINGLE)) {
                 // vTaskDelay(pdMS_TO_TICKS(25));
                 log_status("Found tape. Ending rotation...");
                 state.drive_state = DriveState_t::STOP;
@@ -153,13 +151,11 @@ void TaskRotate(void *pvParameters) {
     }
 }
 
-int checkDualTapeSensor(DualTapeSensor_t* tapeSensor) {
-    return tapeSensor == NULL;
-}
+
 
 void TaskStationTracking(void* pvParameters) {
-    DualTapeSensor_t* tapeSensor = (DualTapeSensor_t*)pvParameters;
-    if (checkDualTapeSensor(tapeSensor)) {
+    TapeSensor_t* tapeSensor = (TapeSensor_t*)pvParameters;
+    if (checkTapeSensor(tapeSensor)) {
         log_error("Nulls in dual tape sensor!");
         return;
     }
@@ -174,13 +170,12 @@ void TaskStationTracking(void* pvParameters) {
     while (1) {
         // Check sensors
         read_tape_sensor(tapeSensor);
-        value_left = tapeSensor->leftValue;
-        value_right = tapeSensor->rightValue;
+        value_left = tapeSensor->value;
 
         // Serial.println("left sensor: " + String(value_left));
         // Serial.println("right sensor: " + String(value_right));
        
-        if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
+        if (value_left > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
         } else if ((value_left < THRESHOLD_SENSOR_SINGLE || value_right < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
             state.last_station += state.orientation * state.direction;
@@ -195,7 +190,7 @@ void TaskStationTracking(void* pvParameters) {
 
 // Ensure that a NavigationData_t* does not contain null values
 int checkDockingData(DockingData_t* dockingData) {
-    return dockingData == NULL || checkTapeSensor(dockingData->wingSensor);
+    return dockingData == NULL;
 }
 
 void TaskDocking(void* pvParameters) {
@@ -212,7 +207,7 @@ void TaskDocking(void* pvParameters) {
         return;
     }
 
-    DualTapeSensor_t* sensor = dockingData->wingSensor;
+    TapeSensor_t* sensor;
     TickType_t delay = pdMS_TO_TICKS(DELAY_STATION_TRACKING_POLL);
 
     int value_left;
@@ -223,12 +218,11 @@ void TaskDocking(void* pvParameters) {
     while (1) {
         // Check sensors
         read_tape_sensor(sensor);
-        value_left = sensor->leftValue;
-        value_right = sensor->rightValue; // right tape sensor isn't working rn
+        value_left = sensor->value;
         // Serial.println("Right Sensor: " + String(value_right));
         // Serial.println("Left Sensor: " + String(value_left));
        
-        if ((value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE)) {
+        if ((value_left > THRESHOLD_SENSOR_SINGLE)) {
             // state.last_station += state.orientation * state.direction;
             StatusMessage_t message = REACHED_POSITION;
             xQueueSend(*dockingData->xSharedQueue, &message, portMAX_DELAY);
@@ -313,8 +307,8 @@ void TaskCounterDocking(void* pvParameters) {
 void TaskReturnToTape(void* pvParameters) {
     log_status("Beginning tape return task initialization...");
 
-    ReturnToTapeData_t* navigationData = (ReturnToTapeData_t*)pvParameters;
-    if (checkTapeReturn(navigationData))
+    ReturnToTapeData_t* returnToTapeData = (ReturnToTapeData_t*)pvParameters;
+    if (checkTapeReturn(returnToTapeData))
     {
         log_error("Error: nulls in navigationData");
 
@@ -326,7 +320,7 @@ void TaskReturnToTape(void* pvParameters) {
 
     // convert ms delays into ticks
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(DELAY_RETURN_TO_TAPE_POLL);
-    DualTapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
+    TapeSensor_t* tapeSensor = returnToTapeData->middleTapeSensor;
 
     log_status("Successfully initialized tape return!");
 
@@ -336,19 +330,16 @@ void TaskReturnToTape(void* pvParameters) {
     log_message("Looking for tape...");
 
     while (1) {
-        // look for tape detection
         read_tape_sensor(tapeSensor);
-        int left_mean = tapeSensor->leftValue;
-        int right_mean = tapeSensor->rightValue;
-        // Serial.println("Left" + String(left_mean));
-        // Serial.println("Right" + String(right_mean));
+        int value = tapeSensor->value;
+        // Serial.println("middle sensor: " + String(value));
 
-        if (right_mean > THRESHOLD_SENSOR_SINGLE || left_mean > THRESHOLD_SENSOR_SINGLE)
+        if (value > THRESHOLD_SENSOR_SINGLE)
         {
             log_status("Found tape. Ending return to tape...");
 
             // send message to TaskMaster that return to tape has finished
-            xTaskNotifyGive(*navigationData->masterHandle);
+            xTaskNotifyGive(*returnToTapeData->masterHandle);
 
             state.drive_state = DriveState_t::STOP;
             state.drive_speed = 0;
@@ -365,7 +356,7 @@ void TaskReturnToTape(void* pvParameters) {
 }
 
 int checkFullSensorData(FullSensorData_t* fullSensorData) {
-    return fullSensorData == NULL || checkTapeSensor(fullSensorData->wingSensor) || checkTapeSensor(fullSensorData->fontTapeSensor) || checkTapeSensor(fullSensorData->backTapeSensor);
+    return fullSensorData == NULL || checkTapeSensor(fullSensorData->fontTapeSensor) || checkTapeSensor(fullSensorData->backTapeSensor);
 }
 
 void TaskFollowWall(void* pvParameters) {
@@ -378,11 +369,9 @@ void TaskFollowWall(void* pvParameters) {
         return;
     }
 
-    DualTapeSensor_t* wingSensor = fullSensorData->wingSensor;
-    DualTapeSensor_t* sensor = state.direction == 1 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
+    TapeSensor_t* sensor = state.direction == 1 ? fullSensorData->fontTapeSensor : fullSensorData->backTapeSensor;
 
-    int value_left;  // these are wing sensor values
-    int value_right;
+    int value;  // these are wing sensor values
     bool found_tape = false;
 
     log_status("Successfully initialized TaskFollowWall");
@@ -390,15 +379,13 @@ void TaskFollowWall(void* pvParameters) {
     while (1) {
         read_tape_sensor(sensor);
 
-        value_left = sensor->leftValue;
-        value_right = sensor->rightValue;
+        value = sensor->value;
 
-        // Serial.println("left sensor: " + String(value_left));
-        // Serial.println("right sensor: " + String(value_right));
+        // Serial.println("sensor: " + String(value));
 
-        if (value_left > THRESHOLD_SENSOR_SINGLE || value_right > THRESHOLD_SENSOR_SINGLE) {
+        if (value > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
-        } else if ((value_left < THRESHOLD_SENSOR_SINGLE || value_right < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
+        } else if ((value < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
             state.last_side_station += state.orientation * state.direction;
             log_status("Passed station while wall following!");
             found_tape = false;

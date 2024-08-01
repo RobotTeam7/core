@@ -21,8 +21,6 @@
 
 #include <common/stepper_motor.h>
 
-#define CONSTANT_DECELERATION 30
-
 
 
 RobotMotor_t* motor_front_left;
@@ -30,14 +28,9 @@ RobotMotor_t* motor_front_right;
 RobotMotor_t* motor_back_left;
 RobotMotor_t* motor_back_right;
 
-DualTapeSensor_t* frontTapeSensor;
-DualTapeSensor_t* backTapeSensor;
-DualTapeSensor_t* wingSensor;
-
-LimitSwitch_t* limit_switch_front_left;
-LimitSwitch_t* limit_switch_back_left;
-LimitSwitch_t* limit_switch_front_right;
-LimitSwitch_t* limit_switch_back_right;
+TapeSensor_t* frontTapeSensor;
+TapeSensor_t* backTapeSensor;
+TapeSensor_t* middleTapeSensor;
 
 RobotMotorData_t robotMotors;
 NavigationData_t config_following;
@@ -103,8 +96,8 @@ void uart_msg_handler(void *parameter) {
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
                         state.y_direction = new_packet.value;
-                        // state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
 
                         send_uart_message(ACCEPTED, 0, false);
 
@@ -149,58 +142,6 @@ void uart_msg_handler(void *parameter) {
     }
 }
 
-void TaskSwitch1(void* pvParameters) {
-    while (1) {
-        uint32_t ulNotificationValue;
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
-        Serial.println("Switch 1!!");
-    }
-}
-
-void IRAM_ATTR docking_isr() {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    Serial.println("ISR!");
-
-    vTaskNotifyGiveFromISR(xDockingHandle, &xHigherPriorityTaskWoken);
-
-    // Request a context switch if giving the notification unblocked a higher priority task
-    if (xHigherPriorityTaskWoken == pdTRUE) {
-        portYIELD_FROM_ISR();
-    }
-} 
-
-TaskHandle_t switch_handle_1 = NULL;
-
-void TaskSwitch2(void* pvParameters) {
-    while (1) {
-        uint32_t ulNotificationValue;
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
-        Serial.println("Switch 2!!");
-    }
-}
-
-TaskHandle_t switch_handle_2 = NULL;
-
-void TaskSwitch3(void* pvParameters) {
-    while (1) {
-        uint32_t ulNotificationValue;
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
-        Serial.println("Switch 3!!");
-    }
-}
-
-TaskHandle_t switch_handle_3 = NULL;
-
-void TaskSwitch4(void* pvParameters) {
-    while (1) {
-        uint32_t ulNotificationValue;
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
-        Serial.println("Switch 4!!");
-    }
-}
-
-TaskHandle_t switch_handle_4 = NULL;
-
 
 void setup() {
     Serial.begin(115200);
@@ -216,28 +157,25 @@ void setup() {
     motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE, MOTOR_TIMER_1);
     motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE, MOTOR_TIMER_1);
 
-    frontTapeSensor = instantiate_tape_sensor(FRONT_TAPE_SENSOR_LEFT, FRONT_TAPE_SENSOR_RIGHT);
-    backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT, BACK_TAPE_SENSOR_RIGHT);
-    wingSensor = instantiate_tape_sensor(LEFT_WING_TAPE_SENSOR, RIGHT_WING_TAPE_SENSOR);
+    frontTapeSensor = instantiate_tape_sensor(FRONT_TAPE_SENSOR_RIGHT);
+    backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT);
+    middleTapeSensor = instantiate_tape_sensor(MIDDLE_TAPE_SENSOR);
 
     // while (1) {
-    //     read_tape_sensor(wingSensor);
     //     read_tape_sensor(backTapeSensor);
     //     read_tape_sensor(frontTapeSensor);
-    //     Serial.println("Right Wing: " + String(wingSensor->leftValue));
-    //     Serial.println("Left Wing: " + String(wingSensor->rightValue));
-    //     Serial.println("Left Front: " + String(frontTapeSensor->leftValue));
-    //     Serial.println("Right Front: " + String(frontTapeSensor->rightValue));
-    //     Serial.println("Back Left: " + String(backTapeSensor->leftValue));
-    //     Serial.println("Back Right: " + String(backTapeSensor->rightValue));
+    //     read_tape_sensor(middleTapeSensor);
+    //     Serial.println("Front: " + String(frontTapeSensor->value));
+    //     Serial.println("Back: " + String(backTapeSensor->value));
+    //     Serial.println("Middle: " + String(middleTapeSensor->value));
     //     delay(100);
     // }
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
-    config_docking = { wingSensor, &xSharedQueue };
-    return_data = {frontTapeSensor, backTapeSensor, &xMasterHandle };
-    wall_data = { wingSensor, frontTapeSensor, backTapeSensor };
+    config_docking = { &xSharedQueue };
+    return_data = {middleTapeSensor, &xMasterHandle };
+    wall_data = { frontTapeSensor, backTapeSensor };
 
     // // check if driving task was created
     if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
@@ -248,32 +186,13 @@ void setup() {
 
     delay(100);
 
-    while(1) {
-        delay(3000);
-        state.direction = -state.direction;
+    // check if task master was created
+    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
+        log_status("Master task was created successfully.");
+    } else {
+        log_error("Master task was not created successfully!");
     }
 
-    // check if task master was created
-    // if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
-    //     log_status("Master task was created successfully.");
-    // } else {
-    //     log_error("Master task was not created successfully!");
-    // }
-
-    // xTaskCreate(TaskSwitch1, "switxh1", 2048, NULL, 1, &switch_handle_1);
-    // xTaskCreate(TaskSwitch2, "swithc2", 2048, NULL, 1, &switch_handle_2);
-    // xTaskCreate(TaskSwitch3, "switch3", 2048, NULL, 1, &switch_handle_3);
-    // xTaskCreate(TaskSwitch4, "swithc34", 2048, NULL, 1, &switch_handle_4);
-
-    // LimitSwitch_t* test_switch_1 = instantiate_limit_switch(SWITCH_COUNTER_1, &switch_handle_1);
-    // LimitSwitch_t* test_switch_2 = instantiate_limit_switch(SWITCH_COUNTER_2, &switch_handle_2);
-    // LimitSwitch_t* test_switch_3 = instantiate_limit_switch(SWITCH_COUNTER_3, &switch_handle_3);
-    // LimitSwitch_t* test_switch_4 = instantiate_limit_switch(SWITCH_COUNTER_4, &switch_handle_4);
-
-    limit_switch_front_left = instantiate_limit_switch(SWITCH_COUNTER_3, docking_isr); 
-    limit_switch_back_left = instantiate_limit_switch(SWITCH_COUNTER_4, docking_isr);
-    limit_switch_front_right = instantiate_limit_switch(SWITCH_COUNTER_1, docking_isr); 
-    limit_switch_back_right = instantiate_limit_switch(SWITCH_COUNTER_2, docking_isr);
 }
 
 void loop()
@@ -522,18 +441,30 @@ void TaskMaster(void *pvParameters)
                     Serial.println("Wall Slamming: " + String(state.desired_side_station) + " " + String(state.last_side_station));
                     if (state.desired_side_station == state.last_side_station) {
                         log_status("arrived at desired station!");
-                        vTaskDelete(xFollowWallHandle);
-                        xFollowWallHandle = NULL;
-                       
-                       log_status("approaching tape, lowering motor speed");
-                        // while (state.drive_speed > 0) {
-                        //     state.drive_speed -= CONSTANT_DECELERATION;
-                        //     vTaskDelay(pdMS_TO_TICKS(1));
-                        // }
+
+                        if(xFollowWallHandle != NULL) {
+                            vTaskDelete(xFollowWallHandle);
+                            xFollowWallHandle = NULL;
+                        }
+
+                        log_status("approaching tape, lowering motor speed");
+                        state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
+
+                        // slight break to drop speed quickly
+                        state.direction = -state.direction;
+                        vTaskDelay(pdMS_TO_TICKS(20));
+                        state.direction = -state.direction;
+
+                        // wait till midlle sensor sees tape
+                        read_tape_sensor(middleTapeSensor);
+                        while(middleTapeSensor->value < TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
+                            vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_STOP_POLL));
+                            read_tape_sensor(middleTapeSensor);
+                        }
 
                         // update last_station based on side station
-                        // state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
                         state.drive_speed = 0;
                         state.yaw = 0;
                         state.drive_state = DriveState_t::STOP;
@@ -548,15 +479,19 @@ void TaskMaster(void *pvParameters)
 
             case ActionType_t::PIROUETTE:
             {   
-                if(state.y_direction == 0) {
+                if (state.y_direction == 0) {
                     log_error("cannot do a pirouette when not on a wall!");
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
 
-                float final_angle = 140.0;
+                float final_angle = 75.0;
                 int final_delay = DELAY_FINISH_PIROUETTE;
                 bool counter_return = state.last_side_station < 0;
+
+                if (state.orientation * state.y_direction == 1) {
+                    final_angle *= 0.8;
+                }
                 
                 // if desired side station is negative we want to return to the counter we just came from
                 if (counter_return) {
@@ -574,14 +509,13 @@ void TaskMaster(void *pvParameters)
                 state.y_direction = -state.y_direction;
 
                 state.drive_state = TRANSLATE;
-                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_speed = MOTOR_SPEED_PIROUETTE_TRANSLATION;
                 vTaskDelay(pdMS_TO_TICKS(DELAY_START_PIROUETTE));
 
-                state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
 
                 // angle to 217 for robot 2 pirouette in islation
-                for (double angle = 0.0; angle <= final_angle; angle += 0.8) {
+                for (double angle = 0.0; angle <= final_angle; angle += 0.40) {
                     state.pirouette_angle = (int)(angle * state.helicity);
                     vTaskDelay(pdMS_TO_TICKS(4));
                 }
@@ -592,6 +526,7 @@ void TaskMaster(void *pvParameters)
 
                 // we are now on the opposite wall, and we have rotated 180 degrees
                 state.orientation = -state.orientation;
+                // state.drive_speed += 2000;
                 state.drive_state = TRANSLATE;
                 vTaskDelay(pdMS_TO_TICKS(final_delay));
 
@@ -602,6 +537,8 @@ void TaskMaster(void *pvParameters)
                 taskYIELD();
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);
+
+                break;
             }
 
             case ActionType_t::SIDE_SWAP:
@@ -622,6 +559,7 @@ void TaskMaster(void *pvParameters)
                 state.y_direction = -state.y_direction;
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);
+
                 break;
             }
         }
@@ -648,7 +586,7 @@ void begin_following() {
 
 void begin_station_tracking() {
     // check if station tracking task was created
-    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, wingSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
+    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, middleTapeSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
         log_status("Station tracking task was created successfully.");
     } else {
         log_error("Station tracking task was not created successfully!");

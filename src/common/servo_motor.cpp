@@ -22,24 +22,24 @@ ServoMotor_t* instantiate_servo_motor(uint8_t boundControlPin, float max_duty_cy
     return servoMotor;
 }
 
+void set_servo_position(ServoMotor_t* servoMotor, uint16_t newPosition) {
+    servoMotor->position = newPosition;
+    Serial.println("setting servo to power: " + String(newPosition));
+    set_pwm(servoMotor->boundControlPin, servoMotor->position);
+}
+
 // sets the position of the claw based on a percentage value
 // 0 is closed
 // 1 is open
-void set_servo_position_percentage(ServoMotor_t* servoMotor, float percentange) {
-    if (percentange < 0 || percentange > 1) {
-        log_error("Invalid percentage. Must be between 0 and 1!");
+void set_servo_position_percentage(ServoMotor_t* servoMotor, int percentange) {
+    if (percentange < 0 || percentange > 100) {
+        log_error("Invalid percentage. Must be between 0 and 100!");
         return;
     }
 
     int range = (servoMotor->max_duty_cycle - servoMotor->min_duty_cycle) * UINT16_MAX;
     int min_power = servoMotor->min_duty_cycle * UINT16_MAX;
-    int power = min_power + range * percentange;
+    int power = min_power + range * ( (float) percentange / 100.0 ) ;
 
     set_servo_position(servoMotor, power);
-}
-
-void set_servo_position(ServoMotor_t* servoMotor, uint16_t newPosition) {
-    servoMotor->position = newPosition;
-    Serial.println("setting servo to power: " + String(newPosition));
-    set_pwm(servoMotor->boundControlPin, servoMotor->position);
 }
