@@ -112,6 +112,14 @@ static inline void send_command(CommandMessage_t command, int8_t value) {
     MOTION_BUSY = true;
 }
 
+static inline void grab_plate() {
+    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
+    vTaskDelay(SERVO_ACTUATION_DELAY);
+
+    set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_CLOSED);
+    vTaskDelay(SERVO_ACTUATION_DELAY);
+}
+
 void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
@@ -172,17 +180,22 @@ void TaskMaster(void* pvParameters) {
         
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
 
-        log_status("pirouette");
-        send_command(DO_PIROUETTE, 3);
-        wait_for_motion();
+        send_command(FOLLOW_WALL_TO, 1);
+        vTaskDelay(pdMS_TO_TICKS(1050));
+        send_command(CommandMessage_t::ABORT, 0);
+        vTaskDelay(pdMS_TO_TICKS(500));
 
-        log_status("wall slam to 4");
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
+        // log_status("pirouette");
+        // send_command(DO_PIROUETTE, 2);
+        // wait_for_motion();
 
-        log_status("claw servo open");
-        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
-        vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+        // log_status("wall slam to 4");
+        // send_command(FOLLOW_WALL_TO, 4);
+        // wait_for_motion();
+
+        // log_status("claw servo open");
+        // set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
+        // vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
 
         Serial.println("Done!");
         while (1) {

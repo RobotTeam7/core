@@ -74,6 +74,12 @@ void uart_msg_handler(void *parameter) {
                     // If we should abort, end our current task.
                     case ABORT:
                         state.current_action = IDLE;
+                        state.drive_state = STOP;
+                        state.drive_speed = 0;
+                        if (xFollowWallHandle != NULL) {
+                            vTaskDelete(xFollowWallHandle);
+                            xFollowWallHandle = NULL;
+                        }
                         send_uart_message(ACCEPTED, 0, false);
                         Serial.println("Accepting command: " + String(new_packet.command) + " : " + String(new_packet.value));
 
@@ -96,8 +102,8 @@ void uart_msg_handler(void *parameter) {
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
                         state.y_direction = new_packet.value;
-                        // state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
 
                         send_uart_message(ACCEPTED, 0, false);
 
@@ -463,10 +469,15 @@ void TaskMaster(void *pvParameters)
                             read_tape_sensor(middleTapeSensor);
                         }
 
+                        state.direction = -state.direction;
+                        state.drive_speed = 12000;
+                        vTaskDelay(pdMS_TO_TICKS(80));
+                        state.direction = -state.direction;
+
 
                         // update last_station based on side station
-                        // state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
                         state.drive_speed = 0;
                         state.yaw = 0;
                         state.drive_state = DriveState_t::STOP;
