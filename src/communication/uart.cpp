@@ -59,80 +59,93 @@ static void uart_receive_event_task(void *pvParameters) {
                 {
                     // Read data from the UART
                     length = uart_read_bytes(UART_PORT, data_buffer, event.size, portMAX_DELAY);
-                    Serial.println("Read " + String(length) + " bytes from buffer!");
-                    
-                    // Decompose UART message into constituent parts as described by COMMUNICATION PROTOCOL
-                    uint8_t start_byte = data_buffer[0];
-                    uint8_t command_byte = data_buffer[1];
-                    uint8_t value_byte = data_buffer[2];
-                    uint32_t crc_value;
-                    memcpy(&crc_value, data_buffer + sizeof(uint8_t) * 3, sizeof(crc_value));
-                    uint8_t stop_byte = data_buffer[sizeof(uint8_t) * 3 + sizeof(crc_value)];
 
-                    memset(data_buffer, 0, uart_buffer_size);  // Reset the buffer
-
-                    if (start_byte != START_BYTE) {
-                        log_error("Start byte is invalid!");
-                        send_nack();
-                        break;
+                    if (length % 8 != 0) {
+                        Serial.println("Warning! Read " + String(length) + " bytes from buffer!");
                     }
 
-                    if (stop_byte != STOP_BYTE) {
-                        log_error("Stop byte is invalid!");
-                        send_nack();
-                        break;
-                    }
+                    int num_messages = length / 8;
+                    uint8_t* data_pointer = data_buffer; // Pointer into the buffer that will increment by eight bytes for every message processed
+                    for (int i = 0; i < num_messages; i++) {
+                        // Decompose UART message into constituent parts as described by COMMUNICATION PROTOCOL
+                        bool invalid_message = false;
 
-                    uint8_t data[] = { command_byte, value_byte };
-                    if (esp_crc32_le(0, data, sizeof(data)) != crc_value) {
-                        log_error("CRC is invalid!");
-                        send_nack();
-                        break;
-                    }
+                        uint8_t start_byte = data_pointer[0];
+                        uint8_t command_byte = data_pointer[1];
+                        uint8_t value_byte = data_pointer[2];
+                        uint32_t crc_value;
+                        memcpy(&crc_value, data_pointer + sizeof(uint8_t) * 3, sizeof(crc_value));
+                        uint8_t stop_byte = data_pointer[sizeof(uint8_t) * 3 + sizeof(crc_value)];
 
-                    switch (command_byte) {
-                        case 0x40 ... 0x4f: // Indicates we received an ACK message
-                        {
-                            // Clear the memory, letting us send another packet
-                            log_status("Received acknowledgmenet!");
-                            if (last_sent_packet != NULL) {
-                                free(last_sent_packet);
-                                last_sent_packet = NULL;
-                            }
-                            retries = 0;
-                        }   // INTENTIONALLY FALL THROUGH
-
-                        case 0x00 ... 0x3f: // Indicates that there is a command that should go on the command queue
-                        {
-                            log_status("Putting new packet onto queue!");
-                            Packet_t* new_packet = (Packet_t*)malloc(sizeof(Packet_t));
-                            new_packet->command = (CommandMessage_t)command_byte;
-                            new_packet->value = value_byte;
-                            xQueueSend(*uart_msg_queue, new_packet, portMAX_DELAY);
-                            break;
+                        if (start_byte != START_BYTE) {
+                            log_error("Start byte is invalid!");
+                            invalid_message = true;
                         }
 
-                        case 0x50 ... 0x5f: // Indicates we received a NACK
-                        {
-                            log_status("Received NACK!");
-                            
-                            if (retries < MAX_RETRIES) {
-                                // Wait for a moment, hopefully for the noise to subside
-                                vTaskDelay(pdMS_TO_TICKS(500));
+                        if (stop_byte != STOP_BYTE) {
+                            log_error("Stop byte is invalid!");
+                            invalid_message = true;
+                        }
 
-                                // Try to resend the most recent transmission
-                                send_uart_message(last_sent_packet->command, last_sent_packet->value, false);
-                                retries++;
+                        uint8_t data[] = { command_byte, value_byte };
+                        if (esp_crc32_le(0, data, sizeof(data)) != crc_value) {
+                            log_error("CRC is invalid!");
+                            invalid_message = true;
+                        }
 
+                        if (invalid_message) {
+                            send_nack();
+                            continue;
+                        }
+
+                        switch (command_byte) {
+                            case UART_ACK_BEGIN ... UART_ACK_END: // Indicates we received an ACK message
+                            {
+                                // Clear the memory, letting us send another packet
+                                log_status("Received acknowledgmenet!");
+                                if (last_sent_packet != NULL) {
+                                    free(last_sent_packet);
+                                    last_sent_packet = NULL;
+                                }
+                                retries = 0;
+                            }   // INTENTIONALLY FALL THROUGH
+
+                            case UART_CMD_BEGIN ... UART_CMD_END: // Indicates that there is a command that should go on the command queue
+                            {
+                                log_status("Putting new packet onto queue!");
+                                Packet_t* new_packet = (Packet_t*)malloc(sizeof(Packet_t));
+                                new_packet->command = (CommandMessage_t)command_byte;
+                                new_packet->value = value_byte;
+                                xQueueSend(*uart_msg_queue, new_packet, portMAX_DELAY);
                                 break;
-                            } else { // Initiate fault state for max retries
-                                while (1) {
+                            }
+
+                            case UART_NACK_BEGIN ... UART_NACK_END: // Indicates we received a NACK
+                            {
+                                log_status("Received NACK!");
+                                
+                                if (retries < MAX_RETRIES) {
+                                    // Wait for a moment, hopefully for the noise to subside
                                     vTaskDelay(pdMS_TO_TICKS(500));
-                                    Serial.println("FAULT STATE: MAX UART RETRIES REACHED!");
+
+                                    // Try to resend the most recent transmission
+                                    send_uart_message(last_sent_packet->command, last_sent_packet->value, false);
+                                    retries++;
+
+                                    break;
+                                } else { // Initiate fault state for max retries
+                                    while (1) {
+                                        vTaskDelay(pdMS_TO_TICKS(500));
+                                        Serial.println("FAULT STATE: MAX UART RETRIES REACHED!");
+                                    }
                                 }
                             }
                         }
-                    }
+
+                        data_pointer += sizeof(uint8_t) * 8;
+                    }     
+
+                    memset(data_buffer, 0, uart_buffer_size);  // Reset the buffer
                     break;
                 }
 
