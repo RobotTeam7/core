@@ -36,9 +36,9 @@
 
 typedef enum {
     VERTICAL_UP = 0,
-    VERTICAL_HEIGHT_3 = 25,
-    VERTICAL_HEIGHT_2 = 50,
-    VERTICAL_HEIGHT_1 = 75,
+    VERTICAL_HEIGHT_3 = 25, // 3 = second highest position
+    VERTICAL_HEIGHT_2 = 50, // 2 = halfway
+    VERTICAL_HEIGHT_1 = 75, // 1 = second lowest position
     VERTICAL_DOWN = 100,
 
     CLAW_CLOSED_FULL = 0,
@@ -51,7 +51,7 @@ typedef enum {
 
     PLATE_CLOSED = 0,
     PLATE_OPEN = 100,
-    
+
     DRAW_BRIDGE_UP = 100,
     DRAW_BRIDGE_DOWN = 0,
 } ServoPositionsPercentage_t;
