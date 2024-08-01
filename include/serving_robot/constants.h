@@ -27,5 +27,4 @@
 #define SWITCH_RACK_PLATESIDE           9
 
 
-
 #endif // SERVING_ROBOT_CONSTANTS_H

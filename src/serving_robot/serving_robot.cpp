@@ -14,6 +14,8 @@
 #include <communication/uart.h>
 #include <communication/decode.h>
 
+#include <serving_robot/rack_and_pinion.h>
+
 
 QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
 QueueHandle_t inboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
@@ -144,10 +146,16 @@ void setup() {
 
     init_pwm();
 
-    Serial.println("servos initialized!");
+    // instantiate_limit_switch(SWITCH_RACK_CLAWSIDE, test_isr_0);
+    // instantiate_limit_switch(SWITCH_RACK_PLATESIDE, test_isr_1);
+
+    init_rack_and_pinion(RACK_FORWARD_PIN, RACK_REVERSE_PIN, -1, SWITCH_RACK_PLATESIDE, SWITCH_RACK_CLAWSIDE);
+    
+    actuate_claw_forwards();
+    // Serial.println("servos initialized!");
 
     // claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, SERVO_CLAW_OPEN, SERVO_CLAW_CLOSED);
-    draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_UP, SERVO_DRAW_BRIDGE_DOWN);
+    // draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_UP, SERVO_DRAW_BRIDGE_DOWN);
     // plating_servo = instantiate_servo_motor(SERVO_PLATE_PIN, SERVO_PLATE_OPEN, SERVO_PLATE_CLOSED);
     // vertical_servo = instantiate_servo_motor(SERVO_VERTICAL_PIN, 0.1, SERVO_VERTICAL_UP);
     
@@ -163,12 +171,12 @@ void setup() {
 
     // connect_to_wifi_as_client(&wifi_handler);
 
-    initialize_uart(&uart_msg_queue);
+    // initialize_uart(&uart_msg_queue);
 
-    xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
+    // xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
     // xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
     
-    xTaskCreate(TaskMaster, "Master", 2048, NULL, 1, NULL);
+    // xTaskCreate(TaskMaster, "Master", 2048, NULL, 1, NULL);
 }
 
 void loop() {
