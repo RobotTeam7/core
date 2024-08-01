@@ -105,7 +105,7 @@ static inline void wait_for_motion() {
     while (MOTION_BUSY) {
         vTaskDelay(pdMS_TO_TICKS(10));
     }
-    vTaskDelay(pdMS_TO_TICKS(UART_INTERMESSAGE_DELAY));
+    // vTaskDelay(pdMS_TO_TICKS(UART_INTERMESSAGE_DELAY));
 }
 
 static inline void send_command(CommandMessage_t command, int8_t value) {
