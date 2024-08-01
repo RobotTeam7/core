@@ -40,5 +40,13 @@
 #define FORWARD_DRIVE               1
 #define REVERSE_DRIVE               -1
 
+// UART ID Table
+#define UART_CMD_BEGIN      0x00
+#define UART_CMD_END        0x3f
+#define UART_ACK_BEGIN      0x40
+#define UART_ACK_END        0x4f
+#define UART_NACK_BEGIN     0x50
+#define UART_NACK_END       0x5f
+
 
 #endif // COMMON_CONSTANTS_H
