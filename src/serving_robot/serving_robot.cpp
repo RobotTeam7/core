@@ -14,6 +14,9 @@
 #include <communication/uart.h>
 #include <communication/decode.h>
 
+#define SERVO_ACTUATION_DELAY 500
+#define UART_INTERMESSAGE_DELAY 50
+
 
 QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
 QueueHandle_t inboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
@@ -83,14 +86,40 @@ void wifi_msg_handler(void *parameter) {
     }
 }
 
+static inline void grab_with_claw(int claw_percentage) {
+    log_status("vertical servo down");
+    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_DOWN);
+    vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+
+    // close servo
+    log_status("claw servo closed");
+    set_servo_position_percentage(claw_servo, claw_percentage);
+    vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+
+    log_status("vertical servo up");
+    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
+}
+
+static inline void wait_for_motion() {
+    while (MOTION_BUSY) {
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    vTaskDelay(pdMS_TO_TICKS(UART_INTERMESSAGE_DELAY));
+}
+
+static inline void send_command(CommandMessage_t command, int8_t value) {
+    send_uart_message(command, value);
+    MOTION_BUSY = true;
+}
+
 void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
     // Wait for green light from motion board
     Serial.println("awaitng motion to be ready");
-    // while (!MOTION_READY) {
-    //     vTaskDelay(10 / portTICK_PERIOD_MS);
-    // }
+    while (!MOTION_READY) {
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
 
     while (true) {
         // delay for uart to work
@@ -98,44 +127,67 @@ void TaskMaster(void* pvParameters) {
 
         vTaskDelay(pdMS_TO_TICKS(3000));
 
+        log_status("dock on side");
+        send_command(COUNTER_DOCK, 1);
+        wait_for_motion();
+
+        log_status("wall slam to 2");
+        send_command(FOLLOW_WALL_TO, 2);
+        wait_for_motion();
+
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
+
+        log_status("wall slam to 4");
+        send_command(FOLLOW_WALL_TO, 4);
+        wait_for_motion();
+
+        log_status("claw servo closed");
+        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
+        vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+
+        log_status("wall slam to 3");
+        send_command(FOLLOW_WALL_TO, 3);
+        wait_for_motion();
+
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+
+        log_status("wall slam to 4");
+        send_command(FOLLOW_WALL_TO, 4);
+        wait_for_motion();
+
+        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
+        vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+
+        log_status("wall slam to 3");
+        send_command(FOLLOW_WALL_TO, 3);
+        wait_for_motion();
 
         log_status("pirouette");
-        send_uart_message(DO_PIROUETTE, 2);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        send_command(DO_PIROUETTE, 1);
+        wait_for_motion();
 
-        log_status("servos going to 1");
-        for(float percentage = 0; percentage < 1; percentage += 0.01){
-            // set_servo_position_percentage(claw_servo, percentage);
-            // set_servo_position_percentage(draw_bridge_servo, percentage);
-            // set_servo_position_percentage(plating_servo, percentage);
-            // set_servo_position_percentage(vertical_servo, percentage);
-            vTaskDelay(10);
-        }
+        log_status("wall slam to 2");
+        send_command(FOLLOW_WALL_TO, 2);
+        wait_for_motion();
+        
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
 
-        vTaskDelay(pdMS_TO_TICKS(3000));
+        log_status("pirouette");
+        send_command(DO_PIROUETTE, 3);
+        wait_for_motion();
 
-        log_status("servos going to 0");
-        for(float percentage = 1; percentage > 0; percentage -= 0.01){
-            // set_servo_position_percentage(claw_servo, percentage);
-            // set_servo_position_percentage(draw_bridge_servo, percentage);
-            // set_servo_position_percentage(plating_servo, percentage);
-            // set_servo_position_percentage(vertical_servo, percentage);
-            vTaskDelay(10);
-        }
+        log_status("wall slam to 4");
+        send_command(FOLLOW_WALL_TO, 4);
+        wait_for_motion();
 
-        vTaskDelay(pdMS_TO_TICKS(3000));
-
-
-
+        log_status("claw servo open");
+        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
+        vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
 
         Serial.println("Done!");
-        // while (1) {
-        //     vTaskDelay(1000);
-        // }
+        while (1) {
+            vTaskDelay(1000);
+        }
     }
 }
 
@@ -146,26 +198,23 @@ void setup() {
 
     Serial.println("servos initialized!");
 
-    // claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, SERVO_CLAW_OPEN, SERVO_CLAW_CLOSED);
+    claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, SERVO_CLAW_OPEN, SERVO_CLAW_CLOSED);
     draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_UP, SERVO_DRAW_BRIDGE_DOWN);
-    // plating_servo = instantiate_servo_motor(SERVO_PLATE_PIN, SERVO_PLATE_OPEN, SERVO_PLATE_CLOSED);
-    // vertical_servo = instantiate_servo_motor(SERVO_VERTICAL_PIN, 0.1, SERVO_VERTICAL_UP);
+    plating_servo = instantiate_servo_motor(SERVO_PLATE_PIN, SERVO_PLATE_OPEN, SERVO_PLATE_CLOSED);
+    vertical_servo = instantiate_servo_motor(SERVO_VERTICAL_PIN, SERVO_VERTICAL_DOWN, SERVO_VERTICAL_UP);
     
-
-    // actuate_stepper_motor(stepper_motor, UP, 1000);
-    // delay(2000);
-    // claw_servo.write(90);
-    // delay(1000);
-    // claw_servo.write(30);
-    // delay(1000);
-    // actuate_stepper_motor(stepper_motor, DOWN, 1000);
-    // delay(2000);
+    delay(1000);
+    
+    Serial.println("vertical servo go up!");
+    set_servo_position_percentage(vertical_servo, 0);
 
     // connect_to_wifi_as_client(&wifi_handler);
 
     initialize_uart(&uart_msg_queue);
 
     xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
+
+    delay(100);
     // xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
     
     xTaskCreate(TaskMaster, "Master", 2048, NULL, 1, NULL);

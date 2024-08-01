@@ -26,10 +26,7 @@ typedef struct {
     float min_duty_cycle;
 } ServoMotor_t;
 
-/**
- * @brief Set the `position` of this servo motor, where `position` is within the range 0 – 65535.
- */
-void set_servo_position(ServoMotor_t* servoMotor, uint16_t newPosition);
+
 /**
  * @brief Create a new servo motor, binding `controlPin` to it with `position` as its initial position.
  * 
@@ -45,7 +42,7 @@ ServoMotor_t* instantiate_servo_motor(uint8_t controlPin, float max_duty_cycle, 
  * 
  * @param percentage value within the range 0.0 – 1.0.
  */
-void set_servo_position_percentage(ServoMotor_t* servoMotor, float percentage);
+void set_servo_position_percentage(ServoMotor_t* servoMotor, int percentage);
 
 
 #endif // SERVO_MOTOR_H

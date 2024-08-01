@@ -1,7 +1,7 @@
 #include <motion/state.h>
 
 State_t state = {
-    .orientation = 1,
+    .orientation = -1,
     .last_station = 1,
     .last_side_station = 1,
     .pirouette_angle = 0,
