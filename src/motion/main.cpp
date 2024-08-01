@@ -32,7 +32,7 @@ RobotMotor_t* motor_back_right;
 
 TapeSensor_t* frontTapeSensor;
 TapeSensor_t* backTapeSensor;
-TapeSensor_t* middleSensor;
+TapeSensor_t* middleTapeSensor;
 
 RobotMotorData_t robotMotors;
 NavigationData_t config_following;
@@ -161,16 +161,17 @@ void setup() {
 
     frontTapeSensor = instantiate_tape_sensor(FRONT_TAPE_SENSOR_RIGHT);
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT);
+    middleTapeSensor = instantiate_tape_sensor(MIDDLE_TAPE_SENSOR);
 
-    // while (1) {
-    //     read_tape_sensor(backTapeSensor);
-    //     read_tape_sensor(frontTapeSensor);
-    //     // Serial.println("Right Wing: " + String(wingSensor->leftValue));
-    //     // Serial.println("Left Wing: " + String(wingSensor->rightValue));
-    //     Serial.println("Front: " + String(frontTapeSensor->value));
-    //     Serial.println("Left: " + String(backTapeSensor->value));
-    //     delay(100);
-    // }
+    while (1) {
+        read_tape_sensor(backTapeSensor);
+        read_tape_sensor(frontTapeSensor);
+        read_tape_sensor(middleTapeSensor);
+        Serial.println("Front: " + String(frontTapeSensor->value));
+        Serial.println("Back: " + String(backTapeSensor->value));
+        Serial.println("Middle: " + String(middleTapeSensor->value));
+        delay(100);
+    }
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
@@ -442,15 +443,26 @@ void TaskMaster(void *pvParameters)
                     Serial.println("Wall Slamming: " + String(state.desired_side_station) + " " + String(state.last_side_station));
                     if (state.desired_side_station == state.last_side_station) {
                         log_status("arrived at desired station!");
-                        vTaskDelete(xFollowWallHandle);
-                        xFollowWallHandle = NULL;
-                       
-                       log_status("approaching tape, lowering motor speed");
-                        
+
+                        if(xFollowWallHandle != NULL) {
+                            vTaskDelete(xFollowWallHandle);
+                            xFollowWallHandle = NULL;
+                        }
+
+                        log_status("approaching tape, lowering motor speed");
+                        state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
+
+                        // slight break to drop speed quickly
                         state.direction = -state.direction;
-                        vTaskDelay(pdMS_TO_TICKS(50));
-                        state.drive_speed = 6000;
+                        vTaskDelay(pdMS_TO_TICKS(20));
                         state.direction = -state.direction;
+
+                        // wait till midlle sensor sees tape
+                        read_tape_sensor(middleTapeSensor);
+                        while(middleTapeSensor->value < TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
+                            vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_STOP_POLL));
+                            read_tape_sensor(middleTapeSensor);
+                        }
 
                         // update last_station based on side station
                         state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
@@ -576,7 +588,7 @@ void begin_following() {
 
 void begin_station_tracking() {
     // check if station tracking task was created
-    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, middleSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
+    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, middleTapeSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
         log_status("Station tracking task was created successfully.");
     } else {
         log_error("Station tracking task was not created successfully!");

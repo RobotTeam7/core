@@ -12,7 +12,7 @@
 #define MOTOR_SPEED_TRANSLATION                     15000   // Base speed for when we are trying to dock
 #define MOTOR_SPEED_BREAKING                        12000   // Break speed of the motors
 #define MOTOR_SPEED_WALL_SLAMMING                   20000    // Base motor sped whilst wall slamming
-#define MOTOR_SPEED_WALL_SLAMMING_APPROACH          7000    // Base motor sped whilst approaching desired station and wall slamming
+#define MOTOR_SPEED_WALL_SLAMMING_CRAWL             6000    // Base motor sped whilst approaching desired station and wall slamming
 #define MOTOR_SPEED_PIROUETTE_ROTATION              13500    // Motor speed for the rotation moment vector component of a pirouette
 #define MOTOR_SPEED_PIROUETTE_TRANSLATION           13000   // Base speed for when we are trying to dock
 
@@ -28,7 +28,8 @@
 #define TAPE_TRACKING_INTITAL_DELAY                 500     // delay between when we start driving and when we start tracking tape (ms)
 #define DELAY_BREAKING                              0       // delay between running motors in reverse and stopping for sharp robot breaking
 #define DELAY_RETURN_TO_TAPE_POLL                   1       // delay between polls to see if we see tape while returning to tape
-#define DELAY_STATION_TRACKING_POLL                 5       // delay between polls to see if we see station tape   
+#define DELAY_STATION_TRACKING_POLL                 5       // delay between polls to see if we see station tape
+#define DELAY_WALL_SLAMMING_STOP_POLL               1          
 #define DELAY_WALL_SLAMMING_POLL                    5       // delay between polls to check if we are approaching tape during wall slamming
 #define DELAY_ROTATION_DURATION                     3000    // delay used to time when to stop rotating during a pirouette
 #define DELAY_START_PIROUETTE                       500
@@ -52,10 +53,10 @@
 #define MOTOR_FRONT_RIGHT_REVERSE   9
 
 // #define FRONT_TAPE_SENSOR_LEFT      38
-#define FRONT_TAPE_SENSOR_RIGHT     34
+#define FRONT_TAPE_SENSOR_RIGHT     38
 #define BACK_TAPE_SENSOR_LEFT       37
 // #define BACK_TAPE_SENSOR_RIGHT      35
-#define MIDDLE_TAPE_SENSOR          35 // or 38
+#define MIDDLE_TAPE_SENSOR          35 // or 34
 
 #define LEFT_WING_TAPE_SENSOR       32 
 #define RIGHT_WING_TAPE_SENSOR      33 
