@@ -86,14 +86,14 @@ void wifi_msg_handler(void *parameter) {
     }
 }
 
-static inline void grab_with_claw() {
+static inline void grab_with_claw(int claw_percentage) {
     log_status("vertical servo down");
     set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_DOWN);
     vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
 
     // close servo
     log_status("claw servo closed");
-    set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_CLOSED_FULL);
+    set_servo_position_percentage(claw_servo, claw_percentage);
     vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
 
     log_status("vertical servo up");
@@ -135,7 +135,7 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 2);
         wait_for_motion();
 
-        grab_with_claw();
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
 
         log_status("wall slam to 4");
         send_command(FOLLOW_WALL_TO, 4);
@@ -149,7 +149,7 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 3);
         wait_for_motion();
 
-        grab_with_claw();
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
 
         log_status("wall slam to 4");
         send_command(FOLLOW_WALL_TO, 4);
@@ -170,7 +170,7 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 2);
         wait_for_motion();
         
-        grab_with_claw();
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
 
         log_status("pirouette");
         send_command(DO_PIROUETTE, 3);

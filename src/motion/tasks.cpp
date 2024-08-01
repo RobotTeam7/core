@@ -43,7 +43,7 @@ int checkNavigationData(NavigationData_t* navigationData) {
 
 // Ensure that a NavigationData_t* does not contain null values
 int checkTapeReturn(ReturnToTapeData_t* navigationData) {
-    return navigationData == NULL || checkTapeSensor(navigationData->backTapeSensor) || checkTapeSensor(navigationData->fontTapeSensor) == 1 || navigationData->masterHandle == NULL;
+    return navigationData == NULL  || checkTapeSensor(navigationData->middleTapeSensor) == 1 || navigationData->masterHandle == NULL;
 }
 
 int checkState(State_t* state) {
@@ -307,8 +307,8 @@ void TaskCounterDocking(void* pvParameters) {
 void TaskReturnToTape(void* pvParameters) {
     log_status("Beginning tape return task initialization...");
 
-    ReturnToTapeData_t* navigationData = (ReturnToTapeData_t*)pvParameters;
-    if (checkTapeReturn(navigationData))
+    ReturnToTapeData_t* returnToTapeData = (ReturnToTapeData_t*)pvParameters;
+    if (checkTapeReturn(returnToTapeData))
     {
         log_error("Error: nulls in navigationData");
 
@@ -320,7 +320,7 @@ void TaskReturnToTape(void* pvParameters) {
 
     // convert ms delays into ticks
     TickType_t poll_rate_ticks = pdMS_TO_TICKS(DELAY_RETURN_TO_TAPE_POLL);
-    TapeSensor_t* tapeSensor = state.direction == 1 ? navigationData->fontTapeSensor : navigationData->backTapeSensor;
+    TapeSensor_t* tapeSensor = returnToTapeData->middleTapeSensor;
 
     log_status("Successfully initialized tape return!");
 
@@ -330,18 +330,16 @@ void TaskReturnToTape(void* pvParameters) {
     log_message("Looking for tape...");
 
     while (1) {
-        // look for tape detection
         read_tape_sensor(tapeSensor);
         int value = tapeSensor->value;
-        // Serial.println("Left" + String(left_mean));
-        // Serial.println("Right" + String(right_mean));
+        // Serial.println("middle sensor: " + String(value));
 
         if (value > THRESHOLD_SENSOR_SINGLE)
         {
             log_status("Found tape. Ending return to tape...");
 
             // send message to TaskMaster that return to tape has finished
-            xTaskNotifyGive(*navigationData->masterHandle);
+            xTaskNotifyGive(*returnToTapeData->masterHandle);
 
             state.drive_state = DriveState_t::STOP;
             state.drive_speed = 0;

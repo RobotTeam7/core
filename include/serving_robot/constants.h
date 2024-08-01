@@ -13,8 +13,15 @@
 #define CLAW_ACTUATE_PIN_2              33
 
 #define SERVO_CLAW_PIN                  13
-#define SERVO_CLAW_OPEN                 0.0475
-#define SERVO_CLAW_CLOSED               0.03
+#define SERVO_CLAW_OPEN                 0.061
+#define SERVO_CLAW_CLOSED               0.05
+
+// BUNS 0.0535
+// LETTUCE 5.0
+// TOMATO 5.2
+// CHEESE 5.3
+// PATTY 5.3
+
 
 #define SERVO_DRAW_BRIDGE_PIN           22
 #define SERVO_DRAW_BRIDGE_DOWN          0.06
@@ -29,10 +36,18 @@
 
 typedef enum {
     VERTICAL_DOWN = 100,
-    CLAW_CLOSED_FULL = 20,
+    CLAW_CLOSED_FULL = 0,
     VERTICAL_UP = 0,
     CLAW_OPEN = 100,
-
+    CLAW_CLOSED_BUN = 32,
+    CLAW_CLOSED_LETTUCE = 0,
+    CLAW_CLOSED_TOMATO = 18,
+    CLAW_CLOSED_CHEESE = 27,
+    CLAW_CLOSED_PATTY = 27,
+    PLATE_CLOSED = 0,
+    PLATE_OPEN = 100,
+    DRAW_BRIDGE_UP = 100,
+    DRAW_BRIDGE_DOWN = 0,
 } ServoPositionsPercentage_t;
 
 #endif // SERVING_ROBOT_CONSTANTS_H

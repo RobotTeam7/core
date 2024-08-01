@@ -27,8 +27,7 @@ typedef struct {
 } NavigationData_t;
 
 typedef struct {
-    TapeSensor_t* fontTapeSensor;
-    TapeSensor_t* backTapeSensor;
+    TapeSensor_t* middleTapeSensor;
     TaskHandle_t* masterHandle;
 } ReturnToTapeData_t;
 

@@ -37,6 +37,7 @@
 #define DELAY_TRANSLATE_TO_WALL                     1100
 #define DELAY_TRANSLATE_SIDE_SWAP                   1900
 
+
 // Sensor Thresholds
 
 #define THRESHOLD_SENSOR_SINGLE     1000    //defines the minimum  reflectance sensor reading to determine a sensor is seeing tape
