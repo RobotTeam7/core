@@ -6,8 +6,8 @@
 #define SERVO_VERTICAL_UP               0.0375
 #define SERVO_VERTICAL_DOWN             0.1
 
-#define RACK_FORWARD_PIN                7
-#define RACK_REVERSE_PIN                8
+#define RACK_FORWARD_PIN                8
+#define RACK_REVERSE_PIN                7
 
 #define CLAW_ACTUATE_PIN_1              32
 #define CLAW_ACTUATE_PIN_2              33
@@ -31,8 +31,8 @@
 #define SERVO_PLATE_OPEN                0.055
 #define SERVO_PLATE_CLOSED              0.032
 
-#define SWITCH_RACK_CLAWSIDE            10
-#define SWITCH_RACK_PLATESIDE           9
+#define SWITCH_RACK_CLAWSIDE            9
+#define SWITCH_RACK_PLATESIDE           10
 
 typedef enum {
     VERTICAL_DOWN = 100,

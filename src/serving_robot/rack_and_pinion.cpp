@@ -1,7 +1,7 @@
 #include <serving_robot/rack_and_pinion.h>
 
 
-#define RACK_AND_PINION_SPEED 6000
+#define RACK_AND_PINION_SPEED 18000
 
 RobotMotor_t* rack_and_pinion;
 LimitSwitch_t* claw_limit_switch;
@@ -16,7 +16,9 @@ void IRAM_ATTR claw_isr() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     Serial.println("Claw!");
 
-    vTaskNotifyGiveFromISR(xClawHandle, &xHigherPriorityTaskWoken);
+    if (xClawHandle != NULL) {
+        vTaskNotifyGiveFromISR(xClawHandle, &xHigherPriorityTaskWoken);
+    }
 
     // Request a context switch if giving the notification unblocked a higher priority task
     if (xHigherPriorityTaskWoken == pdTRUE) {
@@ -29,7 +31,9 @@ void IRAM_ATTR forklift_isr() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     Serial.println("Forklift!");
 
-    vTaskNotifyGiveFromISR(xForkliftHandle, &xHigherPriorityTaskWoken);
+    if (xForkliftHandle != NULL) {
+        vTaskNotifyGiveFromISR(xForkliftHandle, &xHigherPriorityTaskWoken);
+    }
 
     // Request a context switch if giving the notification unblocked a higher priority task
     if (xHigherPriorityTaskWoken == pdTRUE) {
@@ -55,6 +59,8 @@ static void task_actuate_claw(void* pvParameters) {
 
         motor_set_drive(rack_and_pinion, 0);
         position = 1;
+
+        log_status("Stopping motor!");
 
         vTaskDelete(NULL);
         xClawHandle = NULL;
