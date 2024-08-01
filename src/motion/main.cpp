@@ -21,8 +21,6 @@
 
 #include <common/stepper_motor.h>
 
-#define CONSTANT_DECELERATION 30
-
 
 
 RobotMotor_t* motor_front_left;
@@ -163,20 +161,20 @@ void setup() {
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT);
     middleTapeSensor = instantiate_tape_sensor(MIDDLE_TAPE_SENSOR);
 
-    while (1) {
-        read_tape_sensor(backTapeSensor);
-        read_tape_sensor(frontTapeSensor);
-        read_tape_sensor(middleTapeSensor);
-        Serial.println("Front: " + String(frontTapeSensor->value));
-        Serial.println("Back: " + String(backTapeSensor->value));
-        Serial.println("Middle: " + String(middleTapeSensor->value));
-        delay(100);
-    }
+    // while (1) {
+    //     read_tape_sensor(backTapeSensor);
+    //     read_tape_sensor(frontTapeSensor);
+    //     read_tape_sensor(middleTapeSensor);
+    //     Serial.println("Front: " + String(frontTapeSensor->value));
+    //     Serial.println("Back: " + String(backTapeSensor->value));
+    //     Serial.println("Middle: " + String(middleTapeSensor->value));
+    //     delay(100);
+    // }
 
     robotMotors = { motor_front_right, motor_front_left, motor_back_right, motor_back_left };
     config_following = { frontTapeSensor, backTapeSensor, &xSharedQueue };
     config_docking = { &xSharedQueue };
-    return_data = {frontTapeSensor, backTapeSensor, &xMasterHandle };
+    return_data = {middleTapeSensor, &xMasterHandle };
     wall_data = { frontTapeSensor, backTapeSensor };
 
     // // check if driving task was created
