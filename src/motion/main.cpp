@@ -540,15 +540,19 @@ void TaskMaster(void *pvParameters)
 
             case ActionType_t::PIROUETTE:
             {   
-                if(state.y_direction == 0) {
+                if (state.y_direction == 0) {
                     log_error("cannot do a pirouette when not on a wall!");
                     send_uart_message(COMPLETED);
                     state.current_action == IDLE;
                 }
 
-                float final_angle = 140.0;
+                float final_angle = 75.0;
                 int final_delay = DELAY_FINISH_PIROUETTE;
                 bool counter_return = state.last_side_station < 0;
+
+                if (state.orientation * state.y_direction == 1) {
+                    final_angle *= 0.8;
+                }
                 
                 // if desired side station is negative we want to return to the counter we just came from
                 if (counter_return) {
@@ -572,7 +576,7 @@ void TaskMaster(void *pvParameters)
                 state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
 
                 // angle to 217 for robot 2 pirouette in islation
-                for (double angle = 0.0; angle <= final_angle; angle += 0.8) {
+                for (double angle = 0.0; angle <= final_angle; angle += 0.40) {
                     state.pirouette_angle = (int)(angle * state.helicity);
                     vTaskDelay(pdMS_TO_TICKS(4));
                 }
@@ -583,6 +587,7 @@ void TaskMaster(void *pvParameters)
 
                 // we are now on the opposite wall, and we have rotated 180 degrees
                 state.orientation = -state.orientation;
+                // state.drive_speed += 2000;
                 state.drive_state = TRANSLATE;
                 vTaskDelay(pdMS_TO_TICKS(final_delay));
 

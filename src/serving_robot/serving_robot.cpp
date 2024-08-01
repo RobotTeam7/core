@@ -123,113 +123,11 @@ void TaskMaster(void* pvParameters) {
 
     while (true) {
         // delay for uart to work
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(2000));
 
-        vTaskDelay(pdMS_TO_TICKS(3000));
+        send_command(DO_PIROUETTE, 1);
+        wait_for_motion();
 
-
-        log_status("dock on side");
-        send_uart_message(COUNTER_DOCK, 1);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-
-
-        log_status("wall slam to 2");
-        send_uart_message(FOLLOW_WALL_TO, 2);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-        
-        log_status("wall slam to 4");
-        send_uart_message(FOLLOW_WALL_TO, 4);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-
-
-        log_status("claw servo closed");
-        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
-        vTaskDelay(pdMS_TO_TICKS(500));
-
-        log_status("wall slam to 3");
-        send_uart_message(FOLLOW_WALL_TO, 3);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-
-        grab_with_claw();
-
-        log_status("wall slam to 4");
-        send_uart_message(FOLLOW_WALL_TO, 4);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-
-        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
-        vTaskDelay(pdMS_TO_TICKS(500));
-
-        log_status("wall slam to 3");
-        send_uart_message(FOLLOW_WALL_TO, 3);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-
-        log_status("pirouette");
-        send_uart_message(DO_PIROUETTE, 1);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-
-        log_status("wall slam to 2");
-        send_uart_message(FOLLOW_WALL_TO, 2);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-
-        grab_with_claw();
-
-        log_status("pirouette");
-        send_uart_message(DO_PIROUETTE, 3);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-
-        log_status("wall slam to 4");
-        send_uart_message(FOLLOW_WALL_TO, 4);
-        MOTION_BUSY = true;
-        while (MOTION_BUSY) {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-
-
-        log_status("claw servo open");
-        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
-        vTaskDelay(pdMS_TO_TICKS(500));
-
-        Serial.println("Done!");
-        while (1) {
-            vTaskDelay(1000);
-        }
     }
 }
 
