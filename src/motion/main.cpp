@@ -96,8 +96,8 @@ void uart_msg_handler(void *parameter) {
                     case COUNTER_DOCK:
                         state.current_action = DOCK_AT_STATION;
                         state.y_direction = new_packet.value;
-                        state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        // state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        // state.last_side_station = get_last_side_station_server(state.last_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        state.last_side_station = get_last_side_station_chef(state.last_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
 
                         send_uart_message(ACCEPTED, 0, false);
 
@@ -448,23 +448,25 @@ void TaskMaster(void *pvParameters)
                         }
 
                         log_status("approaching tape, lowering motor speed");
-                        state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
 
                         // slight break to drop speed quickly
                         state.direction = -state.direction;
-                        vTaskDelay(pdMS_TO_TICKS(20));
+                        state.drive_speed = 13000;
+                        vTaskDelay(pdMS_TO_TICKS(400));
                         state.direction = -state.direction;
 
                         // wait till midlle sensor sees tape
+                        state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
                         read_tape_sensor(middleTapeSensor);
-                        while(middleTapeSensor->value < TAPE_SENSOR_AFFIRMATIVE_THRESHOLD) {
+                        while(middleTapeSensor->value < TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD) {
                             vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_STOP_POLL));
                             read_tape_sensor(middleTapeSensor);
                         }
 
+
                         // update last_station based on side station
-                        state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
-                        // state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
+                        // state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
                         state.drive_speed = 0;
                         state.yaw = 0;
                         state.drive_state = DriveState_t::STOP;
@@ -472,7 +474,7 @@ void TaskMaster(void *pvParameters)
                         state.current_action = IDLE;
                         send_uart_message(COMPLETED);
                     }
-                    vTaskDelay(10 / portTICK_PERIOD_MS);
+                    vTaskDelay(pdMS_TO_TICKS(1));
                 }
                 break;
             }
@@ -485,12 +487,13 @@ void TaskMaster(void *pvParameters)
                     state.current_action == IDLE;
                 }
 
-                float final_angle = 75.0;
+                float final_angle = 65.0;
                 int final_delay = DELAY_FINISH_PIROUETTE;
                 bool counter_return = state.last_side_station < 0;
 
                 if (state.orientation * state.y_direction == 1) {
-                    final_angle *= 0.8;
+                    final_angle *= 0.82;
+
                 }
                 
                 // if desired side station is negative we want to return to the counter we just came from

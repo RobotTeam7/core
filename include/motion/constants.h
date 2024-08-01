@@ -11,8 +11,8 @@
 #define MOTOR_SPEED_DOCKING                         6000    // Base speed for when we are trying to dock
 #define MOTOR_SPEED_TRANSLATION                     15000   // Base speed for when we are trying to dock
 #define MOTOR_SPEED_BREAKING                        12000   // Break speed of the motors
-#define MOTOR_SPEED_WALL_SLAMMING                   20000    // Base motor sped whilst wall slamming
-#define MOTOR_SPEED_WALL_SLAMMING_CRAWL             6000    // Base motor sped whilst approaching desired station and wall slamming
+#define MOTOR_SPEED_WALL_SLAMMING                   18000    // Base motor sped whilst wall slamming
+#define MOTOR_SPEED_WALL_SLAMMING_CRAWL             7800    // Base motor sped whilst approaching desired station and wall slamming
 #define MOTOR_SPEED_PIROUETTE_ROTATION              13500    // Motor speed for the rotation moment vector component of a pirouette
 #define MOTOR_SPEED_PIROUETTE_TRANSLATION           13000   // Base speed for when we are trying to dock
 
@@ -40,8 +40,9 @@
 
 // Sensor Thresholds
 
-#define THRESHOLD_SENSOR_SINGLE     1000    //defines the minimum  reflectance sensor reading to determine a sensor is seeing tape
-#define DEBOUNCE_TAPE_THRESHOLD     10      // Consecutive polls in which we need to see tape to affirm that we are on a station
+#define THRESHOLD_SENSOR_SINGLE                     1500    //defines the minimum  reflectance sensor reading to determine a sensor is seeing tape
+#define TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD    2500
+#define DEBOUNCE_TAPE_THRESHOLD                     10      // Consecutive polls in which we need to see tape to affirm that we are on a station
  
 // Pin Definitions
 #define MOTOR_BACK_RIGHT_FORWARD    25
