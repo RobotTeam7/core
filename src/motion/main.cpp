@@ -32,12 +32,7 @@ RobotMotor_t* motor_back_right;
 
 TapeSensor_t* frontTapeSensor;
 TapeSensor_t* backTapeSensor;
-TapeSensor_t* wingSensor;
-
-LimitSwitch_t* limit_switch_front_left;
-LimitSwitch_t* limit_switch_back_left;
-LimitSwitch_t* limit_switch_front_right;
-LimitSwitch_t* limit_switch_back_right;
+TapeSensor_t* middleSensor;
 
 RobotMotorData_t robotMotors;
 NavigationData_t config_following;
@@ -149,58 +144,6 @@ void uart_msg_handler(void *parameter) {
     }
 }
 
-void TaskSwitch1(void* pvParameters) {
-    while (1) {
-        uint32_t ulNotificationValue;
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
-        Serial.println("Switch 1!!");
-    }
-}
-
-void IRAM_ATTR docking_isr() {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    Serial.println("ISR!");
-
-    vTaskNotifyGiveFromISR(xDockingHandle, &xHigherPriorityTaskWoken);
-
-    // Request a context switch if giving the notification unblocked a higher priority task
-    if (xHigherPriorityTaskWoken == pdTRUE) {
-        portYIELD_FROM_ISR();
-    }
-} 
-
-TaskHandle_t switch_handle_1 = NULL;
-
-void TaskSwitch2(void* pvParameters) {
-    while (1) {
-        uint32_t ulNotificationValue;
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
-        Serial.println("Switch 2!!");
-    }
-}
-
-TaskHandle_t switch_handle_2 = NULL;
-
-void TaskSwitch3(void* pvParameters) {
-    while (1) {
-        uint32_t ulNotificationValue;
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
-        Serial.println("Switch 3!!");
-    }
-}
-
-TaskHandle_t switch_handle_3 = NULL;
-
-void TaskSwitch4(void* pvParameters) {
-    while (1) {
-        uint32_t ulNotificationValue;
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY);
-        Serial.println("Switch 4!!");
-    }
-}
-
-TaskHandle_t switch_handle_4 = NULL;
-
 
 void setup() {
     Serial.begin(115200);
@@ -251,20 +194,6 @@ void setup() {
         log_error("Master task was not created successfully!");
     }
 
-    // xTaskCreate(TaskSwitch1, "switxh1", 2048, NULL, 1, &switch_handle_1);
-    // xTaskCreate(TaskSwitch2, "swithc2", 2048, NULL, 1, &switch_handle_2);
-    // xTaskCreate(TaskSwitch3, "switch3", 2048, NULL, 1, &switch_handle_3);
-    // xTaskCreate(TaskSwitch4, "swithc34", 2048, NULL, 1, &switch_handle_4);
-
-    // LimitSwitch_t* test_switch_1 = instantiate_limit_switch(SWITCH_COUNTER_1, &switch_handle_1);
-    // LimitSwitch_t* test_switch_2 = instantiate_limit_switch(SWITCH_COUNTER_2, &switch_handle_2);
-    // LimitSwitch_t* test_switch_3 = instantiate_limit_switch(SWITCH_COUNTER_3, &switch_handle_3);
-    // LimitSwitch_t* test_switch_4 = instantiate_limit_switch(SWITCH_COUNTER_4, &switch_handle_4);
-
-    limit_switch_front_left = instantiate_limit_switch(SWITCH_COUNTER_3, docking_isr); 
-    limit_switch_back_left = instantiate_limit_switch(SWITCH_COUNTER_4, docking_isr);
-    limit_switch_front_right = instantiate_limit_switch(SWITCH_COUNTER_1, docking_isr); 
-    limit_switch_back_right = instantiate_limit_switch(SWITCH_COUNTER_2, docking_isr);
 }
 
 void loop()
@@ -647,7 +576,7 @@ void begin_following() {
 
 void begin_station_tracking() {
     // check if station tracking task was created
-    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, wingSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
+    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, middleSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
         log_status("Station tracking task was created successfully.");
     } else {
         log_error("Station tracking task was not created successfully!");

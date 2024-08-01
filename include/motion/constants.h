@@ -55,6 +55,7 @@
 #define FRONT_TAPE_SENSOR_RIGHT     34
 #define BACK_TAPE_SENSOR_LEFT       37
 // #define BACK_TAPE_SENSOR_RIGHT      35
+#define MIDDLE_TAPE_SENSOR          35 // or 38
 
 #define LEFT_WING_TAPE_SENSOR       32 
 #define RIGHT_WING_TAPE_SENSOR      33 

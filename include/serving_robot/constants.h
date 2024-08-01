@@ -3,7 +3,7 @@
 
 // Pin Definitions
 #define SERVO_VERTICAL_PIN              4
-#define SERVO_VERTICAL_UP               0.028
+#define SERVO_VERTICAL_UP               0.0375
 #define SERVO_VERTICAL_DOWN             0.1
 
 #define RACK_FORWARD_PIN                7
@@ -13,8 +13,8 @@
 #define CLAW_ACTUATE_PIN_2              33
 
 #define SERVO_CLAW_PIN                  13
-#define SERVO_CLAW_OPEN                 0.07
-#define SERVO_CLAW_CLOSED               0.05
+#define SERVO_CLAW_OPEN                 0.0475
+#define SERVO_CLAW_CLOSED               0.025
 
 #define SERVO_DRAW_BRIDGE_PIN           22
 #define SERVO_DRAW_BRIDGE_DOWN          0.06
