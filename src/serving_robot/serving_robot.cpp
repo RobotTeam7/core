@@ -100,6 +100,21 @@ static inline void grab_with_claw(int claw_percentage) {
     set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
 }
 
+// assumes plating servo is open initially
+static inline void grab_plate() {
+    log_status("draw bridge down");
+    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
+    vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+    
+    log_status("plate servo close");
+    set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_CLOSED);
+    vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+}
+
+static inline void open_claw() {
+    
+}
+
 static inline void wait_for_motion() {
     while (MOTION_BUSY) {
         vTaskDelay(pdMS_TO_TICKS(10));
