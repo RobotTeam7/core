@@ -212,6 +212,8 @@ void TaskMaster(void* pvParameters) {
 
         grab_plate();
 
+        send_uart_message(CommandMessage_t::SET_MULTIPLIER, 35);
+
         // SERVING  _______________
         set_servo_position_percentage(draw_bridge_servo, 15);
         send_command(FOLLOW_WALL_TO, 3);
