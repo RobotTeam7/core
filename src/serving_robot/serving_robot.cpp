@@ -3,6 +3,7 @@
 #include "freertos/task.h"
 
 #include <serving_robot/constants.h>
+#include <serving_robot/rack_and_pinion.h>
 
 #include <common/resource_manager.h>
 #include <common/servo_motor.h>
@@ -206,9 +207,15 @@ void TaskMaster(void* pvParameters) {
         // GRAB PLATE _______________
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
+
+        actuate_claw_forwards();
+
         grab_plate();
 
         // SERVING  _______________
+        set_servo_position_percentage(draw_bridge_servo, 15);
+        send_command(FOLLOW_WALL_TO, 3);
+        wait_for_motion();
         send_command(DO_PIROUETTE, 1);
         wait_for_motion();
         send_command(FOLLOW_WALL_TO, 2);
@@ -216,6 +223,7 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 1);
         vTaskDelay(pdMS_TO_TICKS(1050));
         send_command(ABORT, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
         set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
         vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
         set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_UP);
@@ -233,6 +241,8 @@ void setup() {
     Serial.begin(115200); // Initialize serial monitor
 
     init_pwm();
+
+    init_rack_and_pinion(RACK_FORWARD_PIN, RACK_REVERSE_PIN, -1, SWITCH_RACK_PLATESIDE, SWITCH_RACK_CLAWSIDE);
 
     Serial.println("servos initialized!");
 

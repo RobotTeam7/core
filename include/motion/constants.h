@@ -91,7 +91,7 @@
 #define EFFICIENCY_BACK_RIGHT       1
 #define EFFICIENCY_BACK_LEFT        1
 
-#define YAW_WALL_SLAMMING           1000 // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
+#define YAW_WALL_SLAMMING           1500 // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
 
 
 #endif // MOTION_CONSTANTS_H
