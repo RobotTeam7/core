@@ -7,6 +7,11 @@
 #include <common/pwm.h>
 #include <common/utils.h>
 
+
+#define DRIVE_MOTOR_PWM_FREQUENCY   (50)
+#define FORWARD_DRIVE               (1)
+#define REVERSE_DRIVE               (-1)
+
 /**
  * @brief This struct encapsulates the data of a robot's motor.
  * 
@@ -22,17 +27,16 @@ typedef struct {
 /**
  * @brief Instantiate a motor, binding `forwardPin` and `reversePin` to it. The pins will be configured as necessary.
  */
-RobotMotor_t* instantiate_robot_motor(uint8_t forwardPin, uint8_t reversePin, ledc_timer_t timer);
+RobotMotor_t* instantiate_robot_motor(uint8_t forward_pin, uint8_t reverse_pin, ledc_timer_t timer);
 
 /**
  * @brief Set the drive state of this motor.
  * 
- * @param driveValue Drive power, where 0 is stopped and 65535 is full power
- * @param newState Direction of the motor, either `forward`, `reverse`, or `none`.
+ * @param drive_value Drive power, where 0 is stopped and 65535 is full power. Negative value indicates reverse direction.
  * 
  * @returns Heap-allocated (created with `malloc()`) pointer. Remember to free!
  */
-void motor_set_drive(RobotMotor_t* robotMotor, int16_t driveValue);
+void motor_set_drive(RobotMotor_t* robot_motor, int16_t drive_value);
 
 /**
  * @brief Stop the motor.

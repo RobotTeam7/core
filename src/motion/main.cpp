@@ -138,6 +138,22 @@ void uart_msg_handler(void *parameter) {
                         state.last_side_station = new_packet.value;
                         send_uart_message(ACCEPTED, 0, false);
                         break;
+
+                    case SET_MULTIPLIER:
+                    {
+                        float new_multipler = (float)new_packet.value;
+                        state.speed_modifier = new_multipler;
+                        send_uart_message(ACCEPTED, 0, false);
+                        break;
+                    }
+
+                    case STARTUP_SERVER:
+                    {
+                        state.current_action = ActionType_t::STARTUP;
+                        send_uart_message(ACCEPTED, 0, false);
+                        break;
+                    }
+
                     case 0x40 ... 0x4f:
                         log_status("Received acknowledgement!");
                         break;
@@ -598,6 +614,7 @@ void TaskMaster(void *pvParameters)
                 state.current_action = IDLE;
                 state.last_side_station = 2;
                 send_uart_message(COMPLETED);
+                break;
             }
     }
 }

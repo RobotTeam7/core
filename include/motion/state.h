@@ -27,6 +27,7 @@ typedef struct {
     int16_t drive_speed;               // base speed in which motors should be engaged
     DriveState_t drive_state;
     ActionType_t current_action;
+    float speed_modifier;               // multiplier to ALL drive speeds (should be a percentage, 0.0-1.0)
 } State_t;
 
 extern State_t state;
