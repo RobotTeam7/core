@@ -156,7 +156,7 @@ void TaskMaster(void* pvParameters) {
 
         // TOMATO _________________
         log_status("getting tomato");
-        send_command(FOLLOW_WALL_TO, 1);
+        send_command(FOLLOW_WALL_TO, 3);
         wait_for_motion();
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 

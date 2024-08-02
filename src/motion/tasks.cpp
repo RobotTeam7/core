@@ -413,23 +413,30 @@ void TaskHoming(void* pvParameters) {
     state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
     
     // delay is initially high since we are initially fast, but lowers after the first detection
-    int delay_ms = 600;
+    int delay_ms = 1000;
 
     while(1) {
         read_tape_sensor(sensor);
+        Serial.println(String(sensor->value));
 
         if(sensor->value >= TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD) {
+            Serial.println("I see tape!" + String(sensor->value));
+
             state.drive_state = STOP;
             vTaskDelay(pdMS_TO_TICKS(delay_ms));
 
             read_tape_sensor(sensor);
             if(sensor->value >= TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD) {
+                while(1) {
+                    log_status("IM ON TAPE WOOP WOOP");
+                    vTaskDelay(1000);
+                }
                 xTaskNotifyGive(*returnToTapeData->masterHandle);
                 log_status("finished homing!");
                 vTaskDelete(NULL);
                 xHomingHandle = NULL;
             }else {
-                delay_ms = 300;
+                delay_ms = 500;
                 // we must have passed the tape, so we look for it in the opposite direction
                 state.direction = -state.direction;
                 // not too sure if we should just set yaw to zero for this function
@@ -437,8 +444,8 @@ void TaskHoming(void* pvParameters) {
                 state.drive_state = DRIVE;
 
                 // for each oscillation we kill speed slightly
-                if (state.drive_speed > 1000) {
-                    state.drive_speed -= 1000;
+                if (state.drive_speed > 7000) {
+                    state.drive_speed -= 100;
                 }
             }
         }
