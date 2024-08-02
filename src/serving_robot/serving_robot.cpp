@@ -148,9 +148,16 @@ void TaskMaster(void* pvParameters) {
 
         vTaskDelay(pdMS_TO_TICKS(3000));
 
+        // GET TO COUNTER ________
         log_status("dock on side");
         send_command(COUNTER_DOCK, 1);
         wait_for_motion();
+        send_command(FOLLOW_WALL_TO, 2);
+        vTaskDelay(pdMS_TO_TICKS(200));
+        send_command(ABORT, 0);
+        send_command(FOLLOW_WALL_TO, 1);
+        wait_for_motion();
+
 
         // TOMATO _________________
         log_status("getting tomato");

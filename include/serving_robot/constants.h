@@ -28,7 +28,7 @@
 #define SERVO_DRAW_BRIDGE_UP            0.10
 
 #define SERVO_PLATE_PIN                 19
-#define SERVO_PLATE_OPEN                0.055
+#define SERVO_PLATE_OPEN                0.065
 #define SERVO_PLATE_CLOSED              0.032
 
 #define SWITCH_RACK_CLAWSIDE            9

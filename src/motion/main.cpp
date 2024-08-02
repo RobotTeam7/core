@@ -580,7 +580,25 @@ void TaskMaster(void *pvParameters)
 
                 break;
             }
-        }
+            case ActionType_t::STARTUP:
+            {
+                // THIS ENTIRE PROCEDURE IS HARD CODED FOR MIDNIGHT RAMBLER
+                state.y_direction = 1;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_state = TRANSLATE;
+                vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_TO_WALL));
+
+                state.drive_state = DRIVE;
+                state.direction = -1;
+                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
+                vTaskDelay(pdMS_TO_TICKS(200));
+
+                state.drive_speed = 0;
+                state.drive_state = STOP; 
+                state.current_action = IDLE;
+                state.last_side_station = 2;
+                send_uart_message(COMPLETED);
+            }
     }
 }
 
