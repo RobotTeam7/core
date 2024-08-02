@@ -465,9 +465,11 @@ void TaskMaster(void *pvParameters)
 
                         // slight break to drop speed quickly
                         state.direction = -state.direction;
+                        state.yaw = -state.yaw;
                         state.drive_speed = 13000;
                         vTaskDelay(pdMS_TO_TICKS(400));
                         state.direction = -state.direction;
+                        state.yaw = -state.yaw;
 
                         // wait till midlle sensor sees tape
                         state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
@@ -478,9 +480,11 @@ void TaskMaster(void *pvParameters)
                         }
 
                         state.direction = -state.direction;
+                        state.yaw = -state.yaw;
                         state.drive_speed = 12000;
                         vTaskDelay(pdMS_TO_TICKS(80));
                         state.direction = -state.direction;
+                        state.yaw = -state.yaw;
 
 
                         // update last_station based on side station

@@ -12,6 +12,10 @@
 #define SERVO_VERTICAL_UP               0.022
 
 
+#define SERVO_CLAW_OPEN                 0.07
+#define SERVO_CLAW_CLOSED               0.094
+
+
 
 
 

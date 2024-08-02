@@ -42,7 +42,7 @@ void IRAM_ATTR forklift_isr() {
 }
 
 void init_rack_and_pinion(uint8_t fowards_pin, uint8_t backwards_pin, int initial_position, uint8_t claw_limit_switch_pin, uint8_t forklift_limit_switch_pin) {
-    rack_and_pinion = instantiate_robot_motor(fowards_pin, backwards_pin, MOTOR_TIMER_0);
+    rack_and_pinion = instantiate_robot_motor(fowards_pin, backwards_pin, MOTOR_TIMER_1);
 
     position = initial_position;
 
