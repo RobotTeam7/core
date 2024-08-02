@@ -148,14 +148,9 @@ void TaskMaster(void* pvParameters) {
 
         vTaskDelay(pdMS_TO_TICKS(3000));
 
-        // GET TO COUNTER ________
+        // STARTUP ________
         log_status("dock on side");
-        send_command(COUNTER_DOCK, 1);
-        wait_for_motion();
-        send_command(FOLLOW_WALL_TO, 2);
-        vTaskDelay(pdMS_TO_TICKS(200));
-        send_command(ABORT, 0);
-        send_command(FOLLOW_WALL_TO, 1);
+        send_command(STARTUP_SERVER, 0);
         wait_for_motion();
 
 
@@ -219,7 +214,7 @@ void TaskMaster(void* pvParameters) {
 
         grab_plate();
 
-        send_uart_message(CommandMessage_t::SET_MULTIPLIER, 35);
+        send_uart_message(CommandMessage_t::SET_MULTIPLIER, 70);
 
         // SERVING  _______________
         set_servo_position_percentage(draw_bridge_servo, 15);

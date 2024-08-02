@@ -141,7 +141,7 @@ void uart_msg_handler(void *parameter) {
 
                     case SET_MULTIPLIER:
                     {
-                        float new_multipler = (float)new_packet.value;
+                        float new_multipler = (float)new_packet.value / 100.0;
                         state.speed_modifier = new_multipler;
                         send_uart_message(ACCEPTED, 0, false);
                         break;
@@ -604,10 +604,10 @@ void TaskMaster(void *pvParameters)
                 state.drive_state = TRANSLATE;
                 vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_TO_WALL));
 
+                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
                 state.drive_state = DRIVE;
                 state.direction = -1;
-                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
-                vTaskDelay(pdMS_TO_TICKS(200));
+                vTaskDelay(pdMS_TO_TICKS(1000));
 
                 state.drive_speed = 0;
                 state.drive_state = STOP; 
@@ -616,6 +616,7 @@ void TaskMaster(void *pvParameters)
                 send_uart_message(COMPLETED);
                 break;
             }
+        }
     }
 }
 
