@@ -111,8 +111,13 @@ static inline void grab_plate() {
     vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
 }
 
-static inline void open_claw() {
-    
+static inline void open_claw(ServoPositionsPercentage_t percentage) {
+    log_status("open claw");
+    set_servo_position_percentage(vertical_servo, percentage);
+    vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+    set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
+    vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
 }
 
 static inline void wait_for_motion() {
@@ -125,14 +130,6 @@ static inline void wait_for_motion() {
 static inline void send_command(CommandMessage_t command, int8_t value) {
     send_uart_message(command, value);
     MOTION_BUSY = true;
-}
-
-static inline void grab_plate() {
-    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
-    vTaskDelay(SERVO_ACTUATION_DELAY);
-
-    set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_CLOSED);
-    vTaskDelay(SERVO_ACTUATION_DELAY);
 }
 
 void TaskMaster(void* pvParameters) {
@@ -154,63 +151,33 @@ void TaskMaster(void* pvParameters) {
         send_command(COUNTER_DOCK, 1);
         wait_for_motion();
 
-        log_status("wall slam to 2");
-        send_command(FOLLOW_WALL_TO, 2);
-        wait_for_motion();
-
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
-
-        log_status("wall slam to 4");
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-
-        log_status("claw servo closed");
-        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
-        vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
-
-        log_status("wall slam to 3");
-        send_command(FOLLOW_WALL_TO, 3);
-        wait_for_motion();
-
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
-
-        log_status("wall slam to 4");
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-
-        set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
-        vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
-
-        log_status("wall slam to 3");
-        send_command(FOLLOW_WALL_TO, 3);
-        wait_for_motion();
-
-        log_status("pirouette");
-        send_command(DO_PIROUETTE, 1);
-        wait_for_motion();
-
-        log_status("wall slam to 2");
-        send_command(FOLLOW_WALL_TO, 2);
-        wait_for_motion();
-        
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
-
+        // TOMATO _________________
+        log_status("getting tomato");
         send_command(FOLLOW_WALL_TO, 1);
-        vTaskDelay(pdMS_TO_TICKS(1050));
+        wait_for_motion();
+
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+
+        // PIROUETTE _________________
+        send_command(FOLLOW_WALL_TO, 4);
+        vTaskDelay(pdMS_TO_TICKS(750));
         send_command(CommandMessage_t::ABORT, 0);
         vTaskDelay(pdMS_TO_TICKS(500));
+        send_command(DO_PIROUETTE, 2);
+        wait_for_motion();
 
-        // log_status("pirouette");
-        // send_command(DO_PIROUETTE, 2);
-        // wait_for_motion();
+        // CHEESE _________________
+        send_command(FOLLOW_WALL_TO, 1);
+        wait_for_motion();
+        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
 
-        // log_status("wall slam to 4");
-        // send_command(FOLLOW_WALL_TO, 4);
-        // wait_for_motion();
 
-        // log_status("claw servo open");
-        // set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
-        // vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+        // LETTUCE _________________
+        send_command(FOLLOW_WALL_TO, 2);
+        wait_for_motion();
+        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
 
         Serial.println("Done!");
         while (1) {

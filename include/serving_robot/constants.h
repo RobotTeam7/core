@@ -13,7 +13,7 @@
 #define CLAW_ACTUATE_PIN_2              33
 
 #define SERVO_CLAW_PIN                  13
-#define SERVO_CLAW_OPEN                 0.063
+#define SERVO_CLAW_OPEN                 0.0635
 #define SERVO_CLAW_CLOSED               0.05
 
 // BUNS 0.0535
@@ -36,9 +36,9 @@
 
 typedef enum {
     VERTICAL_UP = 0,
-    VERTICAL_HEIGHT_3 = 25, // 3 = second highest position
-    VERTICAL_HEIGHT_2 = 50, // 2 = halfway
-    VERTICAL_HEIGHT_1 = 75, // 1 = second lowest position
+    VERTICAL_HEIGHT_3 = 10, // 3 = second highest position
+    VERTICAL_HEIGHT_2 = 35, // 2 = halfway
+    VERTICAL_HEIGHT_1 = 60, // 1 = second lowest position
     VERTICAL_DOWN = 100,
 
     CLAW_CLOSED_FULL = 0,
