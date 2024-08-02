@@ -21,6 +21,7 @@ TaskHandle_t xDockingHandle = NULL;
 TaskHandle_t xCounterDockingHandle = NULL;
 TaskHandle_t xReturnToTapeHandle = NULL;
 TaskHandle_t xFollowWallHandle = NULL;
+TaskHandle_t xHomingHandle = NULL;
 
 // Ensure that a RobotMotorData_t* does not contain null values
 int checkRobotMotors(RobotMotorData_t* robotMotors) {
@@ -395,4 +396,44 @@ void TaskFollowWall(void* pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_POLL));
     }
     Serial.println("Exited loop!");
+}
+
+void TaskHoming(void* pvParameters) {
+    ReturnToTapeData_t* returnToTapeData = (ReturnToTapeData_t*)pvParameters;
+
+    if(checkTapeSensor(returnToTapeData->middleTapeSensor)) {
+        log_error("middle tape sensor is null");
+        vTaskDelete(xHomingHandle);
+        xHomingHandle = NULL;
+        return;
+    }
+    
+    TapeSensor_t* sensor = returnToTapeData->middleTapeSensor;
+
+    state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
+    
+    while(1) {
+        read_tape_sensor(sensor);
+
+        if(sensor->value >= TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD) {
+            state.drive_state = STOP;
+            vTaskDelay(400);
+
+            read_tape_sensor(sensor);
+            if(sensor->value >= TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD) {
+                xTaskNotifyGive(*returnToTapeData->masterHandle);
+                log_status("finished homing!");
+                vTaskDelete(NULL);
+                xHomingHandle = NULL;
+            }else {
+                state.direction = -state.direction;
+                state.drive_state = DRIVE;
+                if (state.drive_speed > 1000) {
+                    state.drive_speed -= 1000;
+                }
+            }
+        }
+    }
+
+
 }
