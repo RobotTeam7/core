@@ -417,7 +417,7 @@ void TaskHoming(void* pvParameters) {
 
         if(sensor->value >= TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD) {
             state.drive_state = STOP;
-            vTaskDelay(400);
+            vTaskDelay(pdMS_TO_TICKS(500));
 
             read_tape_sensor(sensor);
             if(sensor->value >= TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD) {
@@ -426,13 +426,19 @@ void TaskHoming(void* pvParameters) {
                 vTaskDelete(NULL);
                 xHomingHandle = NULL;
             }else {
+                // we must have passed the tape, so we look for it in the opposite direction
                 state.direction = -state.direction;
+                // not too sure if we should just set yaw to zero for this function
+                state.yaw = -state.yaw;
                 state.drive_state = DRIVE;
+
+                // for each oscillation we kill speed slightly
                 if (state.drive_speed > 1000) {
                     state.drive_speed -= 1000;
                 }
             }
         }
+        vTaskDelay(pdMS_TO_TICKS(DELAY_HOMING_POLL));
     }
 
 

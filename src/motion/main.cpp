@@ -37,6 +37,7 @@ NavigationData_t config_following;
 DockingData_t config_docking;
 ReturnToTapeData_t return_data;
 FullSensorData_t wall_data;
+ReturnToTapeData_t homing_data;
 
 QueueHandle_t xSharedQueue = xQueueCreate(10, sizeof(StatusMessage_t));
 QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
@@ -51,6 +52,7 @@ void begin_docking();
 void begin_counter_docking();
 void begin_return_to_tape();
 void begin_wall_slamming();
+void begin_homing();
 
 void uart_msg_handler(void *parameter) {
     log_status("Started message handler");
@@ -198,6 +200,7 @@ void setup() {
     config_docking = { &xSharedQueue };
     return_data = {middleTapeSensor, &xMasterHandle };
     wall_data = { frontTapeSensor, backTapeSensor };
+    homing_data = {middleTapeSensor, &xMasterHandle };
 
     // // check if driving task was created
     if (xTaskCreate(TaskDrive, "DrivingTask", 2048, &robotMotors, PRIORITY_DRIVE_UPDATE, &xDriveHandle) == pdPASS) {
@@ -471,7 +474,7 @@ void TaskMaster(void *pvParameters)
 
                         log_status("approaching tape, lowering motor speed");
 
-                        // slight break to drop speed quickly
+                        // break to drop speed quickly
                         state.direction = -state.direction;
                         state.yaw = -state.yaw;
                         state.drive_speed = 13000;
@@ -479,20 +482,9 @@ void TaskMaster(void *pvParameters)
                         state.direction = -state.direction;
                         state.yaw = -state.yaw;
 
-                        // wait till midlle sensor sees tape
-                        state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
-                        read_tape_sensor(middleTapeSensor);
-                        while(middleTapeSensor->value < TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD) {
-                            vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_STOP_POLL));
-                            read_tape_sensor(middleTapeSensor);
-                        }
-
-                        state.direction = -state.direction;
-                        state.yaw = -state.yaw;
-                        state.drive_speed = 12000;
-                        vTaskDelay(pdMS_TO_TICKS(80));
-                        state.direction = -state.direction;
-                        state.yaw = -state.yaw;
+                        begin_homing();
+                        uint32_t ulNotificationValue;
+                        xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task
 
 
                         // update last_station based on side station
@@ -505,7 +497,7 @@ void TaskMaster(void *pvParameters)
                         state.current_action = IDLE;
                         send_uart_message(COMPLETED);
                     }
-                    vTaskDelay(pdMS_TO_TICKS(1));
+                    vTaskDelay(pdMS_TO_TICKS(3));
                 }
                 break;
             }
@@ -535,7 +527,6 @@ void TaskMaster(void *pvParameters)
                     final_angle *= 1.1;
                     final_delay = int(final_delay * 1.25);
                 }
-
 
                 log_status("doing pirouette!!");
 
@@ -680,5 +671,13 @@ void begin_wall_slamming() {
         log_status("Wall Follow task was created successfully.");
     } else {
         log_error("Wall Follow task was not created successfully!");
+    }
+}
+
+void begin_homing() {
+    if(xTaskCreate(TaskFollowWall, "Follow_Wall", 2048, &homing_data, PRIORITY_FOLLOW_WALL, &xHomingHandle) == pdPASS) {
+        log_status("Homing task was created successfully.");
+    } else {
+        log_error("Homing task was not created successfully!");
     }
 }

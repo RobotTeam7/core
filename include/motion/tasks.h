@@ -50,7 +50,7 @@ void TaskCounterDocking(void* pvParameters);
 void TaskReturnToTape(void* pvParameters);
 void TaskCounterDocking(void* pvParameters);
 void TaskFollowWall(void* pvParameters);
-void TaskHoming(void* pvParameters)
+void TaskHoming(void* pvParameters);
 
 
 #endif // MOTION_TASKS_H
