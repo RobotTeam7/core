@@ -1,9 +1,9 @@
 #include <motion/state.h>
 
 State_t state = {
-    .orientation = 1,
+    .orientation = -1,
     .last_station = 0,
-    .last_side_station = 4,
+    .last_side_station = 0,
     .pirouette_angle = 0,
     
     .desired_station = 0,

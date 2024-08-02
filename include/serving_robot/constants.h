@@ -13,7 +13,7 @@
 #define CLAW_ACTUATE_PIN_2              33
 
 #define SERVO_CLAW_PIN                  13
-#define SERVO_CLAW_OPEN                 0.064
+#define SERVO_CLAW_OPEN                 0.075
 #define SERVO_CLAW_CLOSED               0.05
 
 // BUNS 0.0535
@@ -43,11 +43,11 @@ typedef enum {
 
     CLAW_CLOSED_FULL = 0,
     CLAW_OPEN = 100,
-    CLAW_CLOSED_BUN = 32,
+    CLAW_CLOSED_BUN = 27,
     CLAW_CLOSED_LETTUCE = 0,
-    CLAW_CLOSED_TOMATO = 18,
-    CLAW_CLOSED_CHEESE = 27,
-    CLAW_CLOSED_PATTY = 27,
+    CLAW_CLOSED_TOMATO = 13,
+    CLAW_CLOSED_CHEESE = 22,
+    CLAW_CLOSED_PATTY = 22,
 
     PLATE_CLOSED = 0,
     PLATE_OPEN = 100,
