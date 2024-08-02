@@ -412,12 +412,15 @@ void TaskHoming(void* pvParameters) {
 
     state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
     
+    // delay is initially high since we are initially fast, but lowers after the first detection
+    int delay_ms = 600;
+
     while(1) {
         read_tape_sensor(sensor);
 
         if(sensor->value >= TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD) {
             state.drive_state = STOP;
-            vTaskDelay(pdMS_TO_TICKS(500));
+            vTaskDelay(pdMS_TO_TICKS(delay_ms));
 
             read_tape_sensor(sensor);
             if(sensor->value >= TAPE_SENSOR_AFFIRMATIVE_MIDDLE_THRESHOLD) {
@@ -426,6 +429,7 @@ void TaskHoming(void* pvParameters) {
                 vTaskDelete(NULL);
                 xHomingHandle = NULL;
             }else {
+                delay_ms = 400;
                 // we must have passed the tape, so we look for it in the opposite direction
                 state.direction = -state.direction;
                 // not too sure if we should just set yaw to zero for this function
