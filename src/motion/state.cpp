@@ -15,4 +15,5 @@ State_t state = {
     .drive_speed = 0,
     .drive_state = STOP,
     .current_action = IDLE,
+    .speed_modifier = 100,
 };

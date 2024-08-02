@@ -10,26 +10,25 @@ void stop_all_motors(RobotMotorData_t* robot_motors) {
 }
 
 void set_robot_drive(RobotMotorData_t* robot_motors, int16_t drive_value) {
-    motor_set_drive(robot_motors->motorFL, drive_value - state.yaw);
-    motor_set_drive(robot_motors->motorBL, drive_value - state.yaw);
-    motor_set_drive(robot_motors->motorFR, drive_value + state.yaw);
-    motor_set_drive(robot_motors->motorBR, drive_value + state.yaw);
+    motor_set_drive(robot_motors->motorFL, (int16_t)((drive_value - state.yaw) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorBL, (int16_t)((drive_value - state.yaw) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorFR, (int16_t)((drive_value + state.yaw) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorBR, (int16_t)((drive_value + state.yaw) * state.speed_modifier));
 }
 
 void rotate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
-    motor_set_drive(robot_motors->motorFR, -drive_value);
-    motor_set_drive(robot_motors->motorBR, -drive_value);
-    motor_set_drive(robot_motors->motorFL, drive_value);
-    motor_set_drive(robot_motors->motorBL, drive_value);
-   
+    motor_set_drive(robot_motors->motorFR, (int16_t)((-drive_value) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorBR, (int16_t)((-drive_value) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorFL, (int16_t)( (drive_value) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorBL, (int16_t)( (drive_value) * state.speed_modifier));
 }
 
 // positive drive value translates robot toward it's right side
 void translate_robot(RobotMotorData_t* robot_motors, int16_t drive_value) {
-    motor_set_drive(robot_motors->motorFL, -drive_value);
-    motor_set_drive(robot_motors->motorFR, drive_value );
-    motor_set_drive(robot_motors->motorBL, drive_value);
-    motor_set_drive(robot_motors->motorBR, -drive_value);
+    motor_set_drive(robot_motors->motorFL, (int16_t)((-drive_value) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorFR, (int16_t)( (drive_value) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorBL, (int16_t)( (drive_value) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorBR, (int16_t)((-drive_value) * state.speed_modifier));
 }
 
 void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate, int16_t drive_value_translate, int degrees) {
@@ -47,8 +46,8 @@ void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate,
     float motorBR_speed_translation = vy - vx;
 
     // Combine rotation and translation
-    motor_set_drive(robot_motors->motorFR, motorFR_speed_translation - drive_value_rotate);
-    motor_set_drive(robot_motors->motorBR, motorBR_speed_translation - drive_value_rotate);
-    motor_set_drive(robot_motors->motorFL, motorFL_speed_translation + drive_value_rotate);
-    motor_set_drive(robot_motors->motorBL, motorBL_speed_translation + drive_value_rotate);
+    motor_set_drive(robot_motors->motorFR, (int16_t)((motorFR_speed_translation - drive_value_rotate) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorBR, (int16_t)((motorBR_speed_translation - drive_value_rotate) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorFL, (int16_t)((motorFL_speed_translation + drive_value_rotate) * state.speed_modifier));
+    motor_set_drive(robot_motors->motorBL, (int16_t)((motorBL_speed_translation + drive_value_rotate) * state.speed_modifier));
 }
