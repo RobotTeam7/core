@@ -133,6 +133,30 @@ static inline void send_command(CommandMessage_t command, int8_t value) {
     MOTION_BUSY = true;
 }
 
+static inline void serve_food() {
+
+
+    
+    send_command(FOLLOW_WALL_TO, 3);
+    wait_for_motion();
+    
+    send_uart_message(CommandMessage_t::SET_MULTIPLIER, 70);
+    vTaskDelay(pdMS_TO_TICKS(200));
+    
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+
+    send_command(FOLLOW_WALL_TO, 1);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    send_command(ABORT, 0);
+
+    set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
+    vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_UP);
+
+}
+
+
 void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
@@ -146,98 +170,107 @@ void TaskMaster(void* pvParameters) {
         // delay for uart to work
         vTaskDelay(pdMS_TO_TICKS(500));
 
-        vTaskDelay(pdMS_TO_TICKS(3000));
-
-        // STARTUP ________
-        log_status("dock on side");
-        send_command(STARTUP_SERVER, 0);
-        wait_for_motion();
+              
+        serve_food();
+        
 
 
-        // TOMATO _________________
-        log_status("getting tomato");
-        send_command(FOLLOW_WALL_TO, 1);
-        wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
-
-        // PIROUETTE _________________
-        send_command(FOLLOW_WALL_TO, 4);
-        vTaskDelay(pdMS_TO_TICKS(500));
-        send_command(CommandMessage_t::ABORT, 0);
-        vTaskDelay(pdMS_TO_TICKS(500));
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
-
-        // CHEESE _________________
-        send_command(FOLLOW_WALL_TO, 1);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+        // // STARTUP ________
+        // log_status("dock on side");
+        // send_command(STARTUP_SERVER, 0);
+        // wait_for_motion();
 
 
-        // LETTUCE _________________
-        send_command(FOLLOW_WALL_TO, 2);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+        // // TOMATO _________________
+        // log_status("getting tomato");
+        // send_command(FOLLOW_WALL_TO, 1);
+        // wait_for_motion();
+        // grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
-        // PIROUETTE _________________
-        send_command(FOLLOW_WALL_TO, 1);
-        vTaskDelay(pdMS_TO_TICKS(750));
-        send_command(CommandMessage_t::ABORT, 0);
-        vTaskDelay(pdMS_TO_TICKS(500));
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
-
-        // PATTY _________________
-        send_command(FOLLOW_WALL_TO, 3);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
-
-        // DROP ON PLATE _________
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
-
-        // SWITCHING _______________
-        send_command(FOLLOW_WALL_TO, 3);
-        wait_for_motion();
-        send_command(DO_PIROUETTE, -2);
-        wait_for_motion();
-
-        // GRAB PLATE _______________
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-
-        actuate_claw_forwards();
-
-        grab_plate();
-
-        send_uart_message(CommandMessage_t::SET_MULTIPLIER, 70);
-
-        // SERVING  _______________
-        set_servo_position_percentage(draw_bridge_servo, 15);
-        send_command(FOLLOW_WALL_TO, 3);
-        wait_for_motion();
-        send_command(DO_PIROUETTE, 1);
-        wait_for_motion();
-        send_command(FOLLOW_WALL_TO, 2);
-        wait_for_motion();
-        send_command(FOLLOW_WALL_TO, 1);
-        vTaskDelay(pdMS_TO_TICKS(1050));
-        send_command(ABORT, 0);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
-        vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
-        set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_UP);
+        // // PIROUETTE _________________
+        // send_command(FOLLOW_WALL_TO, 4);
+        // vTaskDelay(pdMS_TO_TICKS(500));
+        // send_command(CommandMessage_t::ABORT, 0);
+        // vTaskDelay(pdMS_TO_TICKS(1000));
+        // send_command(DO_PIROUETTE, 1);
+        // wait_for_motion();
 
 
 
-        Serial.println("Done!");
+
+        // // LETTUCE _________________
+        // send_command(FOLLOW_WALL_TO, 2);
+        // wait_for_motion();
+        // open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+        // grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+
+        // // CHEESE _________________
+        // send_command(FOLLOW_WALL_TO, 1);
+        // wait_for_motion();
+        // open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
+        // grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+
+        // // PIROUETTE _________________
+        // send_command(FOLLOW_WALL_TO, 2);
+        // vTaskDelay(pdMS_TO_TICKS(1000));
+        // send_command(CommandMessage_t::ABORT, 0);
+        // vTaskDelay(pdMS_TO_TICKS(1000));
+        // send_command(DO_PIROUETTE, 2);
+        // wait_for_motion();
+
+        // // PATTY _________________
+        // send_command(FOLLOW_WALL_TO, 3);
+        // wait_for_motion();
+        // open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
+        // grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+
+        // // DROP ON PLATE _________
+        // send_command(FOLLOW_WALL_TO, 4);
+        // wait_for_motion();
+        // open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
+
+        // // SWITCHING _______________
+        // send_command(FOLLOW_WALL_TO, 3);
+        // wait_for_motion();
+        // send_command(DO_PIROUETTE, -2);
+        // wait_for_motion();
+
+        // // GRAB PLATE _______________
+        // send_command(FOLLOW_WALL_TO, 4);
+        // wait_for_motion();
+
+        // actuate_claw_forwards();
+
+        // grab_plate();
+
+        // send_uart_message(CommandMessage_t::SET_MULTIPLIER, 70);
+
+        // // SERVING  _______________
+        // set_servo_position_percentage(draw_bridge_servo, 15);
+            
+
+        // send_command(FOLLOW_WALL_TO, 3);
+        // wait_for_motion();
+
+
+        // send_command(DO_PIROUETTE, 1);
+        // wait_for_motion();
+        // send_command(FOLLOW_WALL_TO, 2);
+        // wait_for_motion();
+        // send_command(FOLLOW_WALL_TO, 1);
+        // vTaskDelay(pdMS_TO_TICKS(1050));
+        // send_command(ABORT, 0);
+        // vTaskDelay(pdMS_TO_TICKS(1000));
+        // set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
+        // vTaskDelay(pdMS_TO_TICKS(SERVO_ACTUATION_DELAY));
+        // set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_UP);
+        // Serial.println("Done!");
         while (1) {
             vTaskDelay(1000);
         }
+
+
+
     }
 }
 

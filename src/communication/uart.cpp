@@ -215,10 +215,6 @@ void send_uart_message(CommandMessage_t command, uint8_t value, bool memorize) {
     log_message("Sending message over UART!");
 
     if (memorize) {
-        while (last_sent_packet != NULL) {
-            log_status("Stuck waiting!");
-            vTaskDelay(pdMS_TO_TICKS(50));
-        }
         log_status("Memorizing packet!");
 
         Packet_t* new_packet = (Packet_t*)malloc(sizeof(Packet_t));

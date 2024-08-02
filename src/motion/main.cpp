@@ -446,7 +446,8 @@ void TaskMaster(void *pvParameters)
                 // determine direction to go in by looking at sign of station difference and orientation
                 state.direction = sign(station_difference * state.orientation);
 
-                state.yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;
+                int yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;;
+                state.yaw = yaw;
                 Serial.println("YAW: " + String(YAW_WALL_SLAMMING) + " Orientation: " + String(state.orientation) + " Y-Direction: " + String(state.y_direction) + " Direction: " + String(state.direction));
                 // Serial.println("Desired Side Station: " + String(state.desired_side_station) + " Last Side Station: " + String())
                 // Start Driving
@@ -494,7 +495,6 @@ void TaskMaster(void *pvParameters)
                         state.direction = -state.direction;
                         state.yaw = -state.yaw;
 
-
                         // update last_station based on side station
                         state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
                         // state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
@@ -520,7 +520,9 @@ void TaskMaster(void *pvParameters)
 
                 float final_angle = 65.0;
                 int final_delay = DELAY_FINISH_PIROUETTE;
+                int initial_delay = DELAY_START_PIROUETTE;
                 bool counter_return = state.last_side_station < 0;
+                bool slow_pirouette = state.speed_modifier < 0.99;
 
                 if (state.orientation * state.y_direction == 1) {
                     final_angle *= 0.82;
@@ -533,7 +535,13 @@ void TaskMaster(void *pvParameters)
                     state.last_side_station = -state.last_side_station;
 
                     final_angle *= 1.1;
-                    final_delay = int(final_delay * 1.25);
+                    final_delay = int(final_delay * 1.4);
+                }
+
+                if(slow_pirouette) {
+                    final_delay *= 1 / state.speed_modifier;
+                    // initial_delay *= 2 / state.speed_modifier;
+                    final_angle *= 1.33 / state.speed_modifier;
                 }
 
 
@@ -544,12 +552,12 @@ void TaskMaster(void *pvParameters)
 
                 state.drive_state = TRANSLATE;
                 state.drive_speed = MOTOR_SPEED_PIROUETTE_TRANSLATION;
-                vTaskDelay(pdMS_TO_TICKS(DELAY_START_PIROUETTE));
+                vTaskDelay(pdMS_TO_TICKS(initial_delay));
 
                 state.drive_state = DriveState_t::ROTATE_AND_TRANSLATE;
 
                 // angle to 217 for robot 2 pirouette in islation
-                for (double angle = 0.0; angle <= final_angle; angle += 0.40) {
+                for (double angle = 0.0; angle <= final_angle; angle += 0.40 * state.speed_modifier) {
                     state.pirouette_angle = (int)(angle * state.helicity);
                     vTaskDelay(pdMS_TO_TICKS(4));
                 }

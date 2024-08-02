@@ -13,7 +13,7 @@
 #define MOTOR_SPEED_BREAKING                        12000   // Break speed of the motors
 #define MOTOR_SPEED_WALL_SLAMMING                   18000    // Base motor sped whilst wall slamming
 #define MOTOR_SPEED_WALL_SLAMMING_CRAWL             7800    // Base motor sped whilst approaching desired station and wall slamming
-#define MOTOR_SPEED_PIROUETTE_ROTATION              13500    // Motor speed for the rotation moment vector component of a pirouette
+#define MOTOR_SPEED_PIROUETTE_ROTATION              14000    // Motor speed for the rotation moment vector component of a pirouette
 #define MOTOR_SPEED_PIROUETTE_TRANSLATION           13000   // Base speed for when we are trying to dock
 
 
@@ -91,7 +91,7 @@
 #define EFFICIENCY_BACK_RIGHT       1
 #define EFFICIENCY_BACK_LEFT        1
 
-#define YAW_WALL_SLAMMING           1500 // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
+#define YAW_WALL_SLAMMING           2500 // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
 
 
 #endif // MOTION_CONSTANTS_H
