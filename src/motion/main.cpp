@@ -675,7 +675,7 @@ void begin_wall_slamming() {
 }
 
 void begin_homing() {
-    if(xTaskCreate(TaskFollowWall, "Follow_Wall", 2048, &homing_data, PRIORITY_FOLLOW_WALL, &xHomingHandle) == pdPASS) {
+    if(xTaskCreate(TaskHoming, "Follow_Wall", 2048, &homing_data, PRIORITY_FOLLOW_WALL, &xHomingHandle) == pdPASS) {
         log_status("Homing task was created successfully.");
     } else {
         log_error("Homing task was not created successfully!");
