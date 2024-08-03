@@ -113,3 +113,8 @@ void actuate_forklift_forwards() {
         log_error("Forklift actuation task was not created successfully!");
     }
 }
+
+void set_rack_zero() {
+    log_status("setting rack position to zero");
+    position = 0;
+}

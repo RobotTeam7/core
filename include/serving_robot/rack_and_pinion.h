@@ -15,6 +15,7 @@ extern RobotMotor_t* rack_and_pinion;
 void init_rack_and_pinion(uint8_t fowards_pin, uint8_t backwards_pin, int initial_position, uint8_t claw_limit_switch_pin, uint8_t forklift_limit_switch_pin);
 void actuate_claw_forwards();
 void actuate_forklift_forwards();
+void set_rack_zero();
 
 
 #endif // RACK_AND_PINION_H
