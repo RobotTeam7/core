@@ -86,11 +86,11 @@ void TaskMaster(void* pvParameters) {
 
         // TOMATO _________________
         log_status("getting tomato");
-        send_command(FOLLOW_WALL_TO, 1);
+        send_command(FOLLOW_WALL_TO, 3);
         wait_for_motion();
         grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
-        // PIROUETTE _________________
+        log_status("getting tomato");
         send_command(FOLLOW_WALL_TO, 4);
         vTaskDelayMS(500);
         send_command(CommandMessage_t::ABORT, 0);

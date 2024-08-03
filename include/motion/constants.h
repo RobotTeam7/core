@@ -31,6 +31,7 @@
 #define DELAY_STATION_TRACKING_POLL                 5       // delay between polls to see if we see station tape
 #define DELAY_WALL_SLAMMING_STOP_POLL               1          
 #define DELAY_WALL_SLAMMING_POLL                    5       // delay between polls to check if we are approaching tape during wall slamming
+#define DELAY_HOMING_POLL                           1
 #define DELAY_ROTATION_DURATION                     3000    // delay used to time when to stop rotating during a pirouette
 #define DELAY_START_PIROUETTE                       500
 #define DELAY_FINISH_PIROUETTE                      1350    // delay used to time when to stop translating after rotating during a pirouette
@@ -81,6 +82,7 @@
 #define PRIORITY_STATION_TRACKING   3
 #define PRIORITY_RETURN_TO_TAPE     5
 #define PRIORITY_FOLLOW_WALL        5
+#define PRIORITY_HOMING             5
 
 // Motion PID
 #define kp                          1.1
