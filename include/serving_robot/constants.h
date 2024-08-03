@@ -13,8 +13,8 @@
 #define CLAW_ACTUATE_PIN_2              33
 
 #define SERVO_CLAW_PIN                  13
-#define SERVO_CLAW_OPEN                 0.075
-#define SERVO_CLAW_CLOSED               0.05
+#define SERVO_CLAW_OPEN                 0.052
+#define SERVO_CLAW_CLOSED               0.028
 
 #define SERVO_DRAW_BRIDGE_PIN           22
 #define SERVO_DRAW_BRIDGE_DOWN          0.090
