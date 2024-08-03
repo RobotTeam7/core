@@ -1,12 +1,11 @@
 #include <communication/uart.h>
 #include "driver/uart.h"
 #include "esp_crc.h"
+#include <communication/communication.h>
 
 
 #define UART_BAUD_RATE  9600
 #define UART_PORT       UART_NUM_2
-#define START_BYTE      (uint8_t)0x7E
-#define STOP_BYTE       (uint8_t)0x7F
 #define MAX_RETRIES     4
 
 static QueueHandle_t uart_queue;
@@ -224,21 +223,14 @@ void send_uart_message(CommandMessage_t command, uint8_t value, bool memorize) {
         last_sent_packet = new_packet;
     }
 
-    uint8_t data[] = {command, value};                          // Organized data into a buffer
-    uint32_t crc_value = esp_crc32_le(0, data, sizeof(data));   // The CRC checksum of the data
+    uint8_t* message_buffer = encode_message(command, value);
     
     // if (retries < 2 && command != CommandMessage_t::NACK) { // Uncomment this for debug!
     //     crc_value += 10;
     // }
     
-    // Compose message which will be send over UART
-    uint8_t message_buffer[sizeof(START_BYTE) + sizeof(data) + sizeof(crc_value) + sizeof(STOP_BYTE)];
-    message_buffer[0] = START_BYTE;
-    memcpy(message_buffer + sizeof(START_BYTE), data, sizeof(data));
-    memcpy(message_buffer + sizeof(START_BYTE) + sizeof(data), &crc_value, sizeof(crc_value));
-    message_buffer[sizeof(START_BYTE) +sizeof(data) + sizeof(crc_value)] = STOP_BYTE;
-    
-    uart_write_bytes(UART_PORT, (const char*)message_buffer, sizeof(message_buffer));
+    uart_write_bytes(UART_PORT, (const char*)message_buffer, MESSAGE_SIZE);
+    free(message_buffer);
 
     log_status("Sent message!");
 }

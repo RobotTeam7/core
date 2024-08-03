@@ -19,11 +19,6 @@
 #include <communication/decode.h>
 
 
-typedef struct {
-    CommandMessage_t command;
-    int8_t value;
-} Packet_t;
-
 void initialize_uart(QueueHandle_t* packet_queue);
 void send_uart_message(CommandMessage_t command, uint8_t value = 0, bool memorize = true);
 static void send_nack();

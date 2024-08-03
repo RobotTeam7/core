@@ -11,22 +11,25 @@
 #include <common/pwm.h>
 #include <common/limit_switch.h>
 
-#include <communication/wifi_client.h>
+#include <communication/wifi.h>
 #include <communication/uart.h>
 #include <communication/decode.h>
 
-extern QueueHandle_t outboundWiFiQueue;
-extern QueueHandle_t inboundWiFiQueue;
 extern QueueHandle_t uart_msg_queue;
-extern WiFiHandler_t wifi_handler;
 extern ServoMotor_t* claw_servo;
 extern ServoMotor_t* vertical_servo;
 extern bool MOTION_BUSY;
 extern bool MOTION_READY;
 
+extern bool wifi_ready;
+extern bool action_ready;
+extern bool block_action;
+
 void uart_msg_handler(void *parameter);
 void wifi_msg_handler(void *parameter);
 void TaskMaster(void* pvParameters);
+
+void send_wifi_message(CommandMessage_t command, int8_t value);
 
 void grab_with_claw(int claw_percentage);
 

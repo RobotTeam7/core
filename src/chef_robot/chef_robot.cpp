@@ -12,7 +12,7 @@
 #include <common/pwm.h>
 #include <common/limit_switch.h>
 
-#include <communication/wifi_client.h>
+#include <communication/wifi.h>
 #include <communication/uart.h>
 #include <communication/decode.h>
 
@@ -67,6 +67,9 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 1);
         wait_for_motion();
 
+        log_status("Informing that patty is ready...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+
         log_status("goto cooktop");
         send_command(FOLLOW_WALL_TO, 3);
         wait_for_motion();
@@ -92,6 +95,14 @@ void TaskMaster(void* pvParameters) {
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
 
+        // RETURN
+        log_status("Doing pirouette!");
+        send_command(DO_PIROUETTE, 3);
+        wait_for_motion();
+
+        log_status("Informing that top bun is ready...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+
         Serial.println("Done!");
         while (1) {
             vTaskDelay(1000);
@@ -102,6 +113,8 @@ void TaskMaster(void* pvParameters) {
 void setup() {
     Serial.begin(115200); // Initialize serial monitor
 
+
+
     init_pwm();
 
     Serial.println("servos initialized!");
@@ -110,27 +123,37 @@ void setup() {
     vertical_servo = instantiate_servo_motor(SERVO_VERTICAL_PIN, SERVO_VERTICAL_DOWN, SERVO_VERTICAL_UP);
     
     delay(1000);
-    
-    Serial.println("vertical servo go up!");
-    set_servo_position_percentage(vertical_servo, 0);
-
-    // connect_to_wifi_as_client(&wifi_handler);
 
     initialize_uart(&uart_msg_queue);
 
     xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
 
-    delay(100);
-    // xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
+    while (!MOTION_READY) {
+        delay(100);
+    }
+
+    log_status("Connected to motion board!");
     
+    Serial.println("vertical servo go up!");
+    set_servo_position_percentage(vertical_servo, 0);
+
+    init_wifi();
+
+    xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
+
+    delay(500);
+
+    while (!wifi_ready) {
+        send_wifi_message(CommandMessage_t::READY, 0);
+        log_status("Trying to handshake WiFi...");
+        delay(500);
+    }
+
+    log_status("Connected to WiFi!");
+
     xTaskCreate(TaskMaster, "Master", 2048, NULL, 1, NULL);
 }
 
 void loop() {
-    // delay(1500);
-    // Serial.print("Free heap: ");
-    // Serial.println(ESP.getFreeHeap());
-    // delay(1000); // Check every second
-    Serial.println("here in main board");
-    delay(10000);
+
 }

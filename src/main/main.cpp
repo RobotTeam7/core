@@ -1,18 +1,15 @@
 #include <main/main.h>
 
 
-QueueHandle_t outboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
-QueueHandle_t inboundWiFiQueue = xQueueCreate(10, sizeof(WiFiPacket_t));
 QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
-
-WiFiHandler_t wifi_handler = {
-    .wifi_config = &wifi_config,
-    .inbound_wifi_queue = &inboundWiFiQueue,
-    .outbound_wifi_queue = &outboundWiFiQueue
-};
 
 bool MOTION_BUSY = false;
 bool MOTION_READY = false;
+
+bool wifi_ready = false;
+
+bool action_ready = false;
+bool block_action = false;
 
 ServoMotor_t* claw_servo;
 ServoMotor_t* vertical_servo;
@@ -54,14 +51,41 @@ void uart_msg_handler(void *parameter) {
 void wifi_msg_handler(void *parameter) {
     log_status("Started message handler");
     while (1) {
-        WiFiPacket_t new_packet;
-        if (xQueueReceive(inboundWiFiQueue, &new_packet, portMAX_DELAY)) {
+        Packet_t new_packet;
+        if (xQueueReceive(wifi_message_queue, &new_packet, portMAX_DELAY)) {
             Serial.println("Received wifi packet...");
-            Serial.println(new_packet.byte1);
-            Serial.println(new_packet.byte2);
-            // Serial.println("Sending over UART...");
-            // send_uart_message((CommandMessage_t)new_packet.byte1, new_packet.byte2);
-            // Serial.println("Sent packet over UART.");
+            Serial.println(new_packet.command);
+            Serial.println(new_packet.value);
+
+            switch (new_packet.command) {
+                case READY:
+                {
+                    send_wifi_message(CommandMessage_t::ACK, 0);
+                    log_status("Readied WiFi!");
+                    break;
+                }
+
+                case NEXT_ACTION: 
+                {
+                    action_ready = true;
+                    log_status("Ready for next action!");
+                    break;
+                }
+
+                case WAIT_FOR_ACTION:
+                {
+                    block_action = true;
+                    log_status("Blocking action!");
+                    break;
+                }
+
+                case ACK:
+                {
+                    wifi_ready = true;
+                    log_status("Readiness acknowledged!");
+                    break;
+                }
+            }
         }
         vTaskDelayMS(10); // Small delay to yield    
     }
@@ -100,4 +124,20 @@ void wait_for_motion() {
 void send_command(CommandMessage_t command, int8_t value) {
     send_uart_message(command, value);
     MOTION_BUSY = true;
+}
+
+void send_wifi_message(CommandMessage_t command, int8_t value) {
+    uint8_t* message_buffer = encode_message(command, value);
+
+    while (1) {
+        esp_err_t result = esp_now_send(mac_address, message_buffer, sizeof(MESSAGE_SIZE));
+
+        if (result == ESP_OK) {
+            Serial.println("Message sent successfully");
+            break;
+        } else {
+            Serial.printf("Error sending the message: %d\n", result);
+            delay(500);
+        }
+    }
 }

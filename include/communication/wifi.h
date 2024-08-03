@@ -4,29 +4,23 @@
 #include <WiFi.h>
 #include <freertos/queue.h>
 #include <common/utils.h>
+#include <communication/decode.h>
+#include <esp_now.h>
+#include <communication/communication.h>
 
-typedef struct {
-    const char* ssid;
-    const char* password;
-    const char* host;
-} WiFiConfig_t;
+extern QueueHandle_t wifi_message_queue;
 
-extern const WiFiConfig_t wifi_config;
+#if robot == 0
+    #pragma message "Compiling Midnight Rambler!"
+    #define PEER_MAC_ADDRESS {0x64, 0xB7, 0x08, 0x9D, 0x70, 0x18} // Fiddler's MAC address
+#elif robot == 1
+    #pragma message "Compiling Fiddler!"
+    #define PEER_MAC_ADDRESS {0x64, 0xB7, 0x08, 0x9C, 0x5B, 0x90} // Midnight Rambler's MAC address
+#endif  
 
-typedef struct {
-    const WiFiConfig_t* wifi_config;
-    QueueHandle_t* inbound_wifi_queue;
-    QueueHandle_t* outbound_wifi_queue;
-} WiFiHandler_t;
+extern const uint8_t mac_address[6];
 
-typedef struct {
-    uint8_t byte1;
-    uint8_t byte2;
-} WiFiPacket_t;
-
-extern const uint16_t port;
-
-int checkWiFiHandler(WiFiHandler_t* wifiHandler);
+void init_wifi();
 
 
 #endif // ROBOT_WIFI_H

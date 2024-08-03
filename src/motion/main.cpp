@@ -12,6 +12,7 @@
 
 #include <communication/uart.h>
 #include <communication/decode.h>
+#include <communication/communication.h>
 
 #include <motion/constants.h>
 #include <motion/tasks.h>

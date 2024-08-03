@@ -35,11 +35,6 @@
 // ESP32 Constants
 #define MAX_CHANNELS 16 /// Maximum number of ledc PWM channels that can be created for the ESP32
 
-// Robot Motor Constants
-#define DRIVE_MOTOR_PWM_FREQUENCY   50
-#define FORWARD_DRIVE               1
-#define REVERSE_DRIVE               -1
-
 // UART ID Table
 #define UART_CMD_BEGIN      0x00
 #define UART_CMD_END        0x3f
