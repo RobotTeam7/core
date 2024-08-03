@@ -31,7 +31,7 @@ inline void grab_plate() {
     set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_CLOSED);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
-    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN + 30);
+    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN + 15);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 }
 
@@ -128,7 +128,7 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
-        actuate_forklift_forwards();
+    
 
         // SWITCHING    _______________
         send_command(DO_PIROUETTE, -3);

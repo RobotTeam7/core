@@ -3,8 +3,8 @@
 
 // Pin Definitions
 #define SERVO_VERTICAL_PIN              4
-#define SERVO_VERTICAL_UP               0.03
-#define SERVO_VERTICAL_DOWN             0.1
+#define SERVO_VERTICAL_UP               0.05
+#define SERVO_VERTICAL_DOWN             0.1175
 
 #define RACK_FORWARD_PIN                8
 #define RACK_REVERSE_PIN                7
