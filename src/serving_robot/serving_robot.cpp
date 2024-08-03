@@ -58,6 +58,17 @@ static inline void serve_food() {
 
 }
 
+
+static inline void grab_with_rack_and_claw(ServoPositionsPercentage_t percentage) {
+    if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
+        set_rack_zero();
+        vTaskDelayMS(20);
+        actuate_claw_forwards();
+        vTaskDelayMS(200);
+    }
+    grab_with_claw(percentage);
+}
+
 void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
@@ -77,7 +88,7 @@ void TaskMaster(void* pvParameters) {
         log_status("getting tomato");
         send_command(FOLLOW_WALL_TO, 1);
         wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
         // PIROUETTE _________________
         send_command(FOLLOW_WALL_TO, 4);
@@ -91,13 +102,13 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 2);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
 
         // CHEESE _________________
         send_command(FOLLOW_WALL_TO, 1);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
 
         // PIROUETTE _________________
         send_command(FOLLOW_WALL_TO, 2);
@@ -111,12 +122,13 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 3);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
 
         // DROP ON PLATE _________
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
+        actuate_forklift_forwards();
 
         // SWITCHING    _______________
         send_command(DO_PIROUETTE, -3);
@@ -125,7 +137,7 @@ void TaskMaster(void* pvParameters) {
         // GRAB PLATE   _______________
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
-        // actuate_claw_forwards();
+        actuate_claw_forwards();
         grab_plate();
 
         // SERVE FOOD   _______________
