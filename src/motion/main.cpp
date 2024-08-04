@@ -483,7 +483,7 @@ void TaskMaster(void *pvParameters)
                         state.yaw = -state.yaw;
 
                         state.drive_state = STOP;
-                        vTaskDelayMS(400);
+                        vTaskDelayMS(500);
 
                         begin_homing();
                         uint32_t ulNotificationValue;

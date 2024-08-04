@@ -397,7 +397,6 @@ void TaskFollowWall(void* pvParameters) {
     }
     Serial.println("Exited loop!");
 }
-
 void TaskHoming(void* pvParameters) {
     ReturnToTapeData_t* returnToTapeData = (ReturnToTapeData_t*)pvParameters;
 
