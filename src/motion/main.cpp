@@ -482,6 +482,9 @@ void TaskMaster(void *pvParameters)
                         state.direction = -state.direction;
                         state.yaw = -state.yaw;
 
+                        state.drive_state = STOP;
+                        vTaskDelayMS(400);
+
                         begin_homing();
                         uint32_t ulNotificationValue;
                         xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task
@@ -611,7 +614,7 @@ void TaskMaster(void *pvParameters)
                 state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
                 state.drive_state = DRIVE;
                 state.direction = -1;
-                vTaskDelay(pdMS_TO_TICKS(700));
+                vTaskDelay(pdMS_TO_TICKS(875));
 
                 state.drive_speed = 0;
                 state.drive_state = STOP; 
