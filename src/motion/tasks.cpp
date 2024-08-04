@@ -410,7 +410,8 @@ void TaskHoming(void* pvParameters) {
     
     TapeSensor_t* sensor = returnToTapeData->middleTapeSensor;
 
-    state.drive_speed = 8200;
+    state.drive_speed = 7900;
+    state.drive_state = DRIVE;
     
     // delay is initially high since we are initially fast, but lowers after the first detection
     int delay_ms = 400;

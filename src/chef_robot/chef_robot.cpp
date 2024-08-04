@@ -32,65 +32,8 @@ void TaskMaster(void* pvParameters) {
 
         vTaskDelay(pdMS_TO_TICKS(3000));
 
-        // COUNTER DOCK 
-        send_command(COUNTER_DOCK, 1);
-        wait_for_motion();
-
-        // BUN _________________
-        log_status("getting bun");
         send_command(FOLLOW_WALL_TO, 2);
-        wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
-
-        // DROP BUN  
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
-
-        log_status("getting bun");
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-
-        // PATTY         
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 4);
-        wait_for_motion();
-
-        log_status("getting patty");
-        send_command(FOLLOW_WALL_TO, 1);
-        wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
-
-        // COOK
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 1);
-        wait_for_motion();
-
-        log_status("goto cooktop");
-        send_command(FOLLOW_WALL_TO, 3);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-        
-        // TOP BUN
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 3);
-        wait_for_motion();
-
-        log_status("getting top bun");
-        send_command(FOLLOW_WALL_TO, 2);
-        wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
-
-        // DROP BUN  
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
-
-        log_status("getting bun");
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+        wait_for_motion;
 
         Serial.println("Done!");
         while (1) {

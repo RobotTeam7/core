@@ -48,7 +48,7 @@ static inline void serve_food() {
     wait_for_motion();
 
     send_command(FOLLOW_WALL_TO, 1);
-    vTaskDelayMS(750);
+    vTaskDelayMS(850);
     send_command(ABORT, 0);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
@@ -86,7 +86,7 @@ void TaskMaster(void* pvParameters) {
 
         // TOMATO _________________
         log_status("getting tomato");
-        send_command(FOLLOW_WALL_TO, 3);
+        send_command(FOLLOW_WALL_TO, 1);
         wait_for_motion();
         grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
@@ -137,7 +137,9 @@ void TaskMaster(void* pvParameters) {
         // GRAB PLATE   _______________
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
-        actuate_claw_forwards();
+        if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
+            actuate_claw_forwards();
+        }
         grab_plate();
 
         // SERVE FOOD   _______________
