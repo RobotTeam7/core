@@ -67,8 +67,10 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 1);
         wait_for_motion();
 
-        log_status("Informing that patty is ready...");
-        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+        if (use_wifi) {
+            log_status("Informing that patty is ready...");
+            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+        }
 
         log_status("goto cooktop");
         send_command(FOLLOW_WALL_TO, 3);
@@ -100,8 +102,10 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 3);
         wait_for_motion();
 
-        log_status("Informing that top bun is ready...");
-        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+        if (use_wifi) {
+            log_status("Informing that top bun is ready...");
+            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+        }
 
         Serial.println("Done!");
         while (1) {
@@ -129,7 +133,9 @@ void setup() {
     xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
 
     while (!MOTION_READY) {
-        delay(100);
+        log_status("Trying to connect to motion...");
+        send_uart_message(CommandMessage_t::READY, 0);
+        delay(300);
     }
 
     log_status("Connected to motion board!");
@@ -137,19 +143,21 @@ void setup() {
     Serial.println("vertical servo go up!");
     set_servo_position_percentage(vertical_servo, 0);
 
-    init_wifi();
+    if (use_wifi) {
+        init_wifi();
 
-    xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
+        xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
 
-    delay(500);
-
-    while (!wifi_ready) {
-        send_wifi_message(CommandMessage_t::READY, 0);
-        log_status("Trying to handshake WiFi...");
         delay(500);
-    }
 
-    log_status("Connected to WiFi!");
+        while (!wifi_ready) {
+            send_wifi_message(CommandMessage_t::READY, 0);
+            log_status("Trying to handshake WiFi...");
+            delay(500);
+        }
+
+        log_status("Connected to WiFi!");
+    }
 
     xTaskCreate(TaskMaster, "Master", 2048, NULL, 1, NULL);
 }

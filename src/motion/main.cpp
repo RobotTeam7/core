@@ -155,6 +155,11 @@ void uart_msg_handler(void *parameter) {
                         break;
                     }
 
+                    case READY:
+                    {
+                        send_uart_message(ACK, 0, false);
+                    }
+
                     case 0x40 ... 0x4f:
                         log_status("Received acknowledgement!");
                         break;

@@ -117,12 +117,14 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 2);
         wait_for_motion();
 
-        while (!action_ready) {
-            log_status("Waiting for patty to be ready!");
-            vTaskDelayMS(50);
+        if (use_wifi) {
+            while (!action_ready) {
+                log_status("Waiting for patty to be ready!");
+                vTaskDelayMS(50);
+            }
+            action_ready = false;
+            log_status("Patty is ready!");
         }
-        action_ready = false;
-        log_status("Patty is ready!");
 
         // PATTY _________________
         send_command(FOLLOW_WALL_TO, 3);
@@ -140,12 +142,14 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, -3);
         wait_for_motion();
 
-        while (!action_ready) {
-            log_status("Waiting for top bun to be ready!");
-            vTaskDelayMS(50);
+        if (use_wifi) {
+            while (!action_ready) {
+                log_status("Waiting for top bun to be ready!");
+                vTaskDelayMS(50);
+            }
+            action_ready = false;
+            log_status("Top bun is ready!");
         }
-        action_ready = false;
-        log_status("Top bun is ready!");
 
         // GRAB PLATE   _______________
         send_command(FOLLOW_WALL_TO, 4);
@@ -159,8 +163,6 @@ void TaskMaster(void* pvParameters) {
         while (1) {
             vTaskDelay(1000);
         }
-
-
 
     }
 }
@@ -189,24 +191,28 @@ void setup() {
     xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
 
     while (!MOTION_READY) {
-        delay(100);
+        log_status("Trying to connect to motion...");
+        send_uart_message(CommandMessage_t::READY, 0);
+        delay(300);
     }
 
     log_status("Connected to motion board!");
 
-    init_wifi();
+    if (use_wifi) {
+        init_wifi();
 
-    xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
+        xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
 
-    delay(500);
-
-    while (!wifi_ready) {
-        send_wifi_message(CommandMessage_t::READY, 0);
-        log_status("Trying to handshake WiFi...");
         delay(500);
-    }
 
-    log_status("Connected to WiFi!");
+        while (!wifi_ready) {
+            send_wifi_message(CommandMessage_t::READY, 0);
+            log_status("Trying to handshake WiFi...");
+            delay(500);
+        }
+
+        log_status("Connected to WiFi!");
+    }
 
     xTaskCreate(TaskMaster, "Master", 2048, NULL, 1, NULL);
 }

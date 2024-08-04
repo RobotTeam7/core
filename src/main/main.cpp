@@ -42,10 +42,20 @@ void uart_msg_handler(void *parameter) {
                     MOTION_BUSY = false;
                     send_uart_message(CommandMessage_t::ACK, 0, false);
                     break;
+
+                case ACK:
+                {
+                    MOTION_READY = true;
+                    break;
+                }
             }
         }
         vTaskDelayMS(10); // Small delay to yield
     }
+}
+
+void init_communications() {
+
 }
 
 void wifi_msg_handler(void *parameter) {
@@ -118,7 +128,6 @@ void wait_for_motion() {
     while (MOTION_BUSY) {
         vTaskDelayMS(10);
     }
-    // vTaskDelay(pdMS_TO_TICKS(UART_INTERMESSAGE_DELAY));
 }
 
 void send_command(CommandMessage_t command, int8_t value) {

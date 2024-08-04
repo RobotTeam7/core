@@ -15,6 +15,16 @@
 #include <communication/uart.h>
 #include <communication/decode.h>
 
+#ifndef use_wifi
+    #define use_wifi 1
+#endif
+
+#if use_wifi == 1
+    #pragma message "Enabling the use of WiFi!"
+#elif use_wifi == 0
+    #pragma message "Disabling the use of WiFi!"
+#endif
+
 extern QueueHandle_t uart_msg_queue;
 extern ServoMotor_t* claw_servo;
 extern ServoMotor_t* vertical_servo;
