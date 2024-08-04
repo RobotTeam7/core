@@ -32,12 +32,6 @@ void TaskMaster(void* pvParameters) {
 
         vTaskDelay(pdMS_TO_TICKS(3000));
 
-        // COUNTER DOCK 
-        send_command(COUNTER_DOCK, 1);
-        wait_for_motion();
-
-        // BUN _________________
-        log_status("getting bun");
         send_command(FOLLOW_WALL_TO, 2);
         wait_for_motion();
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);

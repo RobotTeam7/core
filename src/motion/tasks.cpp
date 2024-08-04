@@ -397,7 +397,6 @@ void TaskFollowWall(void* pvParameters) {
     }
     Serial.println("Exited loop!");
 }
-
 void TaskHoming(void* pvParameters) {
     ReturnToTapeData_t* returnToTapeData = (ReturnToTapeData_t*)pvParameters;
 
@@ -410,7 +409,8 @@ void TaskHoming(void* pvParameters) {
     
     TapeSensor_t* sensor = returnToTapeData->middleTapeSensor;
 
-    state.drive_speed = 8200;
+    state.drive_speed = 7900;
+    state.drive_state = DRIVE;
     
     // delay is initially high since we are initially fast, but lowers after the first detection
     int delay_ms = 400;
@@ -436,14 +436,14 @@ void TaskHoming(void* pvParameters) {
                 vTaskDelete(NULL);
                 xHomingHandle = NULL;
             }else {
-                delay_ms = 150;
+                delay_ms = 50;
                 // we must have passed the tape, so we look for it in the opposite direction
                 state.direction = -state.direction;
                 // not too sure if we should just set yaw to zero for this function
                 state.yaw = -state.yaw;
                 state.drive_state = DRIVE;
 
-                vTaskDelay(pdMS_TO_TICKS(150));
+                vTaskDelay(pdMS_TO_TICKS(50));
 
                 // for each oscillation we kill speed slightly
             }
