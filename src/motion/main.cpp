@@ -481,6 +481,10 @@ void TaskMaster(void *pvParameters)
                         state.direction = -state.direction;
                         state.yaw = -state.yaw;
 
+
+                        state.drive_state = STOP;
+                        vTaskDelayMS(300);
+
                         begin_homing();
                         uint32_t ulNotificationValue;
                         xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task

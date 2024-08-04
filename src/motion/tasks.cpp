@@ -410,10 +410,12 @@ void TaskHoming(void* pvParameters) {
     
     TapeSensor_t* sensor = returnToTapeData->middleTapeSensor;
 
-    state.drive_speed = 8200;
-    
+    state.drive_speed = 7800;
+    state.drive_state = DRIVE;
+
     // delay is initially high since we are initially fast, but lowers after the first detection
-    int delay_ms = 400;
+    int delay_ms = 500;
+    int oscillation_count = 0;
 
     while(1) {
         read_tape_sensor(sensor);
@@ -423,10 +425,10 @@ void TaskHoming(void* pvParameters) {
             Serial.println("I see tape!" + String(sensor->value));
 
             state.drive_state = STOP;
-            vTaskDelay(pdMS_TO_TICKS(delay_ms));
+            vTaskDelayMS(delay_ms);
 
             read_tape_sensor(sensor);
-            if(sensor->value >= 2000) {
+            if(sensor->value >= 2000 || oscillation_count > 5) {
                 // while(1) {
                 //     log_status("IM ON TAPE WOOP WOOP");
                 //     vTaskDelay(1000);
@@ -436,6 +438,7 @@ void TaskHoming(void* pvParameters) {
                 vTaskDelete(NULL);
                 xHomingHandle = NULL;
             }else {
+                // 150 for heavy robot
                 delay_ms = 150;
                 // we must have passed the tape, so we look for it in the opposite direction
                 state.direction = -state.direction;
@@ -443,9 +446,9 @@ void TaskHoming(void* pvParameters) {
                 state.yaw = -state.yaw;
                 state.drive_state = DRIVE;
 
-                vTaskDelay(pdMS_TO_TICKS(150));
+                vTaskDelayMS(delay_ms);
 
-                // for each oscillation we kill speed slightly
+                oscillation_count++;
             }
         }
         vTaskDelay(pdMS_TO_TICKS(DELAY_HOMING_POLL));
