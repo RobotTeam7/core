@@ -211,11 +211,11 @@ void setup() {
     delay(100);
 
     // check if task master was created
-    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
-        log_status("Master task was created successfully.");
-    } else {
-        log_error("Master task was not created successfully!");
-    }
+    // if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
+    //     log_status("Master task was created successfully.");
+    // } else {
+    //     log_error("Master task was not created successfully!");
+    // }
 
 }
 
@@ -449,7 +449,7 @@ void TaskMaster(void *pvParameters)
                 state.direction = sign(station_difference * state.orientation);
 
                 int yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;;
-                state.yaw = yaw;
+                state.yaw = 0;
                 Serial.println("YAW: " + String(YAW_WALL_SLAMMING) + " Orientation: " + String(state.orientation) + " Y-Direction: " + String(state.y_direction) + " Direction: " + String(state.direction));
                 // Serial.println("Desired Side Station: " + String(state.desired_side_station) + " Last Side Station: " + String())
                 // Start Driving
@@ -490,10 +490,10 @@ void TaskMaster(void *pvParameters)
                         xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task
 
                         // slam into counter to align
-                        state.yaw = 0;
-                        state.drive_speed = MOTOR_SPEED_TRANSLATION;
-                        state.drive_state = TRANSLATE;
-                        vTaskDelayMS(500);
+                        // state.yaw = 0;
+                        // state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                        // state.drive_state = TRANSLATE;
+                        // vTaskDelayMS(500);
 
                         // update last_station based on side station
                         state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT

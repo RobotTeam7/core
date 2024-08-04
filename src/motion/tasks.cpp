@@ -436,14 +436,14 @@ void TaskHoming(void* pvParameters) {
                 vTaskDelete(NULL);
                 xHomingHandle = NULL;
             }else {
-                delay_ms = 150;
+                delay_ms = 50;
                 // we must have passed the tape, so we look for it in the opposite direction
                 state.direction = -state.direction;
                 // not too sure if we should just set yaw to zero for this function
                 state.yaw = -state.yaw;
                 state.drive_state = DRIVE;
 
-                vTaskDelay(pdMS_TO_TICKS(150));
+                vTaskDelay(pdMS_TO_TICKS(50));
 
                 // for each oscillation we kill speed slightly
             }
