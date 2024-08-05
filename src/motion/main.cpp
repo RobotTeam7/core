@@ -540,7 +540,7 @@ void TaskMaster(void *pvParameters)
                     state.last_side_station = -state.last_side_station;
 
                     final_angle *= 1.1;
-                    final_delay = int(final_delay * 1.4);
+                    final_delay = int(final_delay * 1.7);
                 }
 
                 if(slow_pirouette) {
