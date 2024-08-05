@@ -22,15 +22,12 @@ ServoMotor_t* plating_servo;
 
 // assumes plating servo is open initially
 inline void grab_plate() {
-    log_status("draw bridge down");
-    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
-    vTaskDelayMS(SERVO_ACTUATION_DELAY);
     
     log_status("plate servo close");
     set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_CLOSED);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
-    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN + 30);
+    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN + 15);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 }
 
@@ -136,11 +133,28 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
-        actuate_forklift_forwards();
 
         // SWITCHING    _______________
-        send_command(DO_PIROUETTE, -3);
+        send_command(FOLLOW_WALL_TO, 2);
+        vTaskDelayMS(1000);
+        send_command(ABORT, 0);
+
+        send_command(DO_PIROUETTE, -2);
         wait_for_motion();
+        
+        if (use_wifi) {
+            log_status("Plate station is clear...");
+            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+        }
+
+        // GRAB PLATE   _______________
+        send_command(FOLLOW_WALL_TO, 4);
+        wait_for_motion();
+        if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
+            actuate_claw_forwards();
+        }
+        vTaskDelayMS(100);
+        set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
 
         if (use_wifi) {
             while (!action_ready) {
@@ -151,12 +165,6 @@ void TaskMaster(void* pvParameters) {
             log_status("Top bun is ready!");
         }
 
-        // GRAB PLATE   _______________
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-        if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
-            actuate_claw_forwards();
-        }
         grab_plate();
 
         // SERVE FOOD   _______________

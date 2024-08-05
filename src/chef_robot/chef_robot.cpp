@@ -20,17 +20,14 @@
 void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
-    // Wait for green light from motion board
-    Serial.println("awaitng motion to be ready");
-    while (!MOTION_READY) {
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-    }
-
     while (true) {
         // delay for uart to work
         vTaskDelay(pdMS_TO_TICKS(500));
 
         vTaskDelay(pdMS_TO_TICKS(3000));
+
+        send_command(COUNTER_DOCK, 1);
+        wait_for_motion();
 
         send_command(FOLLOW_WALL_TO, 2);
         wait_for_motion();
@@ -41,14 +38,20 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 2);
         wait_for_motion();
 
-        log_status("getting bun");
+        log_status("drop bun");
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
 
-        // PATTY         
+        // PATTY    
+        log_status("goto patty");
+        send_command(FOLLOW_WALL_TO, 2);
+        vTaskDelayMS(750);
+        send_uart_message(CommandMessage_t::ABORT, 0);
+        vTaskDelayMS(100);
+     
         log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 4);
+        send_command(DO_PIROUETTE, 3);
         wait_for_motion();
 
         log_status("getting patty");
@@ -61,15 +64,15 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 1);
         wait_for_motion();
 
-        if (use_wifi) {
-            log_status("Informing that patty is ready...");
-            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
-        }
-
         log_status("goto cooktop");
         send_command(FOLLOW_WALL_TO, 3);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+
+        if (use_wifi) {
+            log_status("Informing that patty is ready...");
+            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+        }
         
         // TOP BUN
         log_status("Doing pirouette!");
@@ -86,6 +89,15 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 2);
         wait_for_motion();
 
+        if (use_wifi) {
+            while (!action_ready) {
+                log_status("Waiting for plate station to be clear!");
+                vTaskDelayMS(50);
+            }
+            action_ready = false;
+            log_status("Plate station is clear!");
+        }
+
         log_status("getting bun");
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
@@ -93,13 +105,13 @@ void TaskMaster(void* pvParameters) {
 
         // RETURN
         log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 3);
-        wait_for_motion();
-
+        send_command(SWITCH_COUNTER, 4);
         if (use_wifi) {
+            vTaskDelayMS(200);
             log_status("Informing that top bun is ready...");
             send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
         }
+        wait_for_motion();
 
         Serial.println("Done!");
         while (1) {

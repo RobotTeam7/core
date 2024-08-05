@@ -216,11 +216,11 @@ void setup() {
     delay(100);
 
     // check if task master was created
-    // if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
-    //     log_status("Master task was created successfully.");
-    // } else {
-    //     log_error("Master task was not created successfully!");
-    // }
+    if (xTaskCreate(TaskMaster, "MasterTask", 2048, NULL, 2, &xMasterHandle) == pdPASS) {
+        log_status("Master task was created successfully.");
+    } else {
+        log_error("Master task was not created successfully!");
+    }
 
 }
 
@@ -488,17 +488,17 @@ void TaskMaster(void *pvParameters)
                         state.yaw = -state.yaw;
 
                         state.drive_state = STOP;
-                        vTaskDelayMS(500);
+                        vTaskDelayMS(300);
 
                         begin_homing();
                         uint32_t ulNotificationValue;
                         xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task
 
                         // slam into counter to align
-                        // state.yaw = 0;
-                        // state.drive_speed = MOTOR_SPEED_TRANSLATION;
-                        // state.drive_state = TRANSLATE;
-                        // vTaskDelayMS(500);
+                        state.yaw = 0;
+                        state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                        state.drive_state = TRANSLATE;
+                        vTaskDelayMS(250);
 
                         // update last_station based on side station
                         state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT

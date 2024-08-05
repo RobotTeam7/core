@@ -413,7 +413,7 @@ void TaskHoming(void* pvParameters) {
     state.drive_state = DRIVE;
     
     // delay is initially high since we are initially fast, but lowers after the first detection
-    int delay_ms = 400;
+    int delay_ms = 300;
 
     while(1) {
         read_tape_sensor(sensor);
