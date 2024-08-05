@@ -136,8 +136,9 @@ void TaskMaster(void* pvParameters) {
 
         // SWITCHING    _______________
         send_command(FOLLOW_WALL_TO, 2);
-        vTaskDelayMS(1000);
+        vTaskDelayMS(800);
         send_command(ABORT, 0);
+        vTaskDelayMS(1000);
 
         send_command(DO_PIROUETTE, -2);
         wait_for_motion();
@@ -154,7 +155,11 @@ void TaskMaster(void* pvParameters) {
             actuate_claw_forwards();
         }
         vTaskDelayMS(100);
+
+        set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
+        vTaskDelayMS(700);
         set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
+        vTaskDelayMS(700);
 
         if (use_wifi) {
             while (!action_ready) {

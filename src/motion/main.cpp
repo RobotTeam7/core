@@ -467,8 +467,8 @@ void TaskMaster(void *pvParameters)
                 log_status("Beginning wall slamming!");
                 begin_wall_slamming();
 
+                Serial.println("Wall Slamming: " + String(state.desired_side_station) + " " + String(state.last_side_station));
                 while (state.current_action == WALL_SLAM_TO) {
-                    Serial.println("Wall Slamming: " + String(state.desired_side_station) + " " + String(state.last_side_station));
                     if (state.desired_side_station == state.last_side_station) {
                         log_status("arrived at desired station!");
 
@@ -523,6 +523,7 @@ void TaskMaster(void *pvParameters)
                     state.current_action == IDLE;
                 }
 
+                state.yaw = 0;
                 float final_angle = 65.0;
                 int final_delay = DELAY_FINISH_PIROUETTE;
                 int initial_delay = DELAY_START_PIROUETTE;
@@ -539,8 +540,8 @@ void TaskMaster(void *pvParameters)
                     // fix the negativeness of the side station
                     state.last_side_station = -state.last_side_station;
 
-                    final_angle *= 1.1;
-                    final_delay = int(final_delay * 1.7);
+                    final_angle *= 1.2;
+                    final_delay = int(final_delay * 1.5);
                 }
 
                 if(slow_pirouette) {

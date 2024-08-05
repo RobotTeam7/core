@@ -34,7 +34,7 @@
 #define DELAY_HOMING_POLL                           1
 #define DELAY_ROTATION_DURATION                     3000    // delay used to time when to stop rotating during a pirouette
 #define DELAY_START_PIROUETTE                       500
-#define DELAY_FINISH_PIROUETTE                      1450    // delay used to time when to stop translating after rotating during a pirouette
+#define DELAY_FINISH_PIROUETTE                      2300    // delay used to time when to stop translating after rotating during a pirouette
 #define DELAY_TRANSLATE_TO_WALL                     1100
 #define DELAY_TRANSLATE_SIDE_SWAP                   1900
 
@@ -93,7 +93,7 @@
 #define EFFICIENCY_BACK_RIGHT       1
 #define EFFICIENCY_BACK_LEFT        1
 
-#define YAW_WALL_SLAMMING           1500 // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
+#define YAW_WALL_SLAMMING           7000 // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
 
 
 #endif // MOTION_CONSTANTS_H
