@@ -438,10 +438,9 @@ void TaskMaster(void *pvParameters)
                 // determine direction to go in by looking at sign of station difference and orientation
                 state.direction = sign(station_difference * state.orientation);
 
-                int yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;;
-                state.yaw = 0;
+                state.yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;
                 Serial.println("YAW: " + String(YAW_WALL_SLAMMING) + " Orientation: " + String(state.orientation) + " Y-Direction: " + String(state.y_direction) + " Direction: " + String(state.direction));
-                // Serial.println("Desired Side Station: " + String(state.desired_side_station) + " Last Side Station: " + String())
+
                 // Start Driving
                 state.drive_state = DRIVE;
                 state.drive_speed = MOTOR_SPEED_WALL_SLAMMING;
@@ -452,8 +451,8 @@ void TaskMaster(void *pvParameters)
                 log_status("Beginning wall slamming!");
                 begin_wall_slamming();
 
+                Serial.println("Wall Slamming: " + String(state.desired_side_station) + " " + String(state.last_side_station));
                 while (state.current_action == WALL_SLAM_TO) {
-                    Serial.println("Wall Slamming: " + String(state.desired_side_station) + " " + String(state.last_side_station));
                     if (state.desired_side_station == state.last_side_station) {
                         log_status("arrived at desired station!");
 
@@ -508,6 +507,7 @@ void TaskMaster(void *pvParameters)
                     state.current_action == IDLE;
                 }
 
+                state.yaw = 0;
                 float final_angle = 65.0;
                 int final_delay = DELAY_FINISH_PIROUETTE;
                 int initial_delay = DELAY_START_PIROUETTE;
@@ -524,8 +524,8 @@ void TaskMaster(void *pvParameters)
                     // fix the negativeness of the side station
                     state.last_side_station = -state.last_side_station;
 
-                    final_angle *= 1.1;
-                    final_delay = int(final_delay * 1.4);
+                    final_angle *= 1.2;
+                    final_delay = int(final_delay * 1.5);
                 }
 
                 if(slow_pirouette) {
@@ -579,7 +579,8 @@ void TaskMaster(void *pvParameters)
                     send_uart_message(COMPLETED);
                     state.current_action = IDLE;
                 }
-
+                
+                state.y_direction = - state.y_direction;
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = TRANSLATE;
                 vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_SIDE_SWAP));

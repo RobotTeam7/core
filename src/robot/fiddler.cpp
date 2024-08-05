@@ -13,11 +13,6 @@ void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
     while (true) {
-        // delay for uart to work
-        vTaskDelay(pdMS_TO_TICKS(500));
-
-        vTaskDelay(pdMS_TO_TICKS(3000));
-
         send_command(COUNTER_DOCK, 1);
         wait_for_motion();
 
@@ -43,7 +38,7 @@ void TaskMaster(void* pvParameters) {
         vTaskDelayMS(100);
      
         log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 3);
+        send_command(DO_PIROUETTE, 2);
         wait_for_motion();
 
         log_status("getting patty");
@@ -95,7 +90,7 @@ void TaskMaster(void* pvParameters) {
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
 
-        // RETURN
+        // RETURN // TODO: TEST this
         log_status("Doing pirouette!");
         send_command(SWITCH_COUNTER, 4);
         if (use_wifi) {
