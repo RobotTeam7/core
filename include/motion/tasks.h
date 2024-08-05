@@ -1,14 +1,10 @@
 #ifndef MOTION_TASKS_H
 #define MOTION_TASKS_H
 
-#include <Arduino.h>
-#include <CircularBuffer.hpp>
-
-#include <common/robot_motor.h>
+#include <common/hal.h>
 
 #include <motion/constants.h>
 #include <motion/utils.h>
-#include <common/reflectance_sensor.h>
 
 
 extern TaskHandle_t xHandleRotating;

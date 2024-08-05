@@ -11,8 +11,6 @@
 #include <common/limit_switch.h>
 
 #include <communication/uart.h>
-#include <communication/decode.h>
-#include <communication/communication.h>
 
 #include <motion/constants.h>
 #include <motion/tasks.h>
@@ -176,14 +174,14 @@ void setup() {
 
     init_pwm();
 
-    initialize_uart(&uart_msg_queue);
+    initialize_uart(&uart_msg_queue, TX_PIN, RX_PIN);
 
     xTaskCreate(uart_msg_handler, "uart_msg_handler", 2048, NULL, 7, NULL);
 
-    motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE, MOTOR_TIMER_0);
-    motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE, MOTOR_TIMER_0);
-    motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE, MOTOR_TIMER_1);
-    motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE, MOTOR_TIMER_1);
+    motor_front_left = instantiate_robot_motor(MOTOR_FRONT_LEFT_FORWARD, MOTOR_FRONT_LEFT_REVERSE, timer_1);
+    motor_front_right = instantiate_robot_motor(MOTOR_FRONT_RIGHT_FORWARD, MOTOR_FRONT_RIGHT_REVERSE, timer_1);
+    motor_back_left = instantiate_robot_motor(MOTOR_BACK_LEFT_FORWARD, MOTOR_BACK_LEFT_REVERSE, timer_2);
+    motor_back_right = instantiate_robot_motor(MOTOR_BACK_RIGHT_FORWARD, MOTOR_BACK_RIGHT_REVERSE, timer_2);
 
     frontTapeSensor = instantiate_tape_sensor(FRONT_TAPE_SENSOR_RIGHT);
     backTapeSensor = instantiate_tape_sensor(BACK_TAPE_SENSOR_LEFT);

@@ -1,4 +1,4 @@
-#include <main/main.h>
+#include <robot/robot.h>
 
 
 QueueHandle_t uart_msg_queue = xQueueCreate(10, sizeof(Packet_t));
@@ -54,8 +54,34 @@ void uart_msg_handler(void *parameter) {
     }
 }
 
-void init_communications() {
+void init_communications(uint8_t tx_pin, uint8_t rx_pin) {
+    initialize_uart(&uart_msg_queue, tx_pin, rx_pin);
 
+    xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
+
+    while (!MOTION_READY) {
+        log_status("Trying to connect to motion...");
+        send_uart_message(CommandMessage_t::READY, 0);
+        delay(300);
+    }
+
+    log_status("Connected to motion board!");
+
+    if (use_wifi) {
+        init_wifi();
+
+        xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
+
+        delay(500);
+
+        while (!wifi_ready) {
+            send_wifi_message(CommandMessage_t::READY, 0);
+            log_status("Trying to handshake WiFi...");
+            delay(500);
+        }
+
+        log_status("Connected to WiFi!");
+    }
 }
 
 void wifi_msg_handler(void *parameter) {
@@ -133,20 +159,4 @@ void wait_for_motion() {
 void send_command(CommandMessage_t command, int8_t value) {
     send_uart_message(command, value);
     MOTION_BUSY = true;
-}
-
-void send_wifi_message(CommandMessage_t command, int8_t value) {
-    uint8_t* message_buffer = encode_message(command, value);
-
-    while (1) {
-        esp_err_t result = esp_now_send(mac_address, message_buffer, sizeof(MESSAGE_SIZE));
-
-        if (result == ESP_OK) {
-            Serial.println("Message sent successfully");
-            break;
-        } else {
-            Serial.printf("Error sending the message: %d\n", result);
-            delay(500);
-        }
-    }
 }

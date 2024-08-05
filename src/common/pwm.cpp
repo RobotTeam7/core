@@ -15,6 +15,7 @@ void init_pwm() {
     memset(pin_to_channel, UNSPECIFIED_CHANNEL, sizeof(pin_to_channel));    // Initialize pins to be unbound
     memset(timer_allocations, 0, sizeof(timer_allocations));                // Initialize timer allocations to 0
 
+    // Initialize MOTOR_TIMER_0
     ledc_timer_config_t ledc_timer_0 = {
         .speed_mode       = LEDC_LOW_SPEED_MODE,
         .duty_resolution  = TIMER_RESOLUTION,
@@ -25,6 +26,7 @@ void init_pwm() {
 
     ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer_0));
 
+    // Initialize MOTOR_TIMER_1
     ledc_timer_config_t ledc_timer_1 = {
         .speed_mode       = LEDC_LOW_SPEED_MODE,
         .duty_resolution  = TIMER_RESOLUTION,

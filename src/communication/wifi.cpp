@@ -1,6 +1,4 @@
 #include <communication/wifi.h>
-#include <communication/communication.h>
-#include <freertos/FreeRTOS.h>
 
 
 QueueHandle_t wifi_message_queue = xQueueCreate(10, sizeof(CommandMessage_t));
@@ -55,3 +53,18 @@ void init_wifi() {
     log_status("ESP-NOW is initialized!");
 }
 
+void send_wifi_message(CommandMessage_t command, int8_t value) {
+    uint8_t* message_buffer = encode_message(command, value);
+
+    while (1) {
+        esp_err_t result = esp_now_send(mac_address, message_buffer, sizeof(MESSAGE_SIZE));
+
+        if (result == ESP_OK) {
+            Serial.println("Message sent successfully");
+            break;
+        } else {
+            Serial.printf("Error sending the message: %d\n", result);
+            delay(500);
+        }
+    }
+}

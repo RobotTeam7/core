@@ -1,20 +1,12 @@
-#include <Arduino.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#if robot == 1 // FIDDLER
+#include <robot/fiddler_constants.h>
+#include <robot/robot.h>
 
-#include <chef_robot/constants.h>
-
-#include <main/main.h>
-
-#include <common/resource_manager.h>
-#include <common/servo_motor.h>
-#include <common/robot_motor.h>
+#include <common/hal.h>
 #include <common/pwm.h>
-#include <common/limit_switch.h>
 
 #include <communication/wifi.h>
 #include <communication/uart.h>
-#include <communication/decode.h>
 
 
 void TaskMaster(void* pvParameters) {
@@ -134,36 +126,7 @@ void setup() {
     
     delay(1000);
 
-    initialize_uart(&uart_msg_queue);
-
-    xTaskCreate(uart_msg_handler, "UART_msg_handler", 2048, NULL, 1, NULL);
-
-    while (!MOTION_READY) {
-        log_status("Trying to connect to motion...");
-        send_uart_message(CommandMessage_t::READY, 0);
-        delay(300);
-    }
-
-    log_status("Connected to motion board!");
-    
-    Serial.println("vertical servo go up!");
-    set_servo_position_percentage(vertical_servo, 0);
-
-    if (use_wifi) {
-        init_wifi();
-
-        xTaskCreate(wifi_msg_handler, "WiFi_msg_handler", 2048, NULL, 1, NULL);
-
-        delay(500);
-
-        while (!wifi_ready) {
-            send_wifi_message(CommandMessage_t::READY, 0);
-            log_status("Trying to handshake WiFi...");
-            delay(500);
-        }
-
-        log_status("Connected to WiFi!");
-    }
+    init_communications(TX_PIN, RX_PIN);
 
     xTaskCreate(TaskMaster, "Master", 2048, NULL, 1, NULL);
 }
@@ -171,3 +134,5 @@ void setup() {
 void loop() {
 
 }
+
+#endif // FIDDLER

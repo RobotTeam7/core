@@ -9,15 +9,18 @@ void decode_message(const uint8_t* data_pointer, Message_t* destination) {
     destination->stop_byte = data_pointer[sizeof(uint8_t) * 3 + sizeof(destination->crc_checksum)];
 }
 
-/**
- * @returns Heap-allocated with malloc pointer of size MESSAGE_SIZE
- */
+
 uint8_t* encode_message(CommandMessage_t command, uint8_t value) {
-    uint8_t data[] = {command, value};                          // Organized data into a buffer
+    uint8_t data[] = {command, value};                          // Organized data into an array
     uint32_t crc_value = esp_crc32_le(0, data, sizeof(data));   // The CRC checksum of the data
     
-    // Compose message
     uint8_t* message_buffer = (uint8_t*)malloc(MESSAGE_SIZE);
+    if (message_buffer == NULL) {
+        log_error("Failed to allocate message buffer!");
+        return NULL;
+    }
+
+    // Compose message
     message_buffer[0] = START_BYTE;
     memcpy(message_buffer + sizeof(START_BYTE), data, sizeof(data));
     memcpy(message_buffer + sizeof(START_BYTE) + sizeof(data), &crc_value, sizeof(crc_value));

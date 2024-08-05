@@ -2,7 +2,7 @@
 #define MOTION_H
 
 
-#include <common/robot_motor.h>
+#include <common/hal.h>
 #include <common/utils.h>
 #include <motion/state.h>
 
@@ -35,7 +35,6 @@ void rotate_robot(RobotMotorData_t* robot_motors, int16_t drive_value);
 void translate_robot(RobotMotorData_t* robot_motors, int16_t drive_value);
 
 void pirouette_robot(RobotMotorData_t* robot_motors, int16_t drive_value_rotate, int16_t drive_value_translate, int degrees);
-
 
 
 #endif // MOTION_H
