@@ -453,10 +453,9 @@ void TaskMaster(void *pvParameters)
                 // determine direction to go in by looking at sign of station difference and orientation
                 state.direction = sign(station_difference * state.orientation);
 
-                int yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;;
-                state.yaw = 0;
+                state.yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;
                 Serial.println("YAW: " + String(YAW_WALL_SLAMMING) + " Orientation: " + String(state.orientation) + " Y-Direction: " + String(state.y_direction) + " Direction: " + String(state.direction));
-                // Serial.println("Desired Side Station: " + String(state.desired_side_station) + " Last Side Station: " + String())
+
                 // Start Driving
                 state.drive_state = DRIVE;
                 state.drive_speed = MOTOR_SPEED_WALL_SLAMMING;

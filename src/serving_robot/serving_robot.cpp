@@ -142,6 +142,7 @@ void TaskMaster(void* pvParameters) {
 
         send_command(DO_PIROUETTE, -2);
         wait_for_motion();
+        vTaskDelayMS(250);
         
         if (use_wifi) {
             log_status("Plate station is clear...");
