@@ -21,9 +21,6 @@ void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
     while (true) {
-        // delay for uart to work
-        vTaskDelay(pdMS_TO_TICKS(500));
-
         send_command(COUNTER_DOCK, 1);
         wait_for_motion();
 

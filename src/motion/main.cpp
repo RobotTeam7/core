@@ -594,7 +594,8 @@ void TaskMaster(void *pvParameters)
                     send_uart_message(COMPLETED);
                     state.current_action = IDLE;
                 }
-
+                
+                state.y_direction = - state.y_direction;
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = TRANSLATE;
                 vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_SIDE_SWAP));
