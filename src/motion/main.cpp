@@ -1,15 +1,4 @@
-#include <Arduino.h>
-#include <Wire.h>
-#include <math.h>
-#include <string.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-
-#include <common/robot_motor.h>
-#include <common/stepper_motor.h>
-#include <common/reflectance_sensor.h>
-#include <common/limit_switch.h>
-
+#include <common/hal.h>
 #include <communication/uart.h>
 
 #include <motion/constants.h>
@@ -17,8 +6,6 @@
 #include <motion/utils.h>
 #include <motion/state.h>
 #include <motion/motion.h>
-
-#include <common/stepper_motor.h>
 
 
 RobotMotor_t* motor_front_left;

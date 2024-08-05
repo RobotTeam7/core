@@ -1,14 +1,9 @@
-#include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <common/hal.h>
 
-#include <common/reflectance_sensor.h>
-
-#include <communication/decode.h>
+#include <communication/communication.h>
 
 #include <motion/constants.h>
 #include <motion/tasks.h>
-#include <motion/pid.h>
 #include <motion/state.h>
 #include <motion/motion.h>
 

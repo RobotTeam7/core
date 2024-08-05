@@ -17,17 +17,19 @@ typedef struct {
     int8_t last_side_station;          // When hugging a counter, which station were we last at
     int16_t pirouette_angle;
 
-    // Control
+    // Localization
     int8_t desired_station;
     int8_t desired_side_station;        // this value isn't a uint because sometimes we will send pirouette commands to return to the same side
     int direction;                      // Which direction should the robot drive in -> 1: forward, -1: reverse
     int y_direction;                    // Which direction to translate -> 1: up, 0: on tape, -1: down                
     int helicity;                       // Which direction should the robot rotate -> 1: counterclockwise, -1: clockwise
+    
+    // Control
     int yaw;                            // pid-updated drive state
     int16_t drive_speed;               // base speed in which motors should be engaged
+    float speed_modifier;               // multiplier to ALL drive speeds (should be a percentage, 0.0-1.0)
     DriveState_t drive_state;
     ActionType_t current_action;
-    float speed_modifier;               // multiplier to ALL drive speeds (should be a percentage, 0.0-1.0)
 } State_t;
 
 extern State_t state;
