@@ -2,18 +2,15 @@
 
 State_t state = {
     .orientation = -1,
-    .last_station = 0,
-    .last_side_station = 0,
     .pirouette_angle = 0,
-    
-    .desired_station = 0,
-    .desired_side_station = 0,
-    .direction = 1,
-    .y_direction = 0,
+    .last_side_station = 0,
+    .y_direction = -1,
     .helicity = 1,
+    .direction = 1,
     .yaw = 0,
-    .drive_speed = 0,
-    .drive_state = STOP,
-    .current_action = IDLE,
+    .drive_speed = 15000,
     .speed_modifier = 1.0,
+    .desired_side_station = 0,
+    .drive_state = TRANSLATE,
+    .current_action = IDLE,
 };

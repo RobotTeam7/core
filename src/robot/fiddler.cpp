@@ -118,6 +118,8 @@ void setup() {
 
     claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, SERVO_CLAW_OPEN, SERVO_CLAW_CLOSED);
     vertical_servo = instantiate_servo_motor(SERVO_VERTICAL_PIN, SERVO_VERTICAL_DOWN, SERVO_VERTICAL_UP);
+
+    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
     
     delay(1000);
 

@@ -21,7 +21,7 @@
 
 #define SERVO_PLATE_PIN                 (19)
 #define SERVO_PLATE_OPEN                (0.065)
-#define SERVO_PLATE_CLOSED              (0.035)
+#define SERVO_PLATE_CLOSED              (0.030)
 
 #define SWITCH_RACK_CLAWSIDE            (9)
 #define SWITCH_RACK_PLATESIDE           (10)

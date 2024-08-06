@@ -150,38 +150,38 @@ void TaskRotate(void *pvParameters) {
 
 
 void TaskStationTracking(void* pvParameters) {
-    TapeSensor_t* tapeSensor = (TapeSensor_t*)pvParameters;
-    if (checkTapeSensor(tapeSensor)) {
-        log_error("Nulls in dual tape sensor!");
-        return;
-    }
+    // TapeSensor_t* tapeSensor = (TapeSensor_t*)pvParameters;
+    // if (checkTapeSensor(tapeSensor)) {
+    //     log_error("Nulls in dual tape sensor!");
+    //     return;
+    // }
 
-    TickType_t delay = pdMS_TO_TICKS(DELAY_STATION_TRACKING_POLL);
+    // TickType_t delay = pdMS_TO_TICKS(DELAY_STATION_TRACKING_POLL);
 
-    int value_left;
-    int value_right;
+    // int value_left;
+    // int value_right;
 
-    log_status("Initialized TaskStationTracking");
-    bool found_tape = false;
-    while (1) {
-        // Check sensors
-        read_tape_sensor(tapeSensor);
-        value_left = tapeSensor->value;
+    // log_status("Initialized TaskStationTracking");
+    // bool found_tape = false;
+    // while (1) {
+    //     // Check sensors
+    //     read_tape_sensor(tapeSensor);
+    //     value_left = tapeSensor->value;
 
-        // Serial.println("left sensor: " + String(value_left));
-        // Serial.println("right sensor: " + String(value_right));
+    //     // Serial.println("left sensor: " + String(value_left));
+    //     // Serial.println("right sensor: " + String(value_right));
        
-        if (value_left > THRESHOLD_SENSOR_SINGLE) {
-            found_tape = true;
-        } else if ((value_left < THRESHOLD_SENSOR_SINGLE || value_right < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
-            state.last_station += state.orientation * state.direction;
-            log_status("Passed station!");
-            found_tape = false;
+    //     if (value_left > THRESHOLD_SENSOR_SINGLE) {
+    //         found_tape = true;
+    //     } else if ((value_left < THRESHOLD_SENSOR_SINGLE || value_right < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
+    //         state.last_station += state.orientation * state.direction;
+    //         log_status("Passed station!");
+    //         found_tape = false;
 
-            vTaskDelay(pdMS_TO_TICKS(150));
-        }
-        vTaskDelay(delay);
-    }
+    //         vTaskDelay(pdMS_TO_TICKS(150));
+    //     }
+    //     vTaskDelay(delay);
+    // }
 }
 
 // Ensure that a NavigationData_t* does not contain null values
@@ -404,8 +404,9 @@ void TaskHoming(void* pvParameters) {
     
     TapeSensor_t* sensor = returnToTapeData->middleTapeSensor;
 
-    state.drive_speed = 7900;
+    state.drive_speed = MOTOR_SPEED_HOMING;
     state.drive_state = DRIVE;
+    state.yaw = 0;
     
     // delay is initially high since we are initially fast, but lowers after the first detection
     int delay_ms = 300;
@@ -437,8 +438,6 @@ void TaskHoming(void* pvParameters) {
                 // not too sure if we should just set yaw to zero for this function
                 state.yaw = -state.yaw;
                 state.drive_state = DRIVE;
-
-                vTaskDelay(pdMS_TO_TICKS(50));
 
                 // for each oscillation we kill speed slightly
             }

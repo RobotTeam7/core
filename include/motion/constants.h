@@ -6,12 +6,16 @@
 #if robot == 0 // Midnight Rambler
 
 #define MOTOR_SPEED_PIROUETTE_ROTATION              (14000)    // Motor speed for the rotation moment vector component of a pirouette
+#define YAW_WALL_SLAMMING                           (2000) // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
+#define MOTOR_SPEED_HOMING                          (7900)
 
 #endif 
 
 #if robot == 1 // Fiddler
 
-#define MOTOR_SPEED_PIROUETTE_ROTATION              (12500)    // Motor speed for the rotation moment vector component of a pirouette
+#define MOTOR_SPEED_PIROUETTE_ROTATION              (11000)    // Motor speed for the rotation moment vector component of a pirouette
+#define YAW_WALL_SLAMMING                           (500) // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
+#define MOTOR_SPEED_HOMING                          (6200)
 
 #endif
 
@@ -102,7 +106,5 @@
 #define EFFICIENCY_FRONT_LEFT       (0.8)
 #define EFFICIENCY_BACK_RIGHT       (1)
 #define EFFICIENCY_BACK_LEFT        (1)
-
-#define YAW_WALL_SLAMMING           (1500) // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
 
 #endif // MOTION_CONSTANTS_H

@@ -73,7 +73,7 @@ void uart_msg_handler(void *parameter) {
                         break;
 
                     case GOTO:
-                        state.desired_station = new_packet.value;
+                        // state.desired_station = new_packet.value;
                         state.current_action = GOTO_STATION;
                         send_uart_message(ACCEPTED, 0, false);
 
@@ -260,90 +260,90 @@ void TaskMaster(void *pvParameters)
 
             case GOTO_STATION:
             {   
-                int station_difference = state.desired_station - state.last_station;
-                if (station_difference == 0) {
-                    log_error("already at desired station!");
-                    send_uart_message(COMPLETED);
-                    state.current_action == IDLE;
-                }
+                // int station_difference = state.desired_station - state.last_station;
+                // if (station_difference == 0) {
+                //     log_error("already at desired station!");
+                //     send_uart_message(COMPLETED);
+                //     state.current_action == IDLE;
+                // }
                 
-                // check if station difference and direction have opposite sign
-                // if they do flip the sign direction
-                if (station_difference * state.direction * state.orientation < 0) {
-                    state.direction = -state.direction;
-                }
+                // // check if station difference and direction have opposite sign
+                // // if they do flip the sign direction
+                // if (station_difference * state.direction * state.orientation < 0) {
+                //     state.direction = -state.direction;
+                // }
 
-                // Start Driving
-                state.drive_state = DRIVE;
-                state.drive_speed = MOTOR_SPEED_FOLLOWING;
+                // // Start Driving
+                // state.drive_state = DRIVE;
+                // state.drive_speed = MOTOR_SPEED_FOLLOWING;
 
-                // Activate tape follow 
-                log_status("Tape following!");
-                begin_following();
+                // // Activate tape follow 
+                // log_status("Tape following!");
+                // begin_following();
 
-                // Delay in case we are already on tape
-                vTaskDelay(pdMS_TO_TICKS(DELAY_STATION_TRACKING_INTITAL));
-                log_status("Station tracking!");
-                begin_station_tracking();
-                int docking = 0;
+                // // Delay in case we are already on tape
+                // vTaskDelay(pdMS_TO_TICKS(DELAY_STATION_TRACKING_INTITAL));
+                // log_status("Station tracking!");
+                // begin_station_tracking();
+                // int docking = 0;
 
-                while (1) {
-                    if ((state.last_station == state.desired_station) && !docking) {
-                        log_status("breaking!");
-                        state.direction = -state.direction;
-                        state.drive_speed = MOTOR_SPEED_BREAKING;
-                        vTaskDelay(pdMS_TO_TICKS(DELAY_BREAKING));
+                // while (1) {
+                //     if ((state.last_station == state.desired_station) && !docking) {
+                //         log_status("breaking!");
+                //         state.direction = -state.direction;
+                //         state.drive_speed = MOTOR_SPEED_BREAKING;
+                //         vTaskDelay(pdMS_TO_TICKS(DELAY_BREAKING));
                         
-                        log_status("Beginning docking...!");
+                //         log_status("Beginning docking...!");
                         
-                        if (xStationTrackingHandle != NULL) {
-                            vTaskDelete(xStationTrackingHandle);
-                            xStationTrackingHandle = NULL;
-                        }
+                //         if (xStationTrackingHandle != NULL) {
+                //             vTaskDelete(xStationTrackingHandle);
+                //             xStationTrackingHandle = NULL;
+                //         }
 
-                        // delay before backing up
-                        state.drive_state = STOP;
-                        vTaskDelay(pdMS_TO_TICKS(500));
+                //         // delay before backing up
+                //         state.drive_state = STOP;
+                //         vTaskDelay(pdMS_TO_TICKS(500));
 
-                        state.drive_state = DRIVE;
-                        state.drive_speed = MOTOR_SPEED_DOCKING;
-                        begin_docking();
-                        docking = 1;
-                    }
+                //         state.drive_state = DRIVE;
+                //         state.drive_speed = MOTOR_SPEED_DOCKING;
+                //         begin_docking();
+                //         docking = 1;
+                //     }
 
-                    if (docking) {
-                        if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {
-                            if (receivedMessage == REACHED_POSITION) {
-                                log_status("Reached position: found tape!");     
+                //     if (docking) {
+                //         if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {
+                //             if (receivedMessage == REACHED_POSITION) {
+                //                 log_status("Reached position: found tape!");     
 
-                                // if (xDockingHandle != NULL) {
-                                //     vTaskDelete(xDockingHandle);
-                                //     xDockingHandle = NULL;
-                                // }
+                //                 // if (xDockingHandle != NULL) {
+                //                 //     vTaskDelete(xDockingHandle);
+                //                 //     xDockingHandle = NULL;
+                //                 // }
 
-                                if (xHandleFollowing != NULL) {
-                                    vTaskDelete(xHandleFollowing);
-                                    xHandleFollowing = NULL;
-                                }
+                //                 if (xHandleFollowing != NULL) {
+                //                     vTaskDelete(xHandleFollowing);
+                //                     xHandleFollowing = NULL;
+                //                 }
 
-                                state.yaw = 0;
+                //                 state.yaw = 0;
 
-                                send_uart_message(COMPLETED);
-                                log_status("Ending goto station...");
-                                if (state.current_action == GOTO_STATION) {
-                                    state.current_action = IDLE;
-                                    state.drive_state = STOP;
-                                    state.direction = FORWARD_DRIVE;
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    vTaskDelay(10 / portTICK_PERIOD_MS);
+                //                 send_uart_message(COMPLETED);
+                //                 log_status("Ending goto station...");
+                //                 if (state.current_action == GOTO_STATION) {
+                //                     state.current_action = IDLE;
+                //                     state.drive_state = STOP;
+                //                     state.direction = FORWARD_DRIVE;
+                //                 }
+                //                 break;
+                //             }
+                //         }
+                //     }
+                //     vTaskDelay(10 / portTICK_PERIOD_MS);
 
                     
-                }
-                break;
+                // }
+                // break;
             }
 
             case IDLE:
@@ -439,6 +439,11 @@ void TaskMaster(void *pvParameters)
                 state.direction = sign(station_difference * state.orientation);
 
                 state.yaw = YAW_WALL_SLAMMING * state.orientation * state.y_direction * state.direction;
+
+                if (state.orientation && state.y_direction && state.direction) {
+                    state.yaw = (int)(state.yaw * 1.75);
+                }
+
                 Serial.println("YAW: " + String(YAW_WALL_SLAMMING) + " Orientation: " + String(state.orientation) + " Y-Direction: " + String(state.y_direction) + " Direction: " + String(state.direction));
 
                 // Start Driving
@@ -485,7 +490,7 @@ void TaskMaster(void *pvParameters)
                         vTaskDelayMS(250);
 
                         // update last_station based on side station
-                        state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
+                        // state.last_station = get_last_station_server(state.last_side_station, state.y_direction); // HARD CODED FOR SERVING ROBOT
                         // state.last_station = get_last_station_chef(state.last_side_station, state.y_direction); // HARD CODED FOR CHEF ROBOT
                         state.drive_speed = 0;
    
@@ -530,7 +535,7 @@ void TaskMaster(void *pvParameters)
 
                 if(slow_pirouette) {
                     final_delay *= 1 / state.speed_modifier;
-                    // initial_delay *= 2 / state.speed_modifier;
+                    initial_delay *= 0.8;
                     final_angle *= 1.33 / state.speed_modifier;
                 }
 
@@ -600,17 +605,23 @@ void TaskMaster(void *pvParameters)
                 state.y_direction = 1;
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = TRANSLATE;
-                vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_TO_WALL));
+                vTaskDelay(pdMS_TO_TICKS(1300));
 
                 state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
                 state.drive_state = DRIVE;
                 state.direction = -1;
-                vTaskDelay(pdMS_TO_TICKS(875));
+                vTaskDelay(pdMS_TO_TICKS(500));
+
+                state.direction = 1;
+                begin_homing();
+                uint32_t ulNotificationValue;
+                xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY); // Wait for message from task
+
 
                 state.drive_speed = 0;
                 state.drive_state = STOP; 
                 state.current_action = IDLE;
-                state.last_side_station = 2;
+                state.last_side_station = 1;
                 send_uart_message(COMPLETED);
                 break;
             }

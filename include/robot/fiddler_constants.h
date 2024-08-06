@@ -24,7 +24,7 @@
 #define SERVO_DRAW_BRIDGE_UP            (0.10)
 #define SERVO_CLAW_OPEN                 (0.110)
 #define SERVO_CLAW_CLOSED               (0.075)
-#define SERVO_VERTICAL_UP               (0.025)
+#define SERVO_VERTICAL_UP               (0.0275)
 #define SERVO_VERTICAL_DOWN             (0.110)
 
 
