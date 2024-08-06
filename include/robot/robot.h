@@ -9,7 +9,10 @@
 #include <communication/uart.h>
 
 
-#define SERVO_ACTUATION_DELAY 500
+#define SERVO_ACTUATION_DELAY 350
+#define DELAY_MOMENTUM_STOP_SHORT   350
+#define DELAY_MOMENTUM_STOP_LONG    1000
+
 
 #ifndef use_wifi
     #define use_wifi 1

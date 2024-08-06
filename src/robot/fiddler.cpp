@@ -35,7 +35,7 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 2);
         vTaskDelayMS(750);
         send_uart_message(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(100);
+        vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
      
         log_status("Doing pirouette!");
         send_command(DO_PIROUETTE, 2);

@@ -48,7 +48,6 @@ static inline void serve_food() {
     set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
     set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_UP);
-
 }
 
 static inline void grab_with_rack_and_claw(ServoPositionsPercentage_t percentage) {
@@ -83,7 +82,7 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 4);
         vTaskDelayMS(500);
         send_command(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(1000);
+        vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
         send_command(DO_PIROUETTE, 1);
         wait_for_motion();
 
@@ -103,7 +102,7 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 2);
         vTaskDelayMS(1000);
         send_command(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(1000);
+        vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
         send_command(DO_PIROUETTE, 2);
         wait_for_motion();
 
@@ -130,13 +129,13 @@ void TaskMaster(void* pvParameters) {
 
         // SWITCHING    _______________
         send_command(FOLLOW_WALL_TO, 2);
-        vTaskDelayMS(800);
+        vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
         send_command(ABORT, 0);
-        vTaskDelayMS(1000);
+        vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
 
         send_command(DO_PIROUETTE, -2);
         wait_for_motion();
-        vTaskDelayMS(250);
+        vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
         
         if (use_wifi) {
             log_status("Plate station is clear...");
@@ -152,9 +151,9 @@ void TaskMaster(void* pvParameters) {
         vTaskDelayMS(100);
 
         set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
-        vTaskDelayMS(700);
+        vTaskDelayMS(SERVO_ACTUATION_DELAY);
         set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
-        vTaskDelayMS(700);
+        vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
         if (use_wifi) {
             while (!action_ready) {
