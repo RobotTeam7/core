@@ -29,7 +29,6 @@ int position;
 
 void IRAM_ATTR claw_isr() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    Serial.println("Claw!");
 
     if (xClawHandle != NULL) {
         vTaskNotifyGiveFromISR(xClawHandle, &xHigherPriorityTaskWoken);
@@ -44,7 +43,6 @@ void IRAM_ATTR claw_isr() {
 
 void IRAM_ATTR forklift_isr() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    Serial.println("Forklift!");
 
     if (xForkliftHandle != NULL) {
         vTaskNotifyGiveFromISR(xForkliftHandle, &xHigherPriorityTaskWoken);

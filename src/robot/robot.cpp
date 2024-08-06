@@ -127,9 +127,9 @@ void wifi_msg_handler(void *parameter) {
     }
 }
 
-void grab_with_claw(int claw_percentage) {
+void grab_with_claw(ServoPositionsPercentage_t claw_percentage) {
     log_status("vertical servo down");
-    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_DOWN);
+    set_servo_position_percentage(vertical_servo, (int)ServoPositionsPercentage_t::VERTICAL_DOWN);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
     // close servo
@@ -138,7 +138,7 @@ void grab_with_claw(int claw_percentage) {
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
     log_status("vertical servo up");
-    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
+    set_servo_position_percentage(vertical_servo, (int)ServoPositionsPercentage_t::VERTICAL_UP);
 }
 
 void open_claw(ServoPositionsPercentage_t percentage) {

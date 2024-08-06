@@ -59,7 +59,7 @@ void TaskMaster(void* pvParameters);
 
 void send_wifi_message(CommandMessage_t command, int8_t value);
 
-void grab_with_claw(int claw_percentage);
+void grab_with_claw(ServoPositionsPercentage_t claw_percentage);
 
 void grab_plate();
 

@@ -51,16 +51,6 @@ static inline void serve_food() {
 
 }
 
-static inline void grab_with_rack_and_claw(ServoPositionsPercentage_t percentage) {
-    if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
-        set_rack_zero();
-        vTaskDelayMS(20);
-        actuate_claw_forwards();
-        vTaskDelayMS(200);
-    }
-    grab_with_claw(percentage);
-}
-
 void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
@@ -73,31 +63,34 @@ void TaskMaster(void* pvParameters) {
     while (true) {
         // STARTUP ________
         log_status("dock on side");
-        send_command(STARTUP_SERVER, 0);
-        wait_for_motion();
+        // send_command(STARTUP_SERVER, 0);
+        // wait_for_motion();
 
         // TOMATO _________________
-        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
         log_status("getting tomato");
-        send_command(FOLLOW_WALL_TO, 4);
-        vTaskDelayMS(500);
-        send_command(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(1000);
-        send_command(DO_PIROUETTE, 1);
-        wait_for_motion();
+        // send_command(FOLLOW_WALL_TO, 4);
+        // vTaskDelayMS(500);
+        // send_command(CommandMessage_t::ABORT, 0);
+        // vTaskDelayMS(1000);
+        // send_command(DO_PIROUETTE, 1);
+        // wait_for_motion();
 
         // LETTUCE _________________
-        send_command(FOLLOW_WALL_TO, 2);
-        wait_for_motion();
+        // send_command(FOLLOW_WALL_TO, 2);
+        // wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
         // CHEESE _________________
-        send_command(FOLLOW_WALL_TO, 1);
-        wait_for_motion();
+        // send_command(FOLLOW_WALL_TO, 1);
+        // wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
-        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+        Serial.println("grabby?");
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+        Serial.println("grabby!");
 
         // PIROUETTE _________________
         send_command(FOLLOW_WALL_TO, 2);
@@ -120,7 +113,7 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 3);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
-        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
 
         // DROP ON PLATE _________
         send_command(FOLLOW_WALL_TO, 4);
@@ -182,7 +175,7 @@ void setup() {
 
     init_pwm();
 
-    init_rack_and_pinion(RACK_FORWARD_PIN, RACK_REVERSE_PIN, CLAW_FORWARDS, SWITCH_RACK_PLATESIDE, SWITCH_RACK_CLAWSIDE);
+    // init_rack_and_pinion(RACK_FORWARD_PIN, RACK_REVERSE_PIN, CLAW_FORWARDS, SWITCH_RACK_PLATESIDE, SWITCH_RACK_CLAWSIDE);
 
     Serial.println("servos initialized!");
 
