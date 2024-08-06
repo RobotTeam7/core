@@ -588,7 +588,16 @@ void TaskMaster(void *pvParameters)
                 state.y_direction = - state.y_direction;
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = TRANSLATE;
-                vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_SIDE_SWAP));
+                vTaskDelayMS(DELAY_TRANSLATE_SIDE_SWAP / 3);
+                
+                state.drive_state = DRIVE;
+                state.direction = -1;
+                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
+                vTaskDelayMS(300);
+
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_state = TRANSLATE;
+                vTaskDelayMS((DELAY_TRANSLATE_SIDE_SWAP * 2) / 3);
 
                 log_status("side swap completed!");
                 state.drive_speed = 0;
