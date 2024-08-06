@@ -529,14 +529,18 @@ void TaskMaster(void *pvParameters)
                     // fix the negativeness of the side station
                     state.last_side_station = -state.last_side_station;
 
-                    final_angle *= 1.2;
-                    final_delay = int(final_delay * 1.5);
+                    final_angle *= 1.1;
+                    final_delay = int(final_delay * 1.6);
                 }
 
                 if(slow_pirouette) {
                     final_delay *= 1 / state.speed_modifier;
                     initial_delay *= 0.8;
                     final_angle *= 1.33 / state.speed_modifier;
+                }
+
+                if (state.y_direction == -1) {
+                    final_angle *= 1.5;
                 }
 
                 log_status("doing pirouette!!");

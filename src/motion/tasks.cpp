@@ -413,7 +413,6 @@ void TaskHoming(void* pvParameters) {
 
     while(1) {
         read_tape_sensor(sensor);
-        Serial.println(String(sensor->value));
 
         if(sensor->value >= 2000) {
             Serial.println("I see tape!" + String(sensor->value));

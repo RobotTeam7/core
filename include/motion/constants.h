@@ -9,6 +9,7 @@
 #define YAW_WALL_SLAMMING                           (2000) // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
 #define MOTOR_SPEED_HOMING                          (7900)
 #define DELAY_FINISH_PIROUETTE                      (2300)    // delay used to time when to stop translating after rotating during a pirouette
+#define MOTOR_SPEED_TRANSLATION                     (18000)   // Base speed for when we are trying to dock
 
 #endif 
 
@@ -18,6 +19,7 @@
 #define YAW_WALL_SLAMMING                           (500) // the yaw (motor difference) introduced during wall slamming to ensure the robot stays on the wall.
 #define MOTOR_SPEED_HOMING                          (6200)
 #define DELAY_FINISH_PIROUETTE                      (1300)    // delay used to time when to stop translating after rotating during a pirouette
+#define MOTOR_SPEED_TRANSLATION                     (15000)   // Base speed for when we are trying to dock
 
 #endif
 
@@ -26,7 +28,6 @@
 #define MOTOR_SPEED_FOLLOWING                       (9000)    // Base motor speed whilst tape following
 #define MOTOR_SPEED_ROTATION                        (9000)    // Base motor speed whilst rotating
 #define MOTOR_SPEED_DOCKING                         (6000)    // Base speed for when we are trying to dock
-#define MOTOR_SPEED_TRANSLATION                     (15000)   // Base speed for when we are trying to dock
 #define MOTOR_SPEED_BREAKING                        (12000)   // Break speed of the motors
 #define MOTOR_SPEED_WALL_SLAMMING                   (18000)    // Base motor sped whilst wall slamming
 #define MOTOR_SPEED_WALL_SLAMMING_CRAWL             (7800)    // Base motor sped whilst approaching desired station and wall slamming

@@ -50,17 +50,6 @@ static inline void serve_food() {
     set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_UP);
 }
 
-static inline void grab_with_rack_and_claw(ServoPositionsPercentage_t percentage) {
-    if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
-        set_rack_zero();
-        vTaskDelayMS(20);
-        actuate_claw_forwards();
-        vTaskDelayMS(200);
-    }
-    grab_with_claw(percentage);
-}
-
-
 
 static inline void circuit_1() {
     // STARTUP ________
@@ -69,7 +58,7 @@ static inline void circuit_1() {
     wait_for_motion();
 
     // TOMATO _________________
-    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
     log_status("getting tomato");
     send_command(FOLLOW_WALL_TO, 4);
@@ -83,13 +72,13 @@ static inline void circuit_1() {
     send_command(FOLLOW_WALL_TO, 2);
     wait_for_motion();
     open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
     // CHEESE _________________
     send_command(FOLLOW_WALL_TO, 1);
     wait_for_motion();
     open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
-    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
 
     // PIROUETTE _________________
     send_command(FOLLOW_WALL_TO, 2);
@@ -112,7 +101,7 @@ static inline void circuit_1() {
     send_command(FOLLOW_WALL_TO, 3);
     wait_for_motion();
     open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
-    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
 
     // DROP ON PLATE _________
     send_command(FOLLOW_WALL_TO, 4);
@@ -122,7 +111,7 @@ static inline void circuit_1() {
 
     // SWITCHING    _______________
     send_command(FOLLOW_WALL_TO, 2);
-    vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
+    vTaskDelayMS(850);
     send_command(ABORT, 0);
     vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
 
@@ -138,9 +127,6 @@ static inline void circuit_1() {
     // GRAB PLATE   _______________
     send_command(FOLLOW_WALL_TO, 4);
     wait_for_motion();
-    if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
-        actuate_claw_forwards();
-    }
     vTaskDelayMS(100);
 
     set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
@@ -173,6 +159,7 @@ static inline void circuit_1() {
 
 // assumes the robot begins with clawside over the serving station
 static inline void circuit_2() {
+    send_command(SET_MULTIPLIER, 100);
     // raise vertical
     set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
     send_command(DO_PIROUETTE, -1);
@@ -183,13 +170,13 @@ static inline void circuit_2() {
     send_command(FOLLOW_WALL_TO, 2);
     wait_for_motion();
     open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
-    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_LETTUCE);
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_LETTUCE);
 
     // CHEESE
     send_command(FOLLOW_WALL_TO, 1);
     wait_for_motion();
     open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
-    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
 
     // PIROUETTE _________________
     send_command(FOLLOW_WALL_TO, 2);
@@ -203,7 +190,7 @@ static inline void circuit_2() {
     send_command(FOLLOW_WALL_TO, 3);
     wait_for_motion();
     open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
-    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
 
     // DROP ON PLATE
     send_command(FOLLOW_WALL_TO, 4);
@@ -228,9 +215,6 @@ static inline void circuit_2() {
     // GRAB PLATE   _______________
     send_command(FOLLOW_WALL_TO, 4);
     wait_for_motion();
-    if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
-        actuate_claw_forwards();
-    }
     vTaskDelayMS(100);
 
     set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
@@ -263,11 +247,11 @@ void TaskMaster(void* pvParameters) {
     }
 
     while (true) {
-        circuit_1();
+        // circuit_1();
 
         circuit_2();
 
-        circuit_2();
+        // circuit_2();
 
 
         while (1) {
@@ -281,10 +265,6 @@ void setup() {
     Serial.begin(115200); // Initialize serial monitor
 
     init_pwm();
-
-    init_rack_and_pinion(RACK_FORWARD_PIN, RACK_REVERSE_PIN, CLAW_FORWARDS, SWITCH_RACK_PLATESIDE, SWITCH_RACK_CLAWSIDE);
-
-    Serial.println("servos initialized!");
 
     claw_servo = instantiate_servo_motor(SERVO_CLAW_PIN, SERVO_CLAW_OPEN, SERVO_CLAW_CLOSED);
     draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_UP, SERVO_DRAW_BRIDGE_DOWN);
