@@ -126,6 +126,7 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
+        vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
         // SWITCHING    _______________
         send_command(FOLLOW_WALL_TO, 2);
