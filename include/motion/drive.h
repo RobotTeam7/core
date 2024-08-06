@@ -1,10 +1,14 @@
 #ifndef MOTION_H
 #define MOTION_H
 
+#include <math.h>
 
 #include <common/hal.h>
 #include <common/utils.h>
+
 #include <motion/state.h>
+#include <motion/constants.h>
+
 
 typedef struct {
     RobotMotor_t* motorFR;

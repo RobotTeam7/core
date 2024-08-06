@@ -194,6 +194,7 @@ void setup() {
     
     Serial.println("vertical servo go up!");
     set_servo_position_percentage(vertical_servo, 0);
+    set_servo_position_percentage(claw_servo, ServoPositionsPercentage_t::CLAW_OPEN);
 
     init_communications(TX_PIN, RX_PIN);
     
