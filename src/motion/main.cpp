@@ -119,9 +119,9 @@ void uart_msg_handler(void *parameter) {
                         Serial.println("Value: " + String(state.last_side_station));
                         send_uart_message(ACCEPTED, 0, false);
                         break;
-                    case SWITCH_COUNTER:
-                        state.current_action = ActionType_t::SIDE_SWAP;
-                        state.last_side_station = new_packet.value;
+                    case MOVE_ASIDE:
+                        state.current_action = ActionType_t::ASIDE;
+                        state.y_direction = new_packet.value;
                         send_uart_message(ACCEPTED, 0, false);
                         break;
 
@@ -577,7 +577,7 @@ void TaskMaster(void *pvParameters)
                 break;
             }
 
-            case ActionType_t::SIDE_SWAP:
+            case ActionType_t::ASIDE:
             {
                 if(state.y_direction == 0) {
                     log_error("cannot side swap when y direction is 0");
@@ -585,24 +585,22 @@ void TaskMaster(void *pvParameters)
                     state.current_action = IDLE;
                 }
                 
-                state.y_direction = - state.y_direction;
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = TRANSLATE;
-                vTaskDelayMS(DELAY_TRANSLATE_SIDE_SWAP / 3);
+                vTaskDelayMS(DELAY_TRANSLATE_SIDE_SWAP);
                 
-                state.drive_state = DRIVE;
-                state.direction = -1;
-                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
-                vTaskDelayMS(300);
+                // state.drive_state = DRIVE;
+                // state.direction = -1;
+                // state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
+                // vTaskDelayMS(300);
 
-                state.drive_speed = MOTOR_SPEED_TRANSLATION;
-                state.drive_state = TRANSLATE;
-                vTaskDelayMS((DELAY_TRANSLATE_SIDE_SWAP * 2) / 3);
+                // state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                // state.drive_state = TRANSLATE;
+                // vTaskDelayMS((DELAY_TRANSLATE_SIDE_SWAP * 2) / 3);
 
                 log_status("side swap completed!");
                 state.drive_speed = 0;
                 state.drive_state = STOP;
-                state.y_direction = -state.y_direction;
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);
 

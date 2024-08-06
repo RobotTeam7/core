@@ -60,6 +60,199 @@ static inline void grab_with_rack_and_claw(ServoPositionsPercentage_t percentage
     grab_with_claw(percentage);
 }
 
+
+
+static inline void circuit_1() {
+    // STARTUP ________
+    log_status("dock on side");
+    send_command(STARTUP_SERVER, 0);
+    wait_for_motion();
+
+    // TOMATO _________________
+    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+
+    log_status("getting tomato");
+    send_command(FOLLOW_WALL_TO, 4);
+    vTaskDelayMS(500);
+    send_command(CommandMessage_t::ABORT, 0);
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
+    send_command(DO_PIROUETTE, 1);
+    wait_for_motion();
+
+    // LETTUCE _________________
+    send_command(FOLLOW_WALL_TO, 2);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+
+    // CHEESE _________________
+    send_command(FOLLOW_WALL_TO, 1);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
+    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+
+    // PIROUETTE _________________
+    send_command(FOLLOW_WALL_TO, 2);
+    vTaskDelayMS(1000);
+    send_command(CommandMessage_t::ABORT, 0);
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+
+    if (use_wifi) {
+        while (!action_ready) {
+            log_status("Waiting for patty to be ready!");
+            vTaskDelayMS(50);
+        }
+        action_ready = false;
+        log_status("Patty is ready!");
+    }
+
+    // PATTY _________________
+    send_command(FOLLOW_WALL_TO, 3);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
+    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+
+    // DROP ON PLATE _________
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY);
+
+    // SWITCHING    _______________
+    send_command(FOLLOW_WALL_TO, 2);
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
+    send_command(ABORT, 0);
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
+
+    send_command(DO_PIROUETTE, -2);
+    wait_for_motion();
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
+    
+    if (use_wifi) {
+        log_status("Plate station is clear...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+    }
+
+    // GRAB PLATE   _______________
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+    if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
+        actuate_claw_forwards();
+    }
+    vTaskDelayMS(100);
+
+    set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY);
+    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY);
+
+    if (use_wifi) {
+        while (!action_ready) {
+            log_status("Waiting for top bun to be ready!");
+            vTaskDelayMS(50);
+        }
+        action_ready = false;
+        log_status("Top bun is ready!");
+    }
+
+    grab_plate();
+
+    if (use_wifi) {
+        vTaskDelayMS(200);
+        log_status("Informing that fiddle can redock at counter...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+    }
+
+    // SERVE FOOD   _______________
+    serve_food();
+}
+
+
+
+// assumes the robot begins with clawside over the serving station
+static inline void circuit_2() {
+    // raise vertical
+    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
+    send_command(DO_PIROUETTE, -1);
+    wait_for_motion();
+
+
+    // LETTUCE
+    send_command(FOLLOW_WALL_TO, 2);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
+    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_LETTUCE);
+
+    // CHEESE
+    send_command(FOLLOW_WALL_TO, 1);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
+    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+
+    // PIROUETTE _________________
+    send_command(FOLLOW_WALL_TO, 2);
+    vTaskDelayMS(1000);
+    send_command(CommandMessage_t::ABORT, 0);
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+
+    // PATTY
+    send_command(FOLLOW_WALL_TO, 3);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
+    grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+
+    // DROP ON PLATE
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
+
+    // SWITCHING    _______________
+    send_command(FOLLOW_WALL_TO, 2);
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
+    send_command(ABORT, 0);
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
+
+    send_command(DO_PIROUETTE, -2);
+    wait_for_motion();
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
+    
+    if (use_wifi) {
+        log_status("Plate station is clear...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+    }
+
+    // GRAB PLATE   _______________
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+    if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
+        actuate_claw_forwards();
+    }
+    vTaskDelayMS(100);
+
+    set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY);
+    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY);
+
+    if (use_wifi) {
+        while (!action_ready) {
+            log_status("Waiting for top bun to be ready!");
+            vTaskDelayMS(50);
+        }
+        action_ready = false;
+        log_status("Top bun is ready!");
+    }
+
+    grab_plate();
+
+    // SERVE FOOD   _______________
+    serve_food();
+}
+
 void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
@@ -70,104 +263,12 @@ void TaskMaster(void* pvParameters) {
     }
 
     while (true) {
-        // STARTUP ________
-        log_status("dock on side");
-        send_command(STARTUP_SERVER, 0);
-        wait_for_motion();
+        circuit_1();
 
-        // TOMATO _________________
-        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+        circuit_2();
 
-        log_status("getting tomato");
-        send_command(FOLLOW_WALL_TO, 4);
-        vTaskDelayMS(500);
-        send_command(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
-        send_command(DO_PIROUETTE, 1);
-        wait_for_motion();
+        circuit_2();
 
-        // LETTUCE _________________
-        send_command(FOLLOW_WALL_TO, 2);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
-
-        // CHEESE _________________
-        send_command(FOLLOW_WALL_TO, 1);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
-        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
-
-        // PIROUETTE _________________
-        send_command(FOLLOW_WALL_TO, 2);
-        vTaskDelayMS(1000);
-        send_command(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
-
-        if (use_wifi) {
-            while (!action_ready) {
-                log_status("Waiting for patty to be ready!");
-                vTaskDelayMS(50);
-            }
-            action_ready = false;
-            log_status("Patty is ready!");
-        }
-
-        // PATTY _________________
-        send_command(FOLLOW_WALL_TO, 3);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
-        grab_with_rack_and_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
-
-        // DROP ON PLATE _________
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
-        vTaskDelayMS(SERVO_ACTUATION_DELAY);
-
-        // SWITCHING    _______________
-        send_command(FOLLOW_WALL_TO, 2);
-        vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
-        send_command(ABORT, 0);
-        vTaskDelayMS(DELAY_MOMENTUM_STOP_LONG);
-
-        send_command(DO_PIROUETTE, -2);
-        wait_for_motion();
-        vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
-        
-        if (use_wifi) {
-            log_status("Plate station is clear...");
-            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
-        }
-
-        // GRAB PLATE   _______________
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-        if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
-            actuate_claw_forwards();
-        }
-        vTaskDelayMS(100);
-
-        set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
-        vTaskDelayMS(SERVO_ACTUATION_DELAY);
-        set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
-        vTaskDelayMS(SERVO_ACTUATION_DELAY);
-
-        if (use_wifi) {
-            while (!action_ready) {
-                log_status("Waiting for top bun to be ready!");
-                vTaskDelayMS(50);
-            }
-            action_ready = false;
-            log_status("Top bun is ready!");
-        }
-
-        grab_plate();
-
-        // SERVE FOOD   _______________
-        serve_food();
 
         while (1) {
             vTaskDelay(1000);

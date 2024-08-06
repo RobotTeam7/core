@@ -6,7 +6,7 @@
 
 // Coordinate System Orientation: serving station is down (enemy gate is down). 
 
-typedef enum { GOTO_STATION, SPIN, IDLE, DOCK_AT_STATION, RETURN_TO_TAPE, WALL_SLAM_TO, PIROUETTE, SIDE_SWAP, STARTUP } ActionType_t;
+typedef enum { GOTO_STATION, SPIN, IDLE, DOCK_AT_STATION, RETURN_TO_TAPE, WALL_SLAM_TO, PIROUETTE, ASIDE, STARTUP } ActionType_t;
 
 typedef enum { DRIVE, ROTATE, STOP, TRANSLATE, ROTATE_AND_TRANSLATE } DriveState_t;
 

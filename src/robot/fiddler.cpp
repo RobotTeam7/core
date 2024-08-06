@@ -9,97 +9,228 @@
 #include <communication/uart.h>
 
 
+static inline void circuit_1() {
+    send_command(COUNTER_DOCK, 1);
+    wait_for_motion();
+
+    send_command(FOLLOW_WALL_TO, 2);
+    wait_for_motion();
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
+
+    // DROP BUN  
+    log_status("Doing pirouette!");
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+
+    log_status("drop bun");
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+
+    // PATTY    
+    log_status("goto patty");
+    send_command(FOLLOW_WALL_TO, 2);
+    vTaskDelayMS(750);
+    send_uart_message(CommandMessage_t::ABORT, 0);
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
+    
+    log_status("Doing pirouette!");
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+
+    log_status("getting patty");
+    send_command(FOLLOW_WALL_TO, 1);
+    wait_for_motion();
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+
+    // COOK
+    log_status("Doing pirouette!");
+    send_command(DO_PIROUETTE, 1);
+    wait_for_motion();
+
+    log_status("goto cooktop");
+    send_command(FOLLOW_WALL_TO, 3);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+
+    if (use_wifi) {
+        log_status("Informing that patty is ready...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+    }
+    
+    // TOP BUN
+    log_status("Doing pirouette!");
+    send_command(DO_PIROUETTE, 3);
+    wait_for_motion();
+
+    log_status("getting top bun");
+    send_command(FOLLOW_WALL_TO, 2);
+    wait_for_motion();
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
+
+    // DROP BUN  
+    log_status("Doing pirouette!");
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+
+    if (use_wifi) {
+        while (!action_ready) {
+            log_status("Waiting for plate station to be clear!");
+            vTaskDelayMS(50);
+        }
+        action_ready = false;
+        log_status("Plate station is clear!");
+    }
+
+    log_status("getting bun");
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+
+    // LEAVING
+    log_status("switching away!");
+    send_command(MOVE_ASIDE, 1);
+    wait_for_motion();
+    if (use_wifi) {
+        vTaskDelayMS(200);
+        log_status("Informing that top bun is ready...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+    }
+
+
+    // RETURNING
+    send_command(MOVE_ASIDE, -1);
+    wait_for_motion();
+}
+
+
+
+
+// assumes the robot on the bottom wall with last_side_station = 3
+static inline void circuit_2() {
+    // TOMATO
+    send_command(FOLLOW_WALL_TO, 1);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+
+    // PIROUETTE
+    send_command(FOLLOW_WALL_TO, 2);
+    vTaskDelayMS(500);
+    send_command(ABORT, 0);
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
+    send_command(DO_PIROUETTE, 0);
+    wait_for_motion();
+
+    // BOTTOM BUN
+    send_command(FOLLOW_WALL_TO, 2);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
+
+    // DROP ON PLATE
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_3);
+
+    // PATTY    
+    log_status("goto patty");
+    send_command(FOLLOW_WALL_TO, 2);
+    vTaskDelayMS(750);
+    send_uart_message(CommandMessage_t::ABORT, 0);
+    vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
+    
+    log_status("Doing pirouette!");
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+
+    log_status("getting patty");
+    send_command(FOLLOW_WALL_TO, 1);
+    wait_for_motion();
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+
+    // COOK
+    log_status("Doing pirouette!");
+    send_command(DO_PIROUETTE, 1);
+    wait_for_motion();
+
+    log_status("goto cooktop");
+    send_command(FOLLOW_WALL_TO, 3);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+
+    if (use_wifi) {
+        log_status("Informing that patty is ready...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+    }
+    
+    // TOP BUN
+    log_status("Doing pirouette!");
+    send_command(DO_PIROUETTE, 3);
+    wait_for_motion();
+
+    log_status("getting top bun");
+    send_command(FOLLOW_WALL_TO, 2);
+    wait_for_motion();
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
+
+    // DROP BUN  
+    log_status("Doing pirouette!");
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+
+    if (use_wifi) {
+        while (!action_ready) {
+            log_status("Waiting for plate station to be clear!");
+            vTaskDelayMS(50);
+        }
+        action_ready = false;
+        log_status("Plate station is clear!");
+    }
+
+    log_status("getting bun");
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+
+    // LEAVING
+    log_status("switching away!");
+    send_command(MOVE_ASIDE, 1);
+    wait_for_motion();
+    if (use_wifi) {
+        vTaskDelayMS(200);
+        log_status("Informing that top bun is ready...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+    }
+    
+
+    if (use_wifi) {
+        while (!action_ready) {
+            log_status("Waiting to go back!");
+            vTaskDelayMS(50);
+        }
+        action_ready = false;
+        log_status("Plate station is clear!");
+    }
+
+    // RETURNING
+    send_command(MOVE_ASIDE, -1);
+    wait_for_motion();
+}
+
 void TaskMaster(void* pvParameters) {
     log_status("Beginning master...");
 
     while (true) {
-        send_command(COUNTER_DOCK, 1);
-        wait_for_motion();
 
-        send_command(FOLLOW_WALL_TO, 2);
-        wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
+        circuit_1();
 
-        // DROP BUN  
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
+        circuit_2();
 
-        log_status("drop bun");
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-
-        // PATTY    
-        log_status("goto patty");
-        send_command(FOLLOW_WALL_TO, 2);
-        vTaskDelayMS(750);
-        send_uart_message(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(DELAY_MOMENTUM_STOP_SHORT);
-     
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
-
-        log_status("getting patty");
-        send_command(FOLLOW_WALL_TO, 1);
-        wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
-
-        // COOK
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 1);
-        wait_for_motion();
-
-        log_status("goto cooktop");
-        send_command(FOLLOW_WALL_TO, 3);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-
-        if (use_wifi) {
-            log_status("Informing that patty is ready...");
-            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
-        }
+        circuit_2();
         
-        // TOP BUN
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 3);
-        wait_for_motion();
-
-        log_status("getting top bun");
-        send_command(FOLLOW_WALL_TO, 2);
-        wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
-
-        // DROP BUN  
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
-
-        if (use_wifi) {
-            while (!action_ready) {
-                log_status("Waiting for plate station to be clear!");
-                vTaskDelayMS(50);
-            }
-            action_ready = false;
-            log_status("Plate station is clear!");
-        }
-
-        log_status("getting bun");
-        send_command(FOLLOW_WALL_TO, 4);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-
-        // RETURN // TODO: TEST this
-        log_status("Doing pirouette!");
-        send_command(SWITCH_COUNTER, 4);
-        if (use_wifi) {
-            vTaskDelayMS(200);
-            log_status("Informing that top bun is ready...");
-            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
-        }
-        wait_for_motion();
-
         Serial.println("Done!");
         while (1) {
             vTaskDelay(1000);
