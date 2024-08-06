@@ -6,19 +6,18 @@
 #include <esp_err.h>
 #include <esp32-hal-ledc.h>
 
-#include <common/resource_manager.h>
 #include <common/constants.h>
 #include <common/utils.h>
 
 
 #define MAX_AVAILABLE_PWM_CHANNELS  (SOC_LEDC_CHANNEL_NUM<<1)
 #define MAX_AVAILABLE_TIMERS        SOC_TIMER_GROUP_TOTAL_TIMERS
-#define MAX_CHANNELS_PER_TIMER      4
+#define MAX_CHANNELS_PER_TIMER      (4)
 #define LEDC_PWM_SPEED_MODE         LEDC_LOW_SPEED_MODE
-#define NUM_GPIO_PINS               39
-#define PWM_LEDC_GROUP              0
-#define CHANNEL_IS_AVAILABLE        -1
-#define UNSPECIFIED_CHANNEL         -1
+#define NUM_GPIO_PINS               (39)
+#define PWM_LEDC_GROUP              (0)
+#define CHANNEL_IS_AVAILABLE        (-1)
+#define UNSPECIFIED_CHANNEL         (-1)
 
 /**
  * @brief Perform initialization of PWM hardware and custom software peripherals. Required before using other 

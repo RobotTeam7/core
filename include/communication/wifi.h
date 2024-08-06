@@ -1,32 +1,39 @@
 #ifndef ROBOT_WIFI_H
 #define ROBOT_WIFI_H
 
-#include <WiFi.h>
+#include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
+#include <WiFi.h>
+#include <esp_now.h>
+
 #include <common/utils.h>
 
-typedef struct {
-    const char* ssid;
-    const char* password;
-    const char* host;
-} WiFiConfig_t;
+#include <communication/communication.h>
 
-extern const WiFiConfig_t wifi_config;
+// The queue of type Packet_t which will be the destination for messages received over WiFi (ESP-NOW).
+extern QueueHandle_t wifi_message_queue;
 
-typedef struct {
-    const WiFiConfig_t* wifi_config;
-    QueueHandle_t* inbound_wifi_queue;
-    QueueHandle_t* outbound_wifi_queue;
-} WiFiHandler_t;
+#if robot == 0
+    #pragma message "Compiling Midnight Rambler!"
+    #define PEER_MAC_ADDRESS {0x64, 0xB7, 0x08, 0x9D, 0x70, 0x18} // Fiddler's MAC address
+#elif robot == 1
+    #pragma message "Compiling Fiddler!"
+    #define PEER_MAC_ADDRESS {0x64, 0xB7, 0x08, 0x9C, 0x5B, 0x90} // Midnight Rambler's MAC address
+#endif  
 
-typedef struct {
-    uint8_t byte1;
-    uint8_t byte2;
-} WiFiPacket_t;
+// The MAC address of this board's peer.
+extern const uint8_t mac_address[6];
 
-extern const uint16_t port;
+/**
+ * @brief Initialize WiFi communications to this board's peer through ESP-NOW. This function blocks until the peer
+ * can be added.
+ */
+void init_wifi();
 
-int checkWiFiHandler(WiFiHandler_t* wifiHandler);
+/**
+ * @brief Send a message consisting of `command` and `value` over WiFi (ESP-NOW) to this board's registered peer.
+ */
+void send_wifi_message(CommandMessage_t command, int8_t value);
 
 
 #endif // ROBOT_WIFI_H

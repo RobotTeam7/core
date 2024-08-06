@@ -1,14 +1,10 @@
 #ifndef MOTION_TASKS_H
 #define MOTION_TASKS_H
 
-#include <Arduino.h>
-#include <CircularBuffer.hpp>
-
-#include <common/robot_motor.h>
+#include <common/hal.h>
 
 #include <motion/constants.h>
 #include <motion/utils.h>
-#include <common/reflectance_sensor.h>
 
 
 extern TaskHandle_t xHandleRotating;
@@ -19,6 +15,7 @@ extern TaskHandle_t xDockingHandle;
 extern TaskHandle_t xCounterDockingHandle;
 extern TaskHandle_t xReturnToTapeHandle;
 extern TaskHandle_t xFollowWallHandle;
+extern TaskHandle_t xHomingHandle;
 
 typedef struct {
     TapeSensor_t* fontTapeSensor;
@@ -49,6 +46,7 @@ void TaskCounterDocking(void* pvParameters);
 void TaskReturnToTape(void* pvParameters);
 void TaskCounterDocking(void* pvParameters);
 void TaskFollowWall(void* pvParameters);
+void TaskHoming(void* pvParameters);
 
 
 #endif // MOTION_TASKS_H

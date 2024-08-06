@@ -1,14 +1,9 @@
-#include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <common/hal.h>
 
-#include <common/reflectance_sensor.h>
-
-#include <communication/decode.h>
+#include <communication/communication.h>
 
 #include <motion/constants.h>
 #include <motion/tasks.h>
-#include <motion/pid.h>
 #include <motion/state.h>
 #include <motion/motion.h>
 
@@ -21,6 +16,7 @@ TaskHandle_t xDockingHandle = NULL;
 TaskHandle_t xCounterDockingHandle = NULL;
 TaskHandle_t xReturnToTapeHandle = NULL;
 TaskHandle_t xFollowWallHandle = NULL;
+TaskHandle_t xHomingHandle = NULL;
 
 // Ensure that a RobotMotorData_t* does not contain null values
 int checkRobotMotors(RobotMotorData_t* robotMotors) {
@@ -154,38 +150,38 @@ void TaskRotate(void *pvParameters) {
 
 
 void TaskStationTracking(void* pvParameters) {
-    TapeSensor_t* tapeSensor = (TapeSensor_t*)pvParameters;
-    if (checkTapeSensor(tapeSensor)) {
-        log_error("Nulls in dual tape sensor!");
-        return;
-    }
+    // TapeSensor_t* tapeSensor = (TapeSensor_t*)pvParameters;
+    // if (checkTapeSensor(tapeSensor)) {
+    //     log_error("Nulls in dual tape sensor!");
+    //     return;
+    // }
 
-    TickType_t delay = pdMS_TO_TICKS(DELAY_STATION_TRACKING_POLL);
+    // TickType_t delay = pdMS_TO_TICKS(DELAY_STATION_TRACKING_POLL);
 
-    int value_left;
-    int value_right;
+    // int value_left;
+    // int value_right;
 
-    log_status("Initialized TaskStationTracking");
-    bool found_tape = false;
-    while (1) {
-        // Check sensors
-        read_tape_sensor(tapeSensor);
-        value_left = tapeSensor->value;
+    // log_status("Initialized TaskStationTracking");
+    // bool found_tape = false;
+    // while (1) {
+    //     // Check sensors
+    //     read_tape_sensor(tapeSensor);
+    //     value_left = tapeSensor->value;
 
-        // Serial.println("left sensor: " + String(value_left));
-        // Serial.println("right sensor: " + String(value_right));
+    //     // Serial.println("left sensor: " + String(value_left));
+    //     // Serial.println("right sensor: " + String(value_right));
        
-        if (value_left > THRESHOLD_SENSOR_SINGLE) {
-            found_tape = true;
-        } else if ((value_left < THRESHOLD_SENSOR_SINGLE || value_right < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
-            state.last_station += state.orientation * state.direction;
-            log_status("Passed station!");
-            found_tape = false;
+    //     if (value_left > THRESHOLD_SENSOR_SINGLE) {
+    //         found_tape = true;
+    //     } else if ((value_left < THRESHOLD_SENSOR_SINGLE || value_right < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
+    //         state.last_station += state.orientation * state.direction;
+    //         log_status("Passed station!");
+    //         found_tape = false;
 
-            vTaskDelay(pdMS_TO_TICKS(150));
-        }
-        vTaskDelay(delay);
-    }
+    //         vTaskDelay(pdMS_TO_TICKS(150));
+    //     }
+    //     vTaskDelay(delay);
+    // }
 }
 
 // Ensure that a NavigationData_t* does not contain null values
@@ -395,4 +391,59 @@ void TaskFollowWall(void* pvParameters) {
         vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_POLL));
     }
     Serial.println("Exited loop!");
+}
+void TaskHoming(void* pvParameters) {
+    ReturnToTapeData_t* returnToTapeData = (ReturnToTapeData_t*)pvParameters;
+
+    if(checkTapeSensor(returnToTapeData->middleTapeSensor)) {
+        log_error("middle tape sensor is null");
+        vTaskDelete(xHomingHandle);
+        xHomingHandle = NULL;
+        return;
+    }
+    
+    TapeSensor_t* sensor = returnToTapeData->middleTapeSensor;
+
+    state.drive_speed = MOTOR_SPEED_HOMING;
+    state.drive_state = DRIVE;
+    state.yaw = 0;
+    
+    // delay is initially high since we are initially fast, but lowers after the first detection
+    int delay_ms = 300;
+
+    while(1) {
+        read_tape_sensor(sensor);
+        Serial.println(String(sensor->value));
+
+        if(sensor->value >= 2000) {
+            Serial.println("I see tape!" + String(sensor->value));
+
+            state.drive_state = STOP;
+            vTaskDelay(pdMS_TO_TICKS(delay_ms));
+
+            read_tape_sensor(sensor);
+            if(sensor->value >= 2000) {
+                // while(1) {
+                //     log_status("IM ON TAPE WOOP WOOP");
+                //     vTaskDelay(1000);
+                // }
+                xTaskNotifyGive(*returnToTapeData->masterHandle);
+                log_status("finished homing!");
+                vTaskDelete(NULL);
+                xHomingHandle = NULL;
+            }else {
+                delay_ms = 50;
+                // we must have passed the tape, so we look for it in the opposite direction
+                state.direction = -state.direction;
+                // not too sure if we should just set yaw to zero for this function
+                state.yaw = -state.yaw;
+                state.drive_state = DRIVE;
+
+                // for each oscillation we kill speed slightly
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(DELAY_HOMING_POLL));
+    }
+
+
 }
