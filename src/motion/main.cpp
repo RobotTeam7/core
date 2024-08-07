@@ -113,9 +113,8 @@ void uart_msg_handler(void *parameter) {
                     }
                     case DO_PIROUETTE:
                         // packet contains the last_side_station on the side we will end up on
-                        state.current_action = ActionType_t::PIROUETTE;
+                        state.current_action = ActionType_t::SPIN;
                         state.last_side_station = new_packet.value;
-                        Serial.println("Value: " + String(state.last_side_station));
 
                         send_uart_message(ACCEPTED, 0, false);
                         break;
@@ -152,6 +151,18 @@ void uart_msg_handler(void *parameter) {
                     case READY:
                     {
                         send_uart_message(ACK, 0, false);
+
+                        break;
+                    }
+
+                    case DO_ESCAPE:
+                    {
+                        state.current_action = ESCAPE;
+                        state.last_side_station = new_packet.value;
+
+                        send_uart_message(ACCEPTED, 0, false);
+
+                        break;
                     }
 
                     case 0x40 ... 0x4f:
@@ -245,28 +256,53 @@ void TaskMaster(void *pvParameters)
         switch (state.current_action) {
             case SPIN:
             {      
+                bool counter_return = state.last_side_station < 0;
+                bool slow_pirouette = state.speed_modifier < 0.99;
+                int16_t rotation_delay = DELAY_SINGLE_ROTATION;
+                int16_t translation_delay_before = DELAY_COUNTER_ASIDE;
+                int16_t translation_delay_after = DELAY_COUNTER_ASIDE;
+                
+                // if desired side station is negative we want to return to the counter we just came from
+                if (counter_return) {
+                    // fix the negativeness of the side station
+                    state.last_side_station = -state.last_side_station;
+                    rotation_delay *= 1.0;
+                    translation_delay_before *= 1.15;
+                    translation_delay_after *= 1.35;
+                }
+
+                if (slow_pirouette) {
+                    rotation_delay *= 1.25;
+                    translation_delay_before *= 1.25;
+                    translation_delay_after *= 1.25;
+                }
+
                 state.y_direction = -state.y_direction;
                 state.drive_state = TRANSLATE;
-                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_speed = MOTOR_SPEED_SPIN_TRANSLATION;
 
-                vTaskDelayMS(DELAY_COUNTER_ASIDE);
+                vTaskDelayMS(translation_delay_before);
 
                 state.drive_state = DriveState_t::ROTATE;
-                state.drive_speed = MOTOR_SPEED_ROTATION;
+                state.drive_speed = MOTOR_SPEED_SPIN_ROTATION;
 
-                vTaskDelayMS(DELAY_SINGLE_ROTATION);
+                vTaskDelayMS(rotation_delay);
+
+                if (counter_return) {
+                    state.y_direction = -state.y_direction;
+                }
 
                 state.orientation = -state.orientation;
                 state.drive_state = TRANSLATE;
-                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_speed = MOTOR_SPEED_SPIN_TRANSLATION;
 
-                vTaskDelayMS(DELAY_COUNTER_ASIDE);
+                vTaskDelayMS(translation_delay_after);
 
                 state.drive_speed = 0;
                 state.drive_state = STOP;
-
-                vTaskDelayMS(2000);
-
+                state.current_action = IDLE;
+                
+                send_uart_message(COMPLETED);
                 break;
             }
 
@@ -297,9 +333,9 @@ void TaskMaster(void *pvParameters)
 
                 state.drive_speed = 0;
                 state.drive_state = STOP;
+                state.current_action = IDLE;
 
-                vTaskDelayMS(2000);
-
+                send_uart_message(COMPLETED);
                 break;
             }
 

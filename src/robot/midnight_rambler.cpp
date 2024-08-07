@@ -34,11 +34,6 @@ static inline void serve_food() {
     send_command(FOLLOW_WALL_TO, 3);
     vTaskDelayMS(500);
 
-    // tell fiddler that it can stop standing aside
-    if (use_wifi) {
-        log_status("Plate station is clear...");
-        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
-    }
     send_uart_message(CommandMessage_t::ABORT, 0, false);
     
     send_uart_message(CommandMessage_t::SET_MULTIPLIER, 75);
@@ -47,7 +42,7 @@ static inline void serve_food() {
     wait_for_motion();
 
     send_command(FOLLOW_WALL_TO, 1);
-    vTaskDelayMS(1000);
+    vTaskDelayMS(1250);
     send_command(ABORT, 0);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
@@ -111,9 +106,9 @@ void circuit() {
 
     // SWITCHING    _______________
     send_command(FOLLOW_WALL_TO, 2);
-    vTaskDelayMS(200); // -> 300
+    vTaskDelayMS(350); // -> 300
     set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_DOWN);
-    vTaskDelayMS(600); // -> 300
+    vTaskDelayMS(550); // -> 300
     send_command(ABORT, 0);
 
     if (use_wifi) {

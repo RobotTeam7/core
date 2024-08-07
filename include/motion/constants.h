@@ -11,6 +11,11 @@
 #define DELAY_FINISH_PIROUETTE                      (1500)    // delay used to time when to stop translating after rotating during a pirouette
 #define MOTOR_SPEED_TRANSLATION                     (18000) // Base speed for when we are trying to dock
 #define DELAY_STARTUP                               (500)
+#define DELAY_SINGLE_ROTATION                       (575)
+#define DELAY_COUNTER_ASIDE                         (650)
+#define DELAY_ESCAPE                                (700)
+#define MOTOR_SPEED_SPIN_TRANSLATION                (21000)
+#define MOTOR_SPEED_SPIN_ROTATION                   (19000)
 
 #endif 
 
@@ -22,6 +27,11 @@
 #define DELAY_FINISH_PIROUETTE                      (1300)    // delay used to time when to stop translating after rotating during a pirouette
 #define MOTOR_SPEED_TRANSLATION                     (15000) // Base speed for when we are trying to dock
 #define DELAY_STARTUP                               (1000)
+#define DELAY_SINGLE_ROTATION                       (525)
+#define DELAY_COUNTER_ASIDE                         (850)
+#define DELAY_ESCAPE                                (700)
+#define MOTOR_SPEED_SPIN_TRANSLATION                (MOTOR_SPEED_TRANSLATION)
+#define MOTOR_SPEED_SPIN_ROTATION                   (MOTOR_SPEED_ROTATION)
 
 #endif
 
@@ -35,6 +45,7 @@
 #define MOTOR_SPEED_WALL_SLAMMING                   (18000)    // Base motor sped whilst wall slamming
 #define MOTOR_SPEED_WALL_SLAMMING_CRAWL             (7800)    // Base motor sped whilst approaching desired station and wall slamming
 #define MOTOR_SPEED_PIROUETTE_TRANSLATION           (13000)   // Base speed for when we are trying to dock
+
 
 
 // Delays
@@ -57,9 +68,6 @@
 #define DELAY_TRANSLATE_TO_WALL                     (1100)
 #define DELAY_TRANSLATE_SIDE_SWAP                   (1750)
 #define DELAY_TRANSLATE_ASIDE                       (600)
-#define DELAY_SINGLE_ROTATION                       (525)
-#define DELAY_COUNTER_ASIDE                         (750)
-#define DELAY_ESCAPE                                (700)
 
 
 // Sensor Thresholds

@@ -49,7 +49,7 @@ typedef enum { ROTATION_DONE, LOST_TAPE, REACHED_POSITION } StatusMessage_t;
 /**
  * @brief Enum discretizing the different kinds of messages being passed between boards.
  */
-typedef enum { READY = 0x00, GOTO = 0x01, DO_SPIN = 0x02, ABORT = 0x03, TAPE_RETURN = 0x04, COUNTER_DOCK = 0x05, COMPLETED = 0x06, FOLLOW_WALL_TO = 0x07, DO_PIROUETTE = 0x08, MOVE_ASIDE = 0x09, SET_MULTIPLIER = 0x0a, STARTUP_SERVER = 0x0b, NEXT_ACTION = 0x0c, WAIT_FOR_ACTION = 0x0d, SWITCH_COUNTER = 0x0e, OCCUPIED = 0x40, ACCEPTED = 0x41, ACK = 0x42, NACK = 0x50 } CommandMessage_t;
+typedef enum { READY = 0x00, GOTO = 0x01, DO_SPIN = 0x02, ABORT = 0x03, TAPE_RETURN = 0x04, COUNTER_DOCK = 0x05, COMPLETED = 0x06, FOLLOW_WALL_TO = 0x07, DO_PIROUETTE = 0x08, MOVE_ASIDE = 0x09, SET_MULTIPLIER = 0x0a, STARTUP_SERVER = 0x0b, NEXT_ACTION = 0x0c, WAIT_FOR_ACTION = 0x0d, SWITCH_COUNTER = 0x0e, DO_ESCAPE = 0x0f, OCCUPIED = 0x40, ACCEPTED = 0x41, ACK = 0x42, NACK = 0x50 } CommandMessage_t;
 
 typedef struct {
     uint8_t start_byte;
