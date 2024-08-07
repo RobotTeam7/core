@@ -622,7 +622,7 @@ void TaskMaster(void *pvParameters)
                 
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = TRANSLATE;
-                vTaskDelayMS(DELAY_TRANSLATE_SIDE_SWAP);
+                vTaskDelayMS(DELAY_TRANSLATE_ASIDE);
 
                 log_status("side swap completed!");
                 state.drive_speed = 0;

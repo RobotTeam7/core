@@ -24,7 +24,7 @@ inline void grab_plate() {
     set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_CLOSED);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
-    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN + 15);
+    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN + 25);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 }
 
@@ -41,7 +41,7 @@ static inline void serve_food() {
     }
     send_uart_message(CommandMessage_t::ABORT, 0, false);
     
-    send_uart_message(CommandMessage_t::SET_MULTIPLIER, 70);
+    send_uart_message(CommandMessage_t::SET_MULTIPLIER, 75);
     
     send_command(DO_PIROUETTE, 2);
     wait_for_motion();
@@ -127,6 +127,12 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 2);
         vTaskDelayMS(800);
         send_command(ABORT, 0);
+
+        if (use_wifi) {
+            log_status("Plate station is clear...");
+            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+        }
+
         vTaskDelayMS(1000);
 
         send_command(DO_PIROUETTE, -2);
@@ -230,6 +236,12 @@ void TaskMaster(void* pvParameters) {
         // SWITCHING    _______________
         send_command(FOLLOW_WALL_TO, 2);
         vTaskDelayMS(800);
+
+        if (use_wifi) {
+            log_status("Plate station is clear...");
+            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+        }
+
         send_command(ABORT, 0);
         vTaskDelayMS(1000);
 

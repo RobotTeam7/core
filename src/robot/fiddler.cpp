@@ -25,6 +25,7 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 1); // GUESS!
         wait_for_motion();
         send_command(FOLLOW_WALL_TO, 3);
+        wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
 
         if (use_wifi) {
@@ -49,12 +50,30 @@ void TaskMaster(void* pvParameters) {
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
 
+        send_command(MOVE_ASIDE, 1);
+        wait_for_motion();
+
+
+        if (use_wifi) {
+            while (!action_ready) {
+                log_status("Waiting for plate station to be clear!");
+                vTaskDelayMS(50);
+            }
+            action_ready = false;
+            log_status("Plate station is clear!");
+        }
+
+        vTaskDelayMS(700);
+
+        send_command(MOVE_ASIDE, -1);
+        wait_for_motion();
+
         
         // TOP BUN
         send_command(FOLLOW_WALL_TO, 1);
-        vTaskDelayMS(700);
+        vTaskDelayMS(350);
         send_command(ABORT, 0);
-        vTaskDelay(500);
+        vTaskDelayMS(350);
         log_status("Doing pirouette!");
         send_command(DO_PIROUETTE, 3);
         wait_for_motion();
@@ -114,7 +133,7 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 3);
         wait_for_motion();
 
-                // PATTY
+         // PATTY
         log_status("getting patty");
         send_command(FOLLOW_WALL_TO, 1);
         wait_for_motion();
@@ -123,6 +142,7 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 1); // GUESS!
         wait_for_motion();
         send_command(FOLLOW_WALL_TO, 3);
+        wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
 
         if (use_wifi) {
@@ -150,9 +170,9 @@ void TaskMaster(void* pvParameters) {
         
         // TOP BUN
         send_command(FOLLOW_WALL_TO, 1);
-        vTaskDelayMS(700);
+        vTaskDelayMS(350);
         send_command(ABORT, 0);
-        vTaskDelay(500);
+        vTaskDelayMS(350);
         log_status("Doing pirouette!");
         send_command(DO_PIROUETTE, 3);
         wait_for_motion();
