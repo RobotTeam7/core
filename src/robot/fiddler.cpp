@@ -38,7 +38,7 @@ void TaskMaster(void* pvParameters) {
         vTaskDelayMS(700);
      
         log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 3);
+        send_command(DO_PIROUETTE, 2);
         wait_for_motion();
 
         log_status("getting patty");
@@ -155,7 +155,7 @@ void TaskMaster(void* pvParameters) {
         vTaskDelayMS(700);
      
         log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 3);
+        send_command(DO_PIROUETTE, 2);
         wait_for_motion();
 
         log_status("getting patty");

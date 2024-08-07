@@ -543,8 +543,8 @@ void TaskMaster(void *pvParameters)
                     final_angle *= 1.33 / state.speed_modifier;
                 }
 
-                if (state.y_direction == -1) {
-                    final_angle *= 1.5;
+                if (state.y_direction == -1 && state.orientation == -1) {
+                    final_angle *= 1.6;
                 }
 
                 log_status("doing pirouette!!");

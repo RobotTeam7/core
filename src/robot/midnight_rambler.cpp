@@ -196,10 +196,8 @@ void TaskMaster(void* pvParameters) {
         vTaskDelayMS(1000);
         send_command(CommandMessage_t::ABORT, 0);
         vTaskDelayMS(1000);
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
 
-        if (use_wifi) {
+         if (use_wifi) {
             while (!action_ready) {
                 log_status("Waiting for patty to be ready!");
                 vTaskDelayMS(50);
@@ -207,6 +205,10 @@ void TaskMaster(void* pvParameters) {
             action_ready = false;
             log_status("Patty is ready!");
         }
+        send_command(DO_PIROUETTE, 2);
+        wait_for_motion();
+
+       
 
         // PATTY _________________
         send_command(FOLLOW_WALL_TO, 3);
