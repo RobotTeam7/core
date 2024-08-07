@@ -35,10 +35,10 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 2);
         vTaskDelayMS(750);
         send_uart_message(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(100);
+        vTaskDelayMS(700);
      
         log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 2);
+        send_command(DO_PIROUETTE, 3);
         wait_for_motion();
 
         log_status("getting patty");
@@ -125,7 +125,7 @@ void TaskMaster(void* pvParameters) {
 
         // PIROUETTE
         send_command(FOLLOW_WALL_TO, 3);
-        vTaskDelayMS(1000);
+        vTaskDelayMS(450);
         send_command(ABORT, 0);
         vTaskDelayMS(700);
         send_command(DO_PIROUETTE, 1);
@@ -133,6 +133,7 @@ void TaskMaster(void* pvParameters) {
 
         // GET TO BOTTOM BUN
         send_command(FOLLOW_WALL_TO, 2);
+        wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
 
@@ -151,10 +152,10 @@ void TaskMaster(void* pvParameters) {
         send_command(FOLLOW_WALL_TO, 2);
         vTaskDelayMS(750);
         send_uart_message(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(100);
+        vTaskDelayMS(700);
      
         log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 2);
+        send_command(DO_PIROUETTE, 3);
         wait_for_motion();
 
         log_status("getting patty");
