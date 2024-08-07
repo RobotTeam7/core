@@ -33,6 +33,12 @@ static inline void serve_food() {
 
     send_command(FOLLOW_WALL_TO, 3);
     vTaskDelayMS(500);
+
+    // tell fiddler that it can stop standing aside
+    if (use_wifi) {
+        log_status("Plate station is clear...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+    }
     send_uart_message(CommandMessage_t::ABORT, 0, false);
     
     send_uart_message(CommandMessage_t::SET_MULTIPLIER, 70);
@@ -63,29 +69,29 @@ void TaskMaster(void* pvParameters) {
     while (true) {
         // STARTUP ________
         log_status("dock on side");
-        // send_command(STARTUP_SERVER, 0);
-        // wait_for_motion();
+        send_command(STARTUP_SERVER, 0);
+        wait_for_motion();
 
         // TOMATO _________________
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
         log_status("getting tomato");
-        // send_command(FOLLOW_WALL_TO, 4);
-        // vTaskDelayMS(500);
-        // send_command(CommandMessage_t::ABORT, 0);
-        // vTaskDelayMS(1000);
-        // send_command(DO_PIROUETTE, 1);
-        // wait_for_motion();
+        send_command(FOLLOW_WALL_TO, 4);
+        vTaskDelayMS(500);
+        send_command(CommandMessage_t::ABORT, 0);
+        vTaskDelayMS(1000);
+        send_command(DO_PIROUETTE, 1);
+        wait_for_motion();
 
         // LETTUCE _________________
-        // send_command(FOLLOW_WALL_TO, 2);
-        // wait_for_motion();
+        send_command(FOLLOW_WALL_TO, 2);
+        wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
         // CHEESE _________________
-        // send_command(FOLLOW_WALL_TO, 1);
-        // wait_for_motion();
+        send_command(FOLLOW_WALL_TO, 1);
+        wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
         Serial.println("grabby?");
@@ -139,10 +145,6 @@ void TaskMaster(void* pvParameters) {
         // GRAB PLATE   _______________
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
-        if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
-            actuate_claw_forwards();
-        }
-        vTaskDelayMS(100);
 
         set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
         vTaskDelayMS(700);
@@ -159,11 +161,6 @@ void TaskMaster(void* pvParameters) {
         }
 
         grab_plate();
-
-        if (use_wifi) {
-            log_status("Plate station is clear...");
-            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
-        }
 
         // SERVE FOOD   _______________
         serve_food();
@@ -241,9 +238,6 @@ void TaskMaster(void* pvParameters) {
         // GRAB PLATE   _______________
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
-        if(!digitalRead(SWITCH_RACK_PLATESIDE)) {
-            actuate_claw_forwards();
-        }
         vTaskDelayMS(100);
 
         set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
@@ -261,11 +255,6 @@ void TaskMaster(void* pvParameters) {
         }
 
         grab_plate();
-
-        if (use_wifi) {
-            log_status("Plate station is clear...");
-            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
-        }
 
         // SERVE FOOD   _______________
         serve_food();

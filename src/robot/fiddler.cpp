@@ -89,7 +89,7 @@ void TaskMaster(void* pvParameters) {
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
 
         // RETURN
-        send_command(SWITCH_COUNTER, 1);
+        send_command(MOVE_ASIDE, 1);
         if (use_wifi) {
             vTaskDelayMS(200);
             log_status("Informing that top bun is ready...");
@@ -107,7 +107,7 @@ void TaskMaster(void* pvParameters) {
             log_status("Plate station is clear!");
         }
 
-        send_command(SWITCH_COUNTER, -1);
+        send_command(MOVE_ASIDE, -1);
         wait_for_motion();
 
 
@@ -205,7 +205,7 @@ void TaskMaster(void* pvParameters) {
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
 
         // RETURN
-        send_command(SWITCH_COUNTER, 1);
+        send_command(MOVE_ASIDE, 1);
         if (use_wifi) {
             vTaskDelayMS(200);
             log_status("Informing that top bun is ready...");
@@ -223,7 +223,7 @@ void TaskMaster(void* pvParameters) {
             log_status("Plate station is clear!");
         }
 
-        send_command(SWITCH_COUNTER, -1);
+        send_command(MOVE_ASIDE, -1);
         wait_for_motion();
 
 
