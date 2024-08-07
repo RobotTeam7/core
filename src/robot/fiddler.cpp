@@ -16,6 +16,25 @@ void TaskMaster(void* pvParameters) {
         send_command(COUNTER_DOCK, 1);
         wait_for_motion();
 
+        // PATTY
+        log_status("getting patty");
+        send_command(FOLLOW_WALL_TO, 1);
+        wait_for_motion();
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+
+        send_command(DO_PIROUETTE, 1); // GUESS!
+        wait_for_motion();
+        send_command(FOLLOW_WALL_TO, 3);
+        open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
+
+        if (use_wifi) {
+            log_status("Informing that patty is ready...");
+            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+        }
+
+        // BUN
+        send_command(DO_PIROUETTE, 3);
+        wait_for_motion();
         send_command(FOLLOW_WALL_TO, 2);
         wait_for_motion();
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
@@ -30,38 +49,12 @@ void TaskMaster(void* pvParameters) {
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
 
-        // PATTY    
-        log_status("goto patty");
-        send_command(FOLLOW_WALL_TO, 2);
-        vTaskDelayMS(750);
-        send_uart_message(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(700);
-     
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
-
-        log_status("getting patty");
-        send_command(FOLLOW_WALL_TO, 1);
-        wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
-
-        // COOK
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 1);
-        wait_for_motion();
-
-        log_status("goto cooktop");
-        send_command(FOLLOW_WALL_TO, 3);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-
-        if (use_wifi) {
-            log_status("Informing that patty is ready...");
-            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
-        }
         
         // TOP BUN
+        send_command(FOLLOW_WALL_TO, 1);
+        vTaskDelayMS(700);
+        send_command(ABORT, 0);
+        vTaskDelay(500);
         log_status("Doing pirouette!");
         send_command(DO_PIROUETTE, 3);
         wait_for_motion();
@@ -121,6 +114,25 @@ void TaskMaster(void* pvParameters) {
         send_command(DO_PIROUETTE, 3);
         wait_for_motion();
 
+                // PATTY
+        log_status("getting patty");
+        send_command(FOLLOW_WALL_TO, 1);
+        wait_for_motion();
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+
+        send_command(DO_PIROUETTE, 1); // GUESS!
+        wait_for_motion();
+        send_command(FOLLOW_WALL_TO, 3);
+        open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
+
+        if (use_wifi) {
+            log_status("Informing that patty is ready...");
+            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+        }
+
+        // BUN
+        send_command(DO_PIROUETTE, 3);
+        wait_for_motion();
         send_command(FOLLOW_WALL_TO, 2);
         wait_for_motion();
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
@@ -135,38 +147,12 @@ void TaskMaster(void* pvParameters) {
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
 
-        // PATTY    
-        log_status("goto patty");
-        send_command(FOLLOW_WALL_TO, 2);
-        vTaskDelayMS(750);
-        send_uart_message(CommandMessage_t::ABORT, 0);
-        vTaskDelayMS(700);
-     
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
-
-        log_status("getting patty");
-        send_command(FOLLOW_WALL_TO, 1);
-        wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
-
-        // COOK
-        log_status("Doing pirouette!");
-        send_command(DO_PIROUETTE, 1);
-        wait_for_motion();
-
-        log_status("goto cooktop");
-        send_command(FOLLOW_WALL_TO, 3);
-        wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-
-        if (use_wifi) {
-            log_status("Informing that patty is ready...");
-            send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
-        }
         
         // TOP BUN
+        send_command(FOLLOW_WALL_TO, 1);
+        vTaskDelayMS(700);
+        send_command(ABORT, 0);
+        vTaskDelay(500);
         log_status("Doing pirouette!");
         send_command(DO_PIROUETTE, 3);
         wait_for_motion();
@@ -214,6 +200,7 @@ void TaskMaster(void* pvParameters) {
 
         send_command(MOVE_ASIDE, -1);
         wait_for_motion();
+
 
 
 
