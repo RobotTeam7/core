@@ -110,8 +110,6 @@ void TaskMaster(void* pvParameters) {
 void setup() {
     Serial.begin(115200); // Initialize serial monitor
 
-
-
     init_pwm();
 
     Serial.println("servos initialized!");

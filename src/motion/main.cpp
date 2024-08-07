@@ -67,23 +67,23 @@ void uart_msg_handler(void *parameter) {
                             vTaskDelete(xFollowWallHandle);
                             xFollowWallHandle = NULL;
                         }
-                        send_uart_message(ACCEPTED, 0, false);
                         Serial.println("Accepting command: " + String(new_packet.command) + " : " + String(new_packet.value));
-
+                        
+                        send_uart_message(ACCEPTED, 0, false);
                         break;
 
                     case GOTO:
                         // state.desired_station = new_packet.value;
                         state.current_action = GOTO_STATION;
-                        send_uart_message(ACCEPTED, 0, false);
 
+                        send_uart_message(ACCEPTED, 0, false);
                         break;
 
                     case DO_SPIN:
                         state.current_action = ActionType_t::SPIN;
                         state.direction = new_packet.value;
-                        send_uart_message(ACCEPTED, 0, false);
 
+                        send_uart_message(ACCEPTED, 0, false);
                         break;
 
                     case COUNTER_DOCK:
@@ -92,15 +92,14 @@ void uart_msg_handler(void *parameter) {
                         state.last_side_station = 0;
 
                         send_uart_message(ACCEPTED, 0, false);
-
                         break;
 
                     case TAPE_RETURN:
                     {
                         state.current_action = ActionType_t::RETURN_TO_TAPE;
                         state.direction = new_packet.value;
-                        send_uart_message(ACCEPTED, 0, false);
 
+                        send_uart_message(ACCEPTED, 0, false);
                         break;
                     }
                     case FOLLOW_WALL_TO:
@@ -108,8 +107,8 @@ void uart_msg_handler(void *parameter) {
                         // packet contains the desired side station
                         state.current_action = ActionType_t::WALL_SLAM_TO;
                         state.desired_side_station = new_packet.value;
-                        send_uart_message(ACCEPTED, 0, false);
 
+                        send_uart_message(ACCEPTED, 0, false);
                         break;
                     }
                     case DO_PIROUETTE:
@@ -117,11 +116,14 @@ void uart_msg_handler(void *parameter) {
                         state.current_action = ActionType_t::PIROUETTE;
                         state.last_side_station = new_packet.value;
                         Serial.println("Value: " + String(state.last_side_station));
+
                         send_uart_message(ACCEPTED, 0, false);
                         break;
-                    case SWITCH_COUNTER:
-                        state.current_action = ActionType_t::SIDE_SWAP;
-                        state.last_side_station = new_packet.value;
+
+                    case MOVE_ASIDE:
+                        state.current_action = ActionType_t::ASIDE;
+                        state.y_direction = new_packet.value;
+
                         send_uart_message(ACCEPTED, 0, false);
                         break;
 
@@ -129,6 +131,7 @@ void uart_msg_handler(void *parameter) {
                     {
                         float new_multipler = (float)new_packet.value / 100.0;
                         state.speed_modifier = new_multipler;
+
                         send_uart_message(ACCEPTED, 0, false);
                         break;
                     }
@@ -136,6 +139,7 @@ void uart_msg_handler(void *parameter) {
                     case STARTUP_SERVER:
                     {
                         state.current_action = ActionType_t::STARTUP;
+
                         send_uart_message(ACCEPTED, 0, false);
                         break;
                     }
@@ -529,14 +533,18 @@ void TaskMaster(void *pvParameters)
                     // fix the negativeness of the side station
                     state.last_side_station = -state.last_side_station;
 
-                    final_angle *= 1.2;
-                    final_delay = int(final_delay * 1.5);
+                    final_angle *= 1.1;
+                    final_delay = int(final_delay * 1.6);
                 }
 
-                if(slow_pirouette) {
+                if (slow_pirouette) {
                     final_delay *= 1 / state.speed_modifier;
                     initial_delay *= 0.8;
                     final_angle *= 1.33 / state.speed_modifier;
+                }
+
+                if (state.y_direction == -1) {
+                    final_angle *= 1.5;
                 }
 
                 log_status("doing pirouette!!");
@@ -577,23 +585,21 @@ void TaskMaster(void *pvParameters)
                 break;
             }
 
-            case ActionType_t::SIDE_SWAP:
+            case ActionType_t::ASIDE:
             {
-                if(state.y_direction == 0) {
+                if (state.y_direction == 0) {
                     log_error("cannot side swap when y direction is 0");
                     send_uart_message(COMPLETED);
                     state.current_action = IDLE;
                 }
                 
-                state.y_direction = - state.y_direction;
                 state.drive_speed = MOTOR_SPEED_TRANSLATION;
                 state.drive_state = TRANSLATE;
-                vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_SIDE_SWAP));
+                vTaskDelayMS(DELAY_TRANSLATE_SIDE_SWAP);
 
                 log_status("side swap completed!");
                 state.drive_speed = 0;
                 state.drive_state = STOP;
-                state.y_direction = -state.y_direction;
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);
 
