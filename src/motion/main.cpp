@@ -543,7 +543,7 @@ void TaskMaster(void *pvParameters)
                 }
 
                 if (slow_pirouette) {
-                    final_delay *= 1 / state.speed_modifier;
+                    final_delay *= 1.3 / state.speed_modifier;
                     initial_delay *= 0.8;
                     final_angle *= 1.33 / state.speed_modifier;
                 }
