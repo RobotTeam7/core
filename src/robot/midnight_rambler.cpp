@@ -169,35 +169,50 @@ void TaskMaster(void* pvParameters) {
 
 
 
-        // CIRCUIT 2
-
-
+        // BURGER 2 _____________________________________________
 
 
         send_command(SET_MULTIPLIER, 100);
-
-        send_command(DO_PIROUETTE, -1);
-        wait_for_motion();
         
+        // SWITCHING COUNTER 
+        send_command(SWITCH_COUNTER, 3);
+        wait_for_motion();
+
+        // TOMATO _________________
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+
+        log_status("getting tomato");
+        send_command(FOLLOW_WALL_TO, 4);
+        vTaskDelayMS(500);
+        send_command(CommandMessage_t::ABORT, 0);
+        vTaskDelayMS(1000);
+        send_command(DO_PIROUETTE, 1);
+        wait_for_motion();
+
         // LETTUCE _________________
         send_command(FOLLOW_WALL_TO, 2);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_LETTUCE);
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
 
         // CHEESE _________________
         send_command(FOLLOW_WALL_TO, 1);
         wait_for_motion();
         open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+        Serial.println("grabby?");
+        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_CHEESE);
+        Serial.println("grabby!");
 
         // PIROUETTE _________________
         send_command(FOLLOW_WALL_TO, 2);
         vTaskDelayMS(1000);
         send_command(CommandMessage_t::ABORT, 0);
         vTaskDelayMS(1000);
+        send_command(DO_PIROUETTE, 2);
+        wait_for_motion();
 
-         if (use_wifi) {
+        if (use_wifi) {
             while (!action_ready) {
                 log_status("Waiting for patty to be ready!");
                 vTaskDelayMS(50);
@@ -205,10 +220,6 @@ void TaskMaster(void* pvParameters) {
             action_ready = false;
             log_status("Patty is ready!");
         }
-        send_command(DO_PIROUETTE, 2);
-        wait_for_motion();
-
-       
 
         // PATTY _________________
         send_command(FOLLOW_WALL_TO, 3);
@@ -240,7 +251,6 @@ void TaskMaster(void* pvParameters) {
         // GRAB PLATE   _______________
         send_command(FOLLOW_WALL_TO, 4);
         wait_for_motion();
-        vTaskDelayMS(100);
 
         set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
         vTaskDelayMS(700);

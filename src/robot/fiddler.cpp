@@ -111,30 +111,18 @@ void TaskMaster(void* pvParameters) {
         wait_for_motion();
 
 
+        // BURGER 2 _____________________________________________
 
-
-        // CIRCUIT 2
-
-
-
-
-        // TOMATO
+        // GETTING BACK
         send_command(FOLLOW_WALL_TO, 1);
-        wait_for_motion();
-        grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
-
-        // PIROUETTE
-        send_command(FOLLOW_WALL_TO, 3);
-        vTaskDelayMS(450);
+        vTaskDelayMS(400);
         send_command(ABORT, 0);
-        vTaskDelayMS(700);
-        send_command(DO_PIROUETTE, 1);
+        vTaskDelayMS(500);
+        send_command(DO_PIROUETTE, 3);
         wait_for_motion();
 
-        // GET TO BOTTOM BUN
         send_command(FOLLOW_WALL_TO, 2);
         wait_for_motion();
-        open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
         grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
 
         // DROP BUN  
@@ -177,7 +165,7 @@ void TaskMaster(void* pvParameters) {
             log_status("Informing that patty is ready...");
             send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
         }
-
+        
         // TOP BUN
         log_status("Doing pirouette!");
         send_command(DO_PIROUETTE, 3);
@@ -229,7 +217,7 @@ void TaskMaster(void* pvParameters) {
 
 
 
-
+       
 
 
 

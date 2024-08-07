@@ -120,6 +120,11 @@ void uart_msg_handler(void *parameter) {
                         send_uart_message(ACCEPTED, 0, false);
                         break;
 
+                    case SWITCH_COUNTER:
+                        state.current_action = ActionType_t::SIDE_SWAP;
+                        state.last_side_station = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+                        break;
                     case MOVE_ASIDE:
                         state.current_action = ActionType_t::ASIDE;
                         state.y_direction = new_packet.value;
@@ -579,6 +584,28 @@ void TaskMaster(void *pvParameters)
                 state.drive_speed = 0;
                 state.pirouette_angle = 0;
                 taskYIELD();
+                state.current_action = IDLE;
+                send_uart_message(COMPLETED);
+
+                break;
+            }
+            case ActionType_t::SIDE_SWAP:
+            {
+                if(state.y_direction == 0) {
+                    log_error("cannot side swap when y direction is 0");
+                    send_uart_message(COMPLETED);
+                    state.current_action = IDLE;
+                }
+                state.y_direction = -state.y_direction;
+
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_state = TRANSLATE;
+                vTaskDelayMS(DELAY_TRANSLATE_SIDE_SWAP);
+
+                log_status("side swap completed!");
+                state.drive_speed = 0;
+                state.drive_state = STOP;
+
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);
 
