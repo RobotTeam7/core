@@ -82,9 +82,9 @@ void circuit() {
 
     // PIROUETTE _________________
     send_command(FOLLOW_WALL_TO, 1);
-    vTaskDelayMS(1000);
+    vTaskDelayMS(1200);
     send_command(CommandMessage_t::ABORT, 0);
-    vTaskDelayMS(700);
+    vTaskDelayMS(600);
     send_command(DO_PIROUETTE, 2);
     wait_for_motion();
 
@@ -111,31 +111,31 @@ void circuit() {
 
     // SWITCHING    _______________
     send_command(FOLLOW_WALL_TO, 2);
-    vTaskDelayMS(400);
+    vTaskDelayMS(200); // -> 300
     set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_DOWN);
-    vTaskDelayMS(400);
+    vTaskDelayMS(600); // -> 300
     send_command(ABORT, 0);
 
-    vTaskDelayMS(1000);
+    if (use_wifi) {
+        log_status("Plate station is clear...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+    }
+
+    vTaskDelayMS(600);
 
     send_command(DO_PIROUETTE, -2);
     set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
     wait_for_motion();
     vTaskDelayMS(250);
-    
-    if (use_wifi) {
-        log_status("Plate station is clear...");
-        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
-    }
 
     // GRAB PLATE   _______________
     send_command(FOLLOW_WALL_TO, 4);
     wait_for_motion();
 
     set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
-    vTaskDelayMS(700);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY);
     set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
-    vTaskDelayMS(700);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
     if (use_wifi) {
         while (!action_ready) {
@@ -189,10 +189,7 @@ void setup() {
     draw_bridge_servo = instantiate_servo_motor(SERVO_DRAW_BRIDGE_PIN, SERVO_DRAW_BRIDGE_UP, SERVO_DRAW_BRIDGE_DOWN);
     plating_servo = instantiate_servo_motor(SERVO_PLATE_PIN, SERVO_PLATE_OPEN, SERVO_PLATE_CLOSED);
     vertical_servo = instantiate_servo_motor(SERVO_VERTICAL_PIN, SERVO_VERTICAL_DOWN, SERVO_VERTICAL_UP);
-    
-    delay(1000);
-    
-    Serial.println("vertical servo go up!");
+        
     set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
 
     init_communications(TX_PIN, RX_PIN);

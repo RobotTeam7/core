@@ -10,6 +10,7 @@
 #define MOTOR_SPEED_HOMING                          (7900)
 #define DELAY_FINISH_PIROUETTE                      (1500)    // delay used to time when to stop translating after rotating during a pirouette
 #define MOTOR_SPEED_TRANSLATION                     (18000) // Base speed for when we are trying to dock
+#define DELAY_STARTUP                               (500)
 
 #endif 
 
@@ -20,13 +21,14 @@
 #define MOTOR_SPEED_HOMING                          (6200)
 #define DELAY_FINISH_PIROUETTE                      (1300)    // delay used to time when to stop translating after rotating during a pirouette
 #define MOTOR_SPEED_TRANSLATION                     (15000) // Base speed for when we are trying to dock
+#define DELAY_STARTUP                               (1000)
 
 #endif
 
 // Motor Speeds
 
 #define MOTOR_SPEED_FOLLOWING                       (9000)    // Base motor speed whilst tape following
-#define MOTOR_SPEED_ROTATION                        (9000)    // Base motor speed whilst rotating
+#define MOTOR_SPEED_ROTATION                        (16000)    // Base motor speed whilst rotating
 #define MOTOR_SPEED_DOCKING                         (6000)    // Base speed for when we are trying to dock
 #define MOTOR_SPEED_TRANSLATION                     (15000)   // Base speed for when we are trying to dock
 #define MOTOR_SPEED_BREAKING                        (12000)   // Break speed of the motors
@@ -55,6 +57,9 @@
 #define DELAY_TRANSLATE_TO_WALL                     (1100)
 #define DELAY_TRANSLATE_SIDE_SWAP                   (1750)
 #define DELAY_TRANSLATE_ASIDE                       (600)
+#define DELAY_SINGLE_ROTATION                       (525)
+#define DELAY_COUNTER_ASIDE                         (750)
+#define DELAY_ESCAPE                                (700)
 
 
 // Sensor Thresholds

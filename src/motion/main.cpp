@@ -244,26 +244,62 @@ void TaskMaster(void *pvParameters)
         StatusMessage_t receivedMessage;
         switch (state.current_action) {
             case SPIN:
-            {                
-                // Begin rotating and wait for a message that we see the tape
-                begin_rotating();
-                if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
-                    if (receivedMessage == ROTATION_DONE) {
-                        log_status("Completed rotation: found tape!");         
-                        
-                        vTaskDelete(xHandleRotating);
-                        xHandleRotating = NULL;
+            {      
+                state.y_direction = -state.y_direction;
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
 
-                        vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
+                vTaskDelayMS(DELAY_COUNTER_ASIDE);
 
-                        send_uart_message(COMPLETED);
-                        log_status("Ending rotation...");
-                        if (state.current_action == SPIN) {
-                            state.current_action = IDLE;
-                        }
-                    }
-                }
-                vTaskDelay(2000);
+                state.drive_state = DriveState_t::ROTATE;
+                state.drive_speed = MOTOR_SPEED_ROTATION;
+
+                vTaskDelayMS(DELAY_SINGLE_ROTATION);
+
+                state.orientation = -state.orientation;
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+
+                vTaskDelayMS(DELAY_COUNTER_ASIDE);
+
+                state.drive_speed = 0;
+                state.drive_state = STOP;
+
+                vTaskDelayMS(2000);
+
+                break;
+            }
+
+            case ESCAPE:
+            {
+                state.y_direction = -state.y_direction;
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+
+                vTaskDelayMS(DELAY_COUNTER_ASIDE);
+
+                state.direction = -1;
+                state.drive_state = DRIVE;
+                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING;
+
+                vTaskDelayMS(DELAY_ESCAPE);
+
+                state.drive_state = DriveState_t::ROTATE;
+                state.drive_speed = MOTOR_SPEED_ROTATION;
+
+                vTaskDelayMS(DELAY_SINGLE_ROTATION);
+
+                state.orientation = -state.orientation;
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+
+                vTaskDelayMS(DELAY_COUNTER_ASIDE);
+
+                state.drive_speed = 0;
+                state.drive_state = STOP;
+
+                vTaskDelayMS(2000);
+
                 break;
             }
 
@@ -643,7 +679,7 @@ void TaskMaster(void *pvParameters)
                 state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
                 state.drive_state = DRIVE;
                 state.direction = -1;
-                vTaskDelay(pdMS_TO_TICKS(500));
+                vTaskDelayMS(DELAY_STARTUP);
 
                 state.direction = 1;
                 begin_homing();
