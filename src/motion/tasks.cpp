@@ -94,7 +94,13 @@ void TaskRotate(void *pvParameters) {
     NavigationData_t* navigationData = (NavigationData_t*)pvParameters;
     if (checkNavigationData(navigationData))
     {
-        log_error("Error: nulls in robotControlData");
+        while (1) {
+            log_error("Error: nulls in robotControlData");
+
+            state.drive_speed = 0;
+            state.drive_state = STOP;
+            vTaskDelayMS(100);
+        }
 
         vTaskDelete(xHandleRotating);
         xHandleRotating = NULL;
@@ -196,7 +202,7 @@ void TaskDocking(void* pvParameters) {
 
     if (checkDockingData(dockingData)) {
         log_error("Error: Tape Awareness data buffer contains nulls!");
-
+        
         vTaskDelete(xDockingHandle);
         xDockingHandle = NULL;
 
@@ -295,8 +301,10 @@ void TaskCounterDocking(void* pvParameters) {
         xTaskNotifyGive(*xMasterHandle);
 
         // Task is over
-        vTaskDelete(xCounterDockingHandle);
-        xCounterDockingHandle = NULL;
+        if (xCounterDockingHandle != NULL) {
+            xCounterDockingHandle = NULL;
+        }
+        vTaskDelete(NULL);
     }
 }
 
@@ -380,28 +388,31 @@ void TaskFollowWall(void* pvParameters) {
 
         value = sensor->value;
 
-        // Serial.println("sensor: " + String(value));
-
         if (value > THRESHOLD_SENSOR_SINGLE) {
             found_tape = true;
         } else if ((value < THRESHOLD_SENSOR_SINGLE) && (found_tape == true)) {
             state.last_side_station += state.orientation * state.direction;
             log_status("Passed station while wall following!");
             found_tape = false;
-            // vTaskDelay(pdMS_TO_TICKS(150));
         }
 
         vTaskDelay(pdMS_TO_TICKS(DELAY_WALL_SLAMMING_POLL));
     }
     Serial.println("Exited loop!");
 }
+
 void TaskHoming(void* pvParameters) {
     ReturnToTapeData_t* returnToTapeData = (ReturnToTapeData_t*)pvParameters;
 
-    if(checkTapeSensor(returnToTapeData->middleTapeSensor)) {
-        log_error("middle tape sensor is null");
-        vTaskDelete(xHomingHandle);
-        xHomingHandle = NULL;
+    if (checkTapeSensor(returnToTapeData->middleTapeSensor)) {
+        while (1) {
+            vTaskDelayMS(100);
+            log_error("middle tape sensor is null");
+        }
+        vTaskDelete(NULL);
+        if (xHomingHandle != NULL) {
+            xHomingHandle = NULL;
+        }
         return;
     }
     
@@ -425,19 +436,20 @@ void TaskHoming(void* pvParameters) {
             vTaskDelay(pdMS_TO_TICKS(delay_ms));
 
             read_tape_sensor(sensor);
-            if(sensor->value >= 2000) {
-                // while(1) {
-                //     log_status("IM ON TAPE WOOP WOOP");
-                //     vTaskDelay(1000);
-                // }
+            if (sensor->value >= 2000) {
                 xTaskNotifyGive(*returnToTapeData->masterHandle);
                 log_status("finished homing!");
+
                 vTaskDelete(NULL);
-                xHomingHandle = NULL;
-            }else {
+                if (xHomingHandle != NULL) {
+                    xHomingHandle = NULL;
+                }
+            } else {
                 delay_ms = 50;
+
                 // we must have passed the tape, so we look for it in the opposite direction
                 state.direction = -state.direction;
+
                 // not too sure if we should just set yaw to zero for this function
                 state.yaw = -state.yaw;
                 state.drive_state = DRIVE;

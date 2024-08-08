@@ -159,7 +159,7 @@ void circuit() {
     send_command(FOLLOW_WALL_TO, 1);
     vTaskDelayMS(1100);
     send_command(CommandMessage_t::ABORT, 0);
-    vTaskDelayMS(1150);
+    vTaskDelayMS(1450);
     send_command(DO_PIROUETTE, 2);
     wait_for_motion();
 

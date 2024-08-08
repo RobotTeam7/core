@@ -535,7 +535,7 @@ void TaskMaster(void *pvParameters)
                     if (state.desired_side_station == state.last_side_station) {
                         log_status("arrived at desired station!");
 
-                        if(xFollowWallHandle != NULL) {
+                        if (xFollowWallHandle != NULL) {
                             vTaskDelete(xFollowWallHandle);
                             xFollowWallHandle = NULL;
                         }
@@ -663,7 +663,7 @@ void TaskMaster(void *pvParameters)
                 }
                 state.y_direction = -state.y_direction;
 
-                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION_SIDE_SWAP;
                 state.drive_state = TRANSLATE;
                 vTaskDelayMS(DELAY_TRANSLATE_SIDE_SWAP);
 
@@ -791,9 +791,12 @@ void begin_wall_slamming() {
 }
 
 void begin_homing() {
-    if(xTaskCreate(TaskHoming, "Follow_Wall", 8192, &homing_data, PRIORITY_FOLLOW_WALL, &xHomingHandle) == pdPASS) {
+    if(xTaskCreate(TaskHoming, "Task_Homing", 8192, &homing_data, PRIORITY_FOLLOW_WALL, &xHomingHandle) == pdPASS) {
         log_status("Homing task was created successfully.");
     } else {
-        log_error("Homing task was not created successfully!");
+        while (1) {
+            log_error("Homing task was not created successfully!");
+            vTaskDelayMS(100);
+        }
     }
 }

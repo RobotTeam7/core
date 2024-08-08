@@ -41,6 +41,7 @@
 #define MOTOR_SPEED_ROTATION                        (16000)    // Base motor speed whilst rotating
 #define MOTOR_SPEED_DOCKING                         (6000)    // Base speed for when we are trying to dock
 #define MOTOR_SPEED_TRANSLATION                     (15000)   // Base speed for when we are trying to dock
+#define MOTOR_SPEED_TRANSLATION_SIDE_SWAP           (MOTOR_SPEED_TRANSLATION + 1000)   // Base speed for when we are trying to dock
 #define MOTOR_SPEED_BREAKING                        (12000)   // Break speed of the motors
 #define MOTOR_SPEED_WALL_SLAMMING                   (18000)    // Base motor sped whilst wall slamming
 #define MOTOR_SPEED_WALL_SLAMMING_CRAWL             (7800)    // Base motor sped whilst approaching desired station and wall slamming
