@@ -181,8 +181,8 @@ void circuit() {
     // DROP ON PLATE _________
     send_command(FOLLOW_WALL_TO, 4);
     wait_for_motion();
-    open_claw(ServoPositionsPercentage_t::VERTICAL_UP);
-    vTaskDelayMS(SERVO_ACTUATION_DELAY);
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_BURGER_STACK);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY + 120);
 
     // SWITCHING    _______________
     send_command(FOLLOW_WALL_TO, 2);

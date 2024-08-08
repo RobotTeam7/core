@@ -113,7 +113,8 @@ void circuit() {
     wait_for_motion();
     send_command(FOLLOW_WALL_TO, 3);
     wait_for_motion();
-    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGH_PATTY_DROP);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
     if (use_wifi) {
         log_status("Informing that patty is ready...");
