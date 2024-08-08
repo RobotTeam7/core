@@ -84,10 +84,10 @@ void circuit_salad() {
     grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_LETTUCE);
 
     send_command(FOLLOW_WALL_TO, 1);
-    vTaskDelayMS(1200);
+    vTaskDelayMS(300);
     send_command(CommandMessage_t::ABORT, 0);
-    vTaskDelayMS(900);
-    send_command(DO_PIROUETTE, 2);
+    vTaskDelayMS(300);
+    send_command(DO_PIROUETTE, 3);
     wait_for_motion();
 
     send_command(FOLLOW_WALL_TO, 4);
@@ -106,9 +106,9 @@ void circuit_salad() {
 
     // SWITCHING    _______________
     send_command(FOLLOW_WALL_TO, 2);
-    vTaskDelayMS(900);
+    vTaskDelayMS(750);
     send_command(ABORT, 0);
-    vTaskDelayMS(600);
+    vTaskDelayMS(550);
 
     send_command(DO_PIROUETTE, -2);
     set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
@@ -157,9 +157,9 @@ void circuit() {
 
     // PIROUETTE _________________
     send_command(FOLLOW_WALL_TO, 1);
-    vTaskDelayMS(1200);
+    vTaskDelayMS(1100);
     send_command(CommandMessage_t::ABORT, 0);
-    vTaskDelayMS(900);
+    vTaskDelayMS(1150);
     send_command(DO_PIROUETTE, 2);
     wait_for_motion();
 

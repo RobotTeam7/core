@@ -130,7 +130,7 @@ void wifi_msg_handler(void *parameter) {
 void grab_with_claw(ServoPositionsPercentage_t claw_percentage) {
     log_status("vertical servo down");
     if (set_servo_position_percentage(vertical_servo, (int)ServoPositionsPercentage_t::VERTICAL_DOWN)) {
-        vTaskDelayMS(SERVO_ACTUATION_DELAY);
+        vTaskDelayMS(SERVO_VERTICAL_DOWN_DELAY);
     }
 
     // close servo

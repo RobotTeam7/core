@@ -108,7 +108,7 @@ void circuit() {
     send_command(FOLLOW_WALL_TO, 3);
     vTaskDelayMS(700);
     send_command(ABORT, 0);
-    vTaskDelayMS(700);
+    vTaskDelayMS(800);
     send_command(DO_PIROUETTE, 2);
     wait_for_motion();
     send_command(FOLLOW_WALL_TO, 3);

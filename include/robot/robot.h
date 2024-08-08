@@ -10,6 +10,7 @@
 
 
 #define SERVO_ACTUATION_DELAY 350
+#define SERVO_VERTICAL_DOWN_DELAY (SERVO_ACTUATION_DELAY + 25)
 
 #ifndef use_wifi
     #define use_wifi 1

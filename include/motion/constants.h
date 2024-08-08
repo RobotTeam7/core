@@ -30,7 +30,7 @@
 #define DELAY_SINGLE_ROTATION                       (525)
 #define DELAY_COUNTER_ASIDE                         (850)
 #define DELAY_ESCAPE                                (700)
-#define MOTOR_SPEED_SPIN_TRANSLATION                (MOTOR_SPEED_TRANSLATION)
+#define MOTOR_SPEED_SPIN_TRANSLATION                (MOTOR_SPEED_TRANSLATION + 1000)
 #define MOTOR_SPEED_SPIN_ROTATION                   (MOTOR_SPEED_ROTATION)
 
 #endif
@@ -66,7 +66,7 @@
 #define DELAY_ROTATION_DURATION                     (3000)    // delay used to time when to stop rotating during a pirouette
 #define DELAY_START_PIROUETTE                       (500)
 #define DELAY_TRANSLATE_TO_WALL                     (1100)
-#define DELAY_TRANSLATE_SIDE_SWAP                   (1750)
+#define DELAY_TRANSLATE_SIDE_SWAP                   (1850)
 #define DELAY_TRANSLATE_ASIDE                       (600)
 
 
