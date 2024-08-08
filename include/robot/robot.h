@@ -33,6 +33,7 @@
         VERTICAL_HEIGHT_2 = 35, // 2 = halfway
         VERTICAL_HEIGHT_1 = 60, // 1 = second lowest position
         VERTICAL_DOWN = 100,
+        VERTICAL_HEIGH_PATTY_DROP = 75,
 
         CLAW_CLOSED_FULL = 0,
         CLAW_OPEN = 100,
@@ -59,6 +60,7 @@
         VERTICAL_HEIGHT_2 = 35, // 2 = halfway
         VERTICAL_HEIGHT_1 = 60, // 1 = second lowest position
         VERTICAL_DOWN = 100,
+        VERTICAL_HEIGHT_BURGER_STACK = 45,
 
         CLAW_CLOSED_FULL = 0,
         CLAW_OPEN = 100,
