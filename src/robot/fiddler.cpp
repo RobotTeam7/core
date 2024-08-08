@@ -86,7 +86,7 @@ void circuit_salad() {
 
     send_command(FOLLOW_WALL_TO, 1);
     wait_for_motion();
-    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
 
     send_command(FOLLOW_WALL_TO, 4);
     wait_for_motion();
@@ -99,7 +99,6 @@ void circuit_salad() {
 
     send_command(DO_ESCAPE, 3);
     wait_for_motion();
-     
 }
 
 void circuit() {

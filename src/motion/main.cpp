@@ -277,6 +277,11 @@ void TaskMaster(void *pvParameters)
                     translation_delay_after *= 1.25;
                 }
 
+                if(state.y_direction == -1 && state.orientation == -1) {
+                    translation_delay_after *= 1.6;
+                    rotation_delay *= 1.2;
+                }
+
                 state.y_direction = -state.y_direction;
                 state.drive_state = TRANSLATE;
                 state.drive_speed = MOTOR_SPEED_SPIN_TRANSLATION;
