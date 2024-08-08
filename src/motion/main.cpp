@@ -231,19 +231,7 @@ void setup() {
 
 void loop()
 {
-    // monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle, &xStationTrackingHandle); // Monitor stack usage periodically
-    // delay(2000);
-
-    // if(state.current_action == GOTO_STATION) {
-    //     Serial.print("going to station: ");
-    //     Serial.println(state.desired_station);
-    //     Serial.println("direction: " + String(state.direction));
-    // }else if(state.current_action == SPIN) {
-    //     Serial.println("rotating");
-    // }else if(state.current_action == IDLE) {
-    //     Serial.println("idling");
-    // }
-    // delay(2000);
+    // nothing here :)
 }
 
 void TaskMaster(void *pvParameters)
@@ -741,7 +729,7 @@ void TaskMaster(void *pvParameters)
 
 void begin_rotating() {
     // check if tape following task was created
-    if (xTaskCreate(TaskRotate, "TapeRotate", 2048, &config_following, PRIORITY_ROTATE, &xHandleRotating) == pdPASS) {
+    if (xTaskCreate(TaskRotate, "TapeRotate", 8192, &config_following, PRIORITY_ROTATE, &xHandleRotating) == pdPASS) {
         log_status("Rotate task was created successfully.");
     } else {
         log_error("Rotate task was not created successfully!");
@@ -750,7 +738,7 @@ void begin_rotating() {
 
 void begin_following() {
     // check if tape following task was created
-    if (xTaskCreate(TaskFollowTape, "Tape Following", 1024, &config_following, PRIORITY_FOLLOW_TAPE, &xHandleFollowing) == pdPASS) {
+    if (xTaskCreate(TaskFollowTape, "Tape Following", 8192, &config_following, PRIORITY_FOLLOW_TAPE, &xHandleFollowing) == pdPASS) {
         log_status("Tape following task was created successfully.");
     } else {
         log_error("Tape following task was not created successfully!");
@@ -759,7 +747,7 @@ void begin_following() {
 
 void begin_station_tracking() {
     // check if station tracking task was created
-    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, middleTapeSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
+    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 8192, middleTapeSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
         log_status("Station tracking task was created successfully.");
     } else {
         log_error("Station tracking task was not created successfully!");
@@ -768,7 +756,7 @@ void begin_station_tracking() {
 
 void begin_docking() {
     // check if station tracking task was created
-    if (xTaskCreate(TaskDocking, "Station_Tracking", 4096, &config_docking, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
+    if (xTaskCreate(TaskDocking, "Station_Tracking", 8192, &config_docking, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
         log_status("Docking task was created successfully.");
     } else {
         log_error("Docking task was not created successfully!");
@@ -777,7 +765,7 @@ void begin_docking() {
 
 void begin_counter_docking() {
     // check if counter docking task was created
-    if (xTaskCreate(TaskCounterDocking, "Counter_Docking", 2048, &xMasterHandle, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
+    if (xTaskCreate(TaskCounterDocking, "Counter_Docking", 8192, &xMasterHandle, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
         log_status("Docking task was created successfully.");
     } else {
         log_error("Docking task was not created successfully!");
@@ -786,7 +774,7 @@ void begin_counter_docking() {
 
 void begin_return_to_tape() {
     // check if counter docking task was created
-    if (xTaskCreate(TaskReturnToTape, "Tape_Return", 2048, &return_data, PRIORITY_RETURN_TO_TAPE, &xReturnToTapeHandle) == pdPASS) {
+    if (xTaskCreate(TaskReturnToTape, "Tape_Return", 8192, &return_data, PRIORITY_RETURN_TO_TAPE, &xReturnToTapeHandle) == pdPASS) {
         log_status("Tape return task was created successfully.");
     } else {
         log_error("Tape return task was not created successfully!");
@@ -795,7 +783,7 @@ void begin_return_to_tape() {
 
 void begin_wall_slamming() {
     // check if counter docking task was created
-    if (xTaskCreate(TaskFollowWall, "Follow_Wall", 4096, &wall_data, PRIORITY_FOLLOW_WALL, &xFollowWallHandle) == pdPASS) {
+    if (xTaskCreate(TaskFollowWall, "Follow_Wall", 8192, &wall_data, PRIORITY_FOLLOW_WALL, &xFollowWallHandle) == pdPASS) {
         log_status("Wall Follow task was created successfully.");
     } else {
         log_error("Wall Follow task was not created successfully!");
@@ -803,7 +791,7 @@ void begin_wall_slamming() {
 }
 
 void begin_homing() {
-    if(xTaskCreate(TaskHoming, "Follow_Wall", 2048, &homing_data, PRIORITY_FOLLOW_WALL, &xHomingHandle) == pdPASS) {
+    if(xTaskCreate(TaskHoming, "Follow_Wall", 8192, &homing_data, PRIORITY_FOLLOW_WALL, &xHomingHandle) == pdPASS) {
         log_status("Homing task was created successfully.");
     } else {
         log_error("Homing task was not created successfully!");

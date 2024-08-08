@@ -359,7 +359,10 @@ void TaskFollowWall(void* pvParameters) {
     FullSensorData_t* fullSensorData = (FullSensorData_t*)pvParameters;
 
     if (checkFullSensorData(fullSensorData)) {
-        log_error("Error: Full Sensor Data in Follow Wall contains nulls!");
+        while (true) {
+            log_error("Error: Full Sensor Data in Follow Wall contains nulls!");
+            vTaskDelayMS(100);
+        }
         vTaskDelete(xFollowWallHandle);
         xFollowWallHandle = NULL;
         return;

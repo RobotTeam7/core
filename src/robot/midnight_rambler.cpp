@@ -252,6 +252,10 @@ void TaskMaster(void* pvParameters) {
     send_command(SET_MULTIPLIER, 100);
 
     circuit_salad();
+
+    while (true) {
+        vTaskDelay(1000);
+    }
 }
 
 void setup() {

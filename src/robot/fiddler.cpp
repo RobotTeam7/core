@@ -197,6 +197,10 @@ void TaskMaster(void* pvParameters) {
     circuit();
 
     circuit_salad();
+
+    while (true) {
+        vTaskDelay(1000);
+    }
 }
 
 void setup() {
