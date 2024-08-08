@@ -1,3 +1,5 @@
+// MIDNIGHT RAMBLER WAS HERE GUYS
+
 #include <common/hal.h>
 #include <communication/uart.h>
 
