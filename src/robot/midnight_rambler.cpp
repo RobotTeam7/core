@@ -42,13 +42,93 @@ static inline void serve_food() {
     wait_for_motion();
 
     send_command(FOLLOW_WALL_TO, 1);
-    vTaskDelayMS(1250);
+    vTaskDelayMS(1100);
     send_command(ABORT, 0);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
 
     set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
     vTaskDelayMS(SERVO_ACTUATION_DELAY);
     set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_UP);
+
+}
+
+void single_burger_circuit() {
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+
+    if (use_wifi) {
+        while (!action_ready) {
+            log_status("Waiting for patty to be ready!");
+            vTaskDelayMS(50);
+        }
+        action_ready = false;
+        log_status("Patty is ready!");
+    }
+
+    grab_plate();
+
+    serve_food();
+}
+
+
+void circuit_salad() {
+    send_command(SET_MULTIPLIER, 100);
+
+    send_command(DO_PIROUETTE, -1);
+    wait_for_motion();
+
+    send_command(FOLLOW_WALL_TO, 2);
+    wait_for_motion();
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_LETTUCE);
+
+    send_command(FOLLOW_WALL_TO, 1);
+    vTaskDelayMS(1200);
+    send_command(CommandMessage_t::ABORT, 0);
+    vTaskDelayMS(900);
+    send_command(DO_PIROUETTE, 2);
+    wait_for_motion();
+
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+
+    if (use_wifi) {
+        while (!action_ready) {
+            log_status("Waiting for tomato to be ready!");
+            vTaskDelayMS(50);
+        }
+        action_ready = false;
+        log_status("tomato bun is ready!");
+    }
+
+
+    // SWITCHING    _______________
+    send_command(FOLLOW_WALL_TO, 2);
+    vTaskDelayMS(900);
+    send_command(ABORT, 0);
+    vTaskDelayMS(600);
+
+    send_command(DO_PIROUETTE, -2);
+    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
+    wait_for_motion();
+    vTaskDelayMS(250);
+
+    // GRAB PLATE   _______________
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+
+    set_servo_position_percentage(plating_servo, ServoPositionsPercentage_t::PLATE_OPEN);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY);
+    set_servo_position_percentage(draw_bridge_servo, ServoPositionsPercentage_t::DRAW_BRIDGE_DOWN);
+    vTaskDelayMS(SERVO_ACTUATION_DELAY);
+
+    grab_plate();
+
+    // SERVE FOOD   _______________
+    serve_food();
+
 
 }
 
@@ -79,7 +159,7 @@ void circuit() {
     send_command(FOLLOW_WALL_TO, 1);
     vTaskDelayMS(1200);
     send_command(CommandMessage_t::ABORT, 0);
-    vTaskDelayMS(600);
+    vTaskDelayMS(900);
     send_command(DO_PIROUETTE, 2);
     wait_for_motion();
 
@@ -106,15 +186,15 @@ void circuit() {
 
     // SWITCHING    _______________
     send_command(FOLLOW_WALL_TO, 2);
-    vTaskDelayMS(350); // -> 300
+    vTaskDelayMS(450);
     set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_DOWN);
-    vTaskDelayMS(550); // -> 300
-    send_command(ABORT, 0);
-
     if (use_wifi) {
         log_status("Plate station is clear...");
         send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
     }
+    vTaskDelayMS(450);
+    send_command(ABORT, 0);
+
 
     vTaskDelayMS(600);
 
@@ -155,20 +235,24 @@ void TaskMaster(void* pvParameters) {
     send_command(STARTUP_SERVER, 0);
     wait_for_motion();
     
-    while (true) {
-        circuit();
+    circuit();
 
-        send_command(SET_MULTIPLIER, 100);
-    
-        // SWITCHING COUNTER 
-        send_command(SWITCH_COUNTER, 3);
-        wait_for_motion();
-        send_command(FOLLOW_WALL_TO, 1);
-        set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_DOWN);
-        vTaskDelayMS(300);
-        set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
-        wait_for_motion();
-    }
+    send_command(SET_MULTIPLIER, 100);
+
+    // SWITCHING COUNTER 
+    send_command(SWITCH_COUNTER, 3);
+    wait_for_motion();
+    send_command(FOLLOW_WALL_TO, 1);
+    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_DOWN);
+    vTaskDelayMS(300);
+    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
+    wait_for_motion();
+
+    circuit();
+
+    send_command(SET_MULTIPLIER, 100);
+
+    single_burger_circuit();
 }
 
 void setup() {

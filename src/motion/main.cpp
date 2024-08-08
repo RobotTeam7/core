@@ -266,8 +266,8 @@ void TaskMaster(void *pvParameters)
                 if (counter_return) {
                     // fix the negativeness of the side station
                     state.last_side_station = -state.last_side_station;
-                    rotation_delay *= 1.0;
-                    translation_delay_before *= 1.15;
+                    rotation_delay *= 0.9;
+                    translation_delay_before *= 1.00;
                     translation_delay_after *= 1.35;
                 }
 

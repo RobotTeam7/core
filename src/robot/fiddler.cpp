@@ -9,25 +9,26 @@
 #include <communication/uart.h>
 
 void single_burger_circuit() {
-    send_command(DO_ESCAPE, 3); // REMOVE THIS FFS
+    // send_command(DO_ESCAPE, 3); // REMOVE THIS FFS
 
-    // PATTY
+    // GOTO PATTY
     send_command(FOLLOW_WALL_TO, 1);
     wait_for_motion();
-    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
 
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_PATTY);
+    
     // GOTO COOKTOP
     send_command(FOLLOW_WALL_TO, 3);
     vTaskDelayMS(700);
     send_command(ABORT, 0);
-    vTaskDelayMS(300);
+    vTaskDelayMS(700);
     send_command(DO_PIROUETTE, 2);
     wait_for_motion();
     send_command(FOLLOW_WALL_TO, 3);
     wait_for_motion();
     open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
 
-    // BOTTOM BUN
+    // GOTO BUN
     send_command(DO_PIROUETTE, 3);
     wait_for_motion();
     send_command(FOLLOW_WALL_TO, 2);
@@ -44,38 +45,61 @@ void single_burger_circuit() {
     wait_for_motion();
     open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
 
-    set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
-    // TOP BUN
-    send_command(FOLLOW_WALL_TO, 1);
-    vTaskDelayMS(175);
-    send_command(ABORT, 0);
-    vTaskDelayMS(200);
-    log_status("Doing pirouette!");
-    send_command(DO_PIROUETTE, 3);
+    // GOTO BUN
+    send_command(DO_ESCAPE, 3);
     wait_for_motion();
-
-    log_status("getting top bun");
     send_command(FOLLOW_WALL_TO, 2);
     wait_for_motion();
     grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
 
-    // DROP BUN  
+    // GOTO COOKTOP WITH BUN
     log_status("Doing pirouette!");
     send_command(DO_PIROUETTE, 2);
     wait_for_motion();
 
-    if (use_wifi) {
-        while (!action_ready) {
-            log_status("Waiting for plate station to be clear!");
-            vTaskDelayMS(50);
-        }
-        action_ready = false;
-        log_status("Plate station is clear!");
+    log_status("drop bun");
+    send_command(FOLLOW_WALL_TO, 3);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
+
+    // ASSEMBLE BURGER
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_BUN);
+    
+    send_command(FOLLOW_WALL_TO, 4);
+    wait_for_motion();
+    open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_1);
+
+    // ESCAPE
+    send_command(DO_ESCAPE, 3);
+    vTaskDelayMS(150);
+        if (use_wifi) {
+        log_status("Informing that patty is ready...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
     }
+    wait_for_motion();
+}
+
+void circuit_salad() {
+    // GOTO TOMATO
+    send_command(DO_PIROUETTE, 3);
+    wait_for_motion();
+
+    send_command(FOLLOW_WALL_TO, 1);
+    wait_for_motion();
+    grab_with_claw(ServoPositionsPercentage_t::CLAW_CLOSED_TOMATO);
+
     send_command(FOLLOW_WALL_TO, 4);
     wait_for_motion();
     open_claw(ServoPositionsPercentage_t::VERTICAL_HEIGHT_2);
 
+    if (use_wifi) {
+        log_status("Informing that patty is ready...");
+        send_wifi_message(CommandMessage_t::NEXT_ACTION, 0);
+    }
+
+    send_command(DO_ESCAPE, 3);
+    wait_for_motion();
+     
 }
 
 void circuit() {
@@ -166,12 +190,14 @@ void TaskMaster(void* pvParameters) {
     send_command(STARTUP_SERVER, 0);
     wait_for_motion();
 
-    while (true) {
-        circuit();
+    circuit();
 
-        send_command(FOLLOW_WALL_TO, 1);
-        wait_for_motion();
-    }
+    send_command(FOLLOW_WALL_TO, 1);
+    wait_for_motion();
+
+    circuit();
+
+    single_burger_circuit();
 }
 
 void setup() {
