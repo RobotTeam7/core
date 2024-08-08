@@ -17,7 +17,7 @@
 
 #define SERVO_DRAW_BRIDGE_PIN           (22)
 #define SERVO_DRAW_BRIDGE_DOWN          (0.090)
-#define SERVO_DRAW_BRIDGE_UP            (0.130)
+#define SERVO_DRAW_BRIDGE_UP            (0.140)
 
 #define SERVO_PLATE_PIN                 (19)
 #define SERVO_PLATE_OPEN                (0.065)

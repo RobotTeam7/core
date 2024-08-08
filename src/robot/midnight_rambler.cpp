@@ -168,6 +168,8 @@ void TaskMaster(void* pvParameters) {
         vTaskDelayMS(300);
         set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
         wait_for_motion();
+
+        circuit();
     }
 }
 
@@ -186,6 +188,7 @@ void setup() {
     vertical_servo = instantiate_servo_motor(SERVO_VERTICAL_PIN, SERVO_VERTICAL_DOWN, SERVO_VERTICAL_UP);
         
     set_servo_position_percentage(vertical_servo, ServoPositionsPercentage_t::VERTICAL_UP);
+
 
     init_communications(TX_PIN, RX_PIN);
     
