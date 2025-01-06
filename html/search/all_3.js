@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['getinstance_0',['getInstance',['../class_channel_manager.html#a392f6ab8283d2183a2c09719d37feb6e',1,'ChannelManager']]]
+  ['setup_0',['Setup',['../md__r_e_a_d_m_e.html#autotoc_md3',1,'']]]
 ];

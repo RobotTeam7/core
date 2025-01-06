@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['new_20component_0',['Adding a new component',['../md__r_e_a_d_m_e.html#autotoc_md2',1,'']]]
+  ['uploading_0',['Compiling and Uploading',['../md__r_e_a_d_m_e.html#autotoc_md4',1,'']]]
 ];
