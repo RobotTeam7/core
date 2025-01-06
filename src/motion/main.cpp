@@ -67,23 +67,23 @@ void uart_msg_handler(void *parameter) {
                             vTaskDelete(xFollowWallHandle);
                             xFollowWallHandle = NULL;
                         }
-                        send_uart_message(ACCEPTED, 0, false);
                         Serial.println("Accepting command: " + String(new_packet.command) + " : " + String(new_packet.value));
-
+                        
+                        send_uart_message(ACCEPTED, 0, false);
                         break;
 
                     case GOTO:
                         // state.desired_station = new_packet.value;
                         state.current_action = GOTO_STATION;
-                        send_uart_message(ACCEPTED, 0, false);
 
+                        send_uart_message(ACCEPTED, 0, false);
                         break;
 
                     case DO_SPIN:
                         state.current_action = ActionType_t::SPIN;
                         state.direction = new_packet.value;
-                        send_uart_message(ACCEPTED, 0, false);
 
+                        send_uart_message(ACCEPTED, 0, false);
                         break;
 
                     case COUNTER_DOCK:
@@ -92,15 +92,14 @@ void uart_msg_handler(void *parameter) {
                         state.last_side_station = 0;
 
                         send_uart_message(ACCEPTED, 0, false);
-
                         break;
 
                     case TAPE_RETURN:
                     {
                         state.current_action = ActionType_t::RETURN_TO_TAPE;
                         state.direction = new_packet.value;
-                        send_uart_message(ACCEPTED, 0, false);
 
+                        send_uart_message(ACCEPTED, 0, false);
                         break;
                     }
                     case FOLLOW_WALL_TO:
@@ -108,20 +107,27 @@ void uart_msg_handler(void *parameter) {
                         // packet contains the desired side station
                         state.current_action = ActionType_t::WALL_SLAM_TO;
                         state.desired_side_station = new_packet.value;
-                        send_uart_message(ACCEPTED, 0, false);
 
+                        send_uart_message(ACCEPTED, 0, false);
                         break;
                     }
                     case DO_PIROUETTE:
                         // packet contains the last_side_station on the side we will end up on
-                        state.current_action = ActionType_t::PIROUETTE;
+                        state.current_action = ActionType_t::SPIN;
                         state.last_side_station = new_packet.value;
-                        Serial.println("Value: " + String(state.last_side_station));
+
                         send_uart_message(ACCEPTED, 0, false);
                         break;
+
                     case SWITCH_COUNTER:
                         state.current_action = ActionType_t::SIDE_SWAP;
                         state.last_side_station = new_packet.value;
+                        send_uart_message(ACCEPTED, 0, false);
+                        break;
+                    case MOVE_ASIDE:
+                        state.current_action = ActionType_t::ASIDE;
+                        state.y_direction = new_packet.value;
+
                         send_uart_message(ACCEPTED, 0, false);
                         break;
 
@@ -129,6 +135,7 @@ void uart_msg_handler(void *parameter) {
                     {
                         float new_multipler = (float)new_packet.value / 100.0;
                         state.speed_modifier = new_multipler;
+
                         send_uart_message(ACCEPTED, 0, false);
                         break;
                     }
@@ -136,6 +143,7 @@ void uart_msg_handler(void *parameter) {
                     case STARTUP_SERVER:
                     {
                         state.current_action = ActionType_t::STARTUP;
+
                         send_uart_message(ACCEPTED, 0, false);
                         break;
                     }
@@ -143,6 +151,18 @@ void uart_msg_handler(void *parameter) {
                     case READY:
                     {
                         send_uart_message(ACK, 0, false);
+
+                        break;
+                    }
+
+                    case DO_ESCAPE:
+                    {
+                        state.current_action = ESCAPE;
+                        state.last_side_station = new_packet.value;
+
+                        send_uart_message(ACCEPTED, 0, false);
+
+                        break;
                     }
 
                     case 0x40 ... 0x4f:
@@ -211,19 +231,7 @@ void setup() {
 
 void loop()
 {
-    // monitorStackUsage(&xHandleRotating, &xReflectanceHandle, &xHandleFollowing, &xMasterHandle, &xStationTrackingHandle); // Monitor stack usage periodically
-    // delay(2000);
-
-    // if(state.current_action == GOTO_STATION) {
-    //     Serial.print("going to station: ");
-    //     Serial.println(state.desired_station);
-    //     Serial.println("direction: " + String(state.direction));
-    // }else if(state.current_action == SPIN) {
-    //     Serial.println("rotating");
-    // }else if(state.current_action == IDLE) {
-    //     Serial.println("idling");
-    // }
-    // delay(2000);
+    // nothing here :)
 }
 
 void TaskMaster(void *pvParameters)
@@ -235,26 +243,92 @@ void TaskMaster(void *pvParameters)
         StatusMessage_t receivedMessage;
         switch (state.current_action) {
             case SPIN:
-            {                
-                // Begin rotating and wait for a message that we see the tape
-                begin_rotating();
-                if (xQueueReceive(xSharedQueue, &receivedMessage, portMAX_DELAY) == pdPASS) {  // we will not stop rotating if we get an abort command
-                    if (receivedMessage == ROTATION_DONE) {
-                        log_status("Completed rotation: found tape!");         
-                        
-                        vTaskDelete(xHandleRotating);
-                        xHandleRotating = NULL;
-
-                        vTaskDelay(pdMS_TO_TICKS(ROTATE_INTO_TAPE_FOLLOW_DELAY));
-
-                        send_uart_message(COMPLETED);
-                        log_status("Ending rotation...");
-                        if (state.current_action == SPIN) {
-                            state.current_action = IDLE;
-                        }
-                    }
+            {      
+                bool counter_return = state.last_side_station < 0;
+                bool slow_pirouette = state.speed_modifier < 0.99;
+                int16_t rotation_delay = DELAY_SINGLE_ROTATION;
+                int16_t translation_delay_before = DELAY_COUNTER_ASIDE;
+                int16_t translation_delay_after = DELAY_COUNTER_ASIDE;
+                
+                // if desired side station is negative we want to return to the counter we just came from
+                if (counter_return) {
+                    // fix the negativeness of the side station
+                    state.last_side_station = -state.last_side_station;
+                    rotation_delay *= 0.9;
+                    translation_delay_before *= 1.00;
+                    translation_delay_after *= 1.35;
                 }
-                vTaskDelay(2000);
+
+                if (slow_pirouette) {
+                    rotation_delay *= 1.25;
+                    translation_delay_before *= 1.25;
+                    translation_delay_after *= 1.25;
+                }
+
+                if(state.y_direction == -1 && state.orientation == -1) {
+                    translation_delay_after *= 1.6;
+                    rotation_delay *= 1.2;
+                }
+
+                state.y_direction = -state.y_direction;
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_SPIN_TRANSLATION;
+
+                vTaskDelayMS(translation_delay_before);
+
+                state.drive_state = DriveState_t::ROTATE;
+                state.drive_speed = MOTOR_SPEED_SPIN_ROTATION;
+
+                vTaskDelayMS(rotation_delay);
+
+                if (counter_return) {
+                    state.y_direction = -state.y_direction;
+                }
+
+                state.orientation = -state.orientation;
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_SPIN_TRANSLATION;
+
+                vTaskDelayMS(translation_delay_after);
+
+                state.drive_speed = 0;
+                state.drive_state = STOP;
+                state.current_action = IDLE;
+                
+                send_uart_message(COMPLETED);
+                break;
+            }
+
+            case ESCAPE:
+            {
+                state.y_direction = -state.y_direction;
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+
+                vTaskDelayMS(DELAY_COUNTER_ASIDE);
+
+                state.direction = -1;
+                state.drive_state = DRIVE;
+                state.drive_speed = MOTOR_SPEED_WALL_SLAMMING;
+
+                vTaskDelayMS(DELAY_ESCAPE);
+
+                state.drive_state = DriveState_t::ROTATE;
+                state.drive_speed = MOTOR_SPEED_ROTATION;
+
+                vTaskDelayMS(DELAY_SINGLE_ROTATION);
+
+                state.orientation = -state.orientation;
+                state.drive_state = TRANSLATE;
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+
+                vTaskDelayMS(DELAY_COUNTER_ASIDE);
+
+                state.drive_speed = 0;
+                state.drive_state = STOP;
+                state.current_action = IDLE;
+
+                send_uart_message(COMPLETED);
                 break;
             }
 
@@ -461,7 +535,7 @@ void TaskMaster(void *pvParameters)
                     if (state.desired_side_station == state.last_side_station) {
                         log_status("arrived at desired station!");
 
-                        if(xFollowWallHandle != NULL) {
+                        if (xFollowWallHandle != NULL) {
                             vTaskDelete(xFollowWallHandle);
                             xFollowWallHandle = NULL;
                         }
@@ -529,14 +603,18 @@ void TaskMaster(void *pvParameters)
                     // fix the negativeness of the side station
                     state.last_side_station = -state.last_side_station;
 
-                    final_angle *= 1.2;
-                    final_delay = int(final_delay * 1.5);
+                    final_angle *= 1.1;
+                    final_delay = int(final_delay * 1.6);
                 }
 
-                if(slow_pirouette) {
-                    final_delay *= 1 / state.speed_modifier;
+                if (slow_pirouette) {
+                    final_delay *= 1.3 / state.speed_modifier;
                     initial_delay *= 0.8;
                     final_angle *= 1.33 / state.speed_modifier;
+                }
+
+                if (state.y_direction == -1 && state.orientation == -1) {
+                    final_angle *= 1.6;
                 }
 
                 log_status("doing pirouette!!");
@@ -576,7 +654,6 @@ void TaskMaster(void *pvParameters)
 
                 break;
             }
-
             case ActionType_t::SIDE_SWAP:
             {
                 if(state.y_direction == 0) {
@@ -584,16 +661,37 @@ void TaskMaster(void *pvParameters)
                     send_uart_message(COMPLETED);
                     state.current_action = IDLE;
                 }
-                
-                state.y_direction = - state.y_direction;
-                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.y_direction = -state.y_direction;
+
+                state.drive_speed = MOTOR_SPEED_TRANSLATION_SIDE_SWAP;
                 state.drive_state = TRANSLATE;
-                vTaskDelay(pdMS_TO_TICKS(DELAY_TRANSLATE_SIDE_SWAP));
+                vTaskDelayMS(DELAY_TRANSLATE_SIDE_SWAP);
 
                 log_status("side swap completed!");
                 state.drive_speed = 0;
                 state.drive_state = STOP;
-                state.y_direction = -state.y_direction;
+
+                state.current_action = IDLE;
+                send_uart_message(COMPLETED);
+
+                break;
+            }
+
+            case ActionType_t::ASIDE:
+            {
+                if (state.y_direction == 0) {
+                    log_error("cannot side swap when y direction is 0");
+                    send_uart_message(COMPLETED);
+                    state.current_action = IDLE;
+                }
+                
+                state.drive_speed = MOTOR_SPEED_TRANSLATION;
+                state.drive_state = TRANSLATE;
+                vTaskDelayMS(DELAY_TRANSLATE_ASIDE);
+
+                log_status("side swap completed!");
+                state.drive_speed = 0;
+                state.drive_state = STOP;
                 state.current_action = IDLE;
                 send_uart_message(COMPLETED);
 
@@ -610,7 +708,7 @@ void TaskMaster(void *pvParameters)
                 state.drive_speed = MOTOR_SPEED_WALL_SLAMMING_CRAWL;
                 state.drive_state = DRIVE;
                 state.direction = -1;
-                vTaskDelay(pdMS_TO_TICKS(500));
+                vTaskDelayMS(DELAY_STARTUP);
 
                 state.direction = 1;
                 begin_homing();
@@ -631,7 +729,7 @@ void TaskMaster(void *pvParameters)
 
 void begin_rotating() {
     // check if tape following task was created
-    if (xTaskCreate(TaskRotate, "TapeRotate", 2048, &config_following, PRIORITY_ROTATE, &xHandleRotating) == pdPASS) {
+    if (xTaskCreate(TaskRotate, "TapeRotate", 8192, &config_following, PRIORITY_ROTATE, &xHandleRotating) == pdPASS) {
         log_status("Rotate task was created successfully.");
     } else {
         log_error("Rotate task was not created successfully!");
@@ -640,7 +738,7 @@ void begin_rotating() {
 
 void begin_following() {
     // check if tape following task was created
-    if (xTaskCreate(TaskFollowTape, "Tape Following", 1024, &config_following, PRIORITY_FOLLOW_TAPE, &xHandleFollowing) == pdPASS) {
+    if (xTaskCreate(TaskFollowTape, "Tape Following", 8192, &config_following, PRIORITY_FOLLOW_TAPE, &xHandleFollowing) == pdPASS) {
         log_status("Tape following task was created successfully.");
     } else {
         log_error("Tape following task was not created successfully!");
@@ -649,7 +747,7 @@ void begin_following() {
 
 void begin_station_tracking() {
     // check if station tracking task was created
-    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 4096, middleTapeSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
+    if (xTaskCreate(TaskStationTracking, "Station_Tracking", 8192, middleTapeSensor, PRIORITY_STATION_TRACKING, &xStationTrackingHandle) == pdPASS) {
         log_status("Station tracking task was created successfully.");
     } else {
         log_error("Station tracking task was not created successfully!");
@@ -658,7 +756,7 @@ void begin_station_tracking() {
 
 void begin_docking() {
     // check if station tracking task was created
-    if (xTaskCreate(TaskDocking, "Station_Tracking", 4096, &config_docking, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
+    if (xTaskCreate(TaskDocking, "Station_Tracking", 8192, &config_docking, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
         log_status("Docking task was created successfully.");
     } else {
         log_error("Docking task was not created successfully!");
@@ -667,7 +765,7 @@ void begin_docking() {
 
 void begin_counter_docking() {
     // check if counter docking task was created
-    if (xTaskCreate(TaskCounterDocking, "Counter_Docking", 2048, &xMasterHandle, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
+    if (xTaskCreate(TaskCounterDocking, "Counter_Docking", 8192, &xMasterHandle, PRIORITY_STATION_TRACKING, &xDockingHandle) == pdPASS) {
         log_status("Docking task was created successfully.");
     } else {
         log_error("Docking task was not created successfully!");
@@ -676,7 +774,7 @@ void begin_counter_docking() {
 
 void begin_return_to_tape() {
     // check if counter docking task was created
-    if (xTaskCreate(TaskReturnToTape, "Tape_Return", 2048, &return_data, PRIORITY_RETURN_TO_TAPE, &xReturnToTapeHandle) == pdPASS) {
+    if (xTaskCreate(TaskReturnToTape, "Tape_Return", 8192, &return_data, PRIORITY_RETURN_TO_TAPE, &xReturnToTapeHandle) == pdPASS) {
         log_status("Tape return task was created successfully.");
     } else {
         log_error("Tape return task was not created successfully!");
@@ -685,7 +783,7 @@ void begin_return_to_tape() {
 
 void begin_wall_slamming() {
     // check if counter docking task was created
-    if (xTaskCreate(TaskFollowWall, "Follow_Wall", 4096, &wall_data, PRIORITY_FOLLOW_WALL, &xFollowWallHandle) == pdPASS) {
+    if (xTaskCreate(TaskFollowWall, "Follow_Wall", 8192, &wall_data, PRIORITY_FOLLOW_WALL, &xFollowWallHandle) == pdPASS) {
         log_status("Wall Follow task was created successfully.");
     } else {
         log_error("Wall Follow task was not created successfully!");
@@ -693,9 +791,12 @@ void begin_wall_slamming() {
 }
 
 void begin_homing() {
-    if(xTaskCreate(TaskHoming, "Follow_Wall", 2048, &homing_data, PRIORITY_FOLLOW_WALL, &xHomingHandle) == pdPASS) {
+    if(xTaskCreate(TaskHoming, "Task_Homing", 8192, &homing_data, PRIORITY_FOLLOW_WALL, &xHomingHandle) == pdPASS) {
         log_status("Homing task was created successfully.");
     } else {
-        log_error("Homing task was not created successfully!");
+        while (1) {
+            log_error("Homing task was not created successfully!");
+            vTaskDelayMS(100);
+        }
     }
 }

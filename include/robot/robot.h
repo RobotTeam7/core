@@ -9,7 +9,8 @@
 #include <communication/uart.h>
 
 
-#define SERVO_ACTUATION_DELAY 500
+#define SERVO_ACTUATION_DELAY 350
+#define SERVO_VERTICAL_DOWN_DELAY (SERVO_ACTUATION_DELAY + 25)
 
 #ifndef use_wifi
     #define use_wifi 1
@@ -21,27 +22,63 @@
     #pragma message "Disabling the use of WiFi!"
 #endif
 
-typedef enum {
-    VERTICAL_UP = 0,
-    VERTICAL_HEIGHT_3 = 10, // 3 = second highest position
-    VERTICAL_HEIGHT_2 = 35, // 2 = halfway
-    VERTICAL_HEIGHT_1 = 60, // 1 = second lowest position
-    VERTICAL_DOWN = 100,
 
-    CLAW_CLOSED_FULL = 0,
-    CLAW_OPEN = 100,
-    CLAW_CLOSED_BUN = 21,
-    CLAW_CLOSED_LETTUCE = 0,
-    CLAW_CLOSED_TOMATO = 3,
-    CLAW_CLOSED_CHEESE = 13,
-    CLAW_CLOSED_PATTY = 12,
 
-    PLATE_CLOSED = 0,
-    PLATE_OPEN = 100,
+#if robot == 1 // fiddler
 
-    DRAW_BRIDGE_UP = 100,
-    DRAW_BRIDGE_DOWN = 0,
-} ServoPositionsPercentage_t;
+    typedef enum {
+        
+        VERTICAL_UP = 0,
+        VERTICAL_HEIGHT_3 = 10, // 3 = second highest position
+        VERTICAL_HEIGHT_2 = 35, // 2 = halfway
+        VERTICAL_HEIGHT_1 = 60, // 1 = second lowest position
+        VERTICAL_DOWN = 100,
+        VERTICAL_HEIGH_PATTY_DROP = 75,
+
+        CLAW_CLOSED_FULL = 0,
+        CLAW_OPEN = 100,
+        CLAW_CLOSED_BUN = 21,
+        CLAW_CLOSED_LETTUCE = 0,
+        CLAW_CLOSED_TOMATO = 3,
+        CLAW_CLOSED_CHEESE = 13,
+        CLAW_CLOSED_PATTY = 15,
+
+        PLATE_CLOSED = 0,
+        PLATE_OPEN = 100,
+
+        DRAW_BRIDGE_UP = 100,
+        DRAW_BRIDGE_DOWN = 0,
+
+    } ServoPositionsPercentage_t;
+
+
+#elif robot == 0 // rambler
+
+    typedef enum {
+        VERTICAL_UP = 0,
+        VERTICAL_HEIGHT_3 = 10, // 3 = second highest position
+        VERTICAL_HEIGHT_2 = 35, // 2 = halfway
+        VERTICAL_HEIGHT_1 = 60, // 1 = second lowest position
+        VERTICAL_DOWN = 100,
+        VERTICAL_HEIGHT_BURGER_STACK = 45,
+
+        CLAW_CLOSED_FULL = 0,
+        CLAW_OPEN = 100,
+        CLAW_CLOSED_BUN = 5,
+        CLAW_CLOSED_LETTUCE = 0,
+        CLAW_CLOSED_TOMATO = 1,
+        CLAW_CLOSED_CHEESE = 9,
+        CLAW_CLOSED_PATTY = 7,
+
+        PLATE_CLOSED = 0,
+        PLATE_OPEN = 100,
+
+        DRAW_BRIDGE_UP = 100,
+        DRAW_BRIDGE_DOWN = 0,
+    } ServoPositionsPercentage_t;
+
+#endif
+
 
 extern QueueHandle_t uart_msg_queue;
 extern ServoMotor_t* claw_servo;
@@ -59,7 +96,7 @@ void TaskMaster(void* pvParameters);
 
 void send_wifi_message(CommandMessage_t command, int8_t value);
 
-void grab_with_claw(int claw_percentage);
+void grab_with_claw(ServoPositionsPercentage_t claw_percentage);
 
 void grab_plate();
 

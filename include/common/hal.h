@@ -181,7 +181,7 @@ ServoMotor_t* instantiate_servo_motor(uint8_t control_pin, double max_duty_cycle
  * 
  * @param percentage value within the range 0 – 100.
  */
-void set_servo_position_percentage(ServoMotor_t* servoMotor, int percentage);
+int set_servo_position_percentage(ServoMotor_t* servoMotor, int percentage);
 
 
 

@@ -29,7 +29,6 @@ int position;
 
 void IRAM_ATTR claw_isr() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    Serial.println("Claw!");
 
     if (xClawHandle != NULL) {
         vTaskNotifyGiveFromISR(xClawHandle, &xHigherPriorityTaskWoken);
@@ -44,7 +43,6 @@ void IRAM_ATTR claw_isr() {
 
 void IRAM_ATTR forklift_isr() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    Serial.println("Forklift!");
 
     if (xForkliftHandle != NULL) {
         vTaskNotifyGiveFromISR(xForkliftHandle, &xHigherPriorityTaskWoken);
@@ -225,26 +223,32 @@ ServoMotor_t* instantiate_servo_motor(uint8_t control_pin, double max_duty_cycle
     return servoMotor;
 }
 
-void set_servo_position(ServoMotor_t* servoMotor, uint16_t newPosition) {
-    servoMotor->position = newPosition;
+int set_servo_position(ServoMotor_t* servoMotor, uint16_t newPosition) {
     Serial.println("setting servo to power: " + String(newPosition));
-    set_pwm(servoMotor->control_pin, servoMotor->position);
+
+    if (servoMotor->position != newPosition) {
+        servoMotor->position = newPosition;
+        set_pwm(servoMotor->control_pin, servoMotor->position);
+        return 1;
+    }
+
+    return 0;
 }
 
 // sets the position of the claw based on a percentage value
 // 0 is closed
 // 1 is open
-void set_servo_position_percentage(ServoMotor_t* servoMotor, int percentange) {
+int set_servo_position_percentage(ServoMotor_t* servoMotor, int percentange) {
     if (percentange < 0 || percentange > 100) {
         log_error("Invalid percentage. Must be between 0 and 100!");
-        return;
+        return 0;
     }
 
     int range = (servoMotor->max_duty_cycle - servoMotor->min_duty_cycle) * UINT16_MAX;
     int min_power = servoMotor->min_duty_cycle * UINT16_MAX;
     int power = min_power + range * ( (float) percentange / 100.0 ) ;
 
-    set_servo_position(servoMotor, power);
+    return set_servo_position(servoMotor, power);
 }
 
 StepperMotor_t* stepper_motor = NULL;
