@@ -33,9 +33,9 @@ Generally, the documentation for functions will be contained in the definition `
 
 We separated our firmware into four modules.
 1. [`common`](#common) for shared functionality for all microcontrollers and hardware abstractions
-2. `communication` for inter-robot and intra-robot communication protocols
-3. `motion` for drive control related functionality and state management
-4. `robot` with high-level abstractions and competition strategy
+2. [`communication`](#communication) for inter-robot and intra-robot communication protocols
+3. [`motion`](#motion) for drive control related functionality and state management
+4. [`robot`](#robot) with high-level abstractions and competition strategy
 
 ### `common`
 
